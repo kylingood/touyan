@@ -1,0 +1,19 @@
+
+{% include 'components/header.html' %}
+{% include 'components/sidebar.html' %}
+
+
+       <!--begin::App Main-->
+      <main class="app-main">
+
+         {% block content %}
+            <!-- 子页面内容将插入这里 -->
+         {% endblock %}
+
+
+
+
+      </main>
+      <!--end::App Main-->
+
+{% include 'components/footer.html' %}

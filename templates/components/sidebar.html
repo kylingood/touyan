@@ -1,0 +1,92 @@
+      <!--begin::Sidebar-->
+      <aside class="app-sidebar shadow bg-light" data-bs-theme="light">
+        <!--begin::Sidebar Brand-->
+        <div class="sidebar-brand">
+          <!--begin::Brand Link-->
+          <a href="/" class="brand-link">
+            <!--begin::Brand Image-->
+           <i class="nav-icon layui-icon layui-icon-bot"></i>
+            <!--end::Brand Image-->
+            <!--begin::Brand Text-->
+            <span class="brand-text fw-light">投研工具</span>
+            <!--end::Brand Text-->
+          </a>
+          <!--end::Brand Link-->
+        </div>
+        <!--end::Sidebar Brand-->
+        <!--begin::Sidebar Wrapper-->
+        <div class="sidebar-wrapper">
+          <nav class="mt-2">
+            <!--begin::Sidebar Menu-->
+            <ul
+              class="nav sidebar-menu flex-column"
+              data-lte-toggle="treeview"
+              role="menu"
+              data-accordion="false"
+            >
+               <li class="nav-item">
+                <a href="/" class="nav-link {% if request.path == '/' %}active{% endif %}">
+                  <i class="nav-icon layui-icon layui-icon-website"></i>
+                  <p>管理首页</p>
+                </a>
+              </li>
+
+
+              <li class="nav-item">
+                <a href="{{ url_for('twitter.index') }}" class="nav-link {% if request.path.startswith('/twitter/index') %}active{% endif %} ">
+                  <i class="nav-icon layui-icon layui-icon-group"></i>
+                  <p>推特列表</p>
+                </a>
+              </li>
+
+
+
+
+              <li class="nav-item">
+                <a href="{{ url_for('category.twitter') }}" class="nav-link {% if request.path.startswith('/category/twitter') %}active{% endif %}">
+                  <i class="nav-icon layui-icon layui-icon-template-1" ></i>
+                  <p>推特分组</p>
+                </a>
+              </li>
+
+              <li class="nav-item">
+                <a href="{{ url_for('discord.index') }}" class="nav-link {% if request.path.startswith('/discord/index') %}active{% endif %} ">
+                  <i class="nav-icon layui-icon layui-icon-reply-fill"></i>
+                  <p>Discord列表</p>
+                </a>
+              </li>
+
+              <li class="nav-item">
+                <a href="{{ url_for('category.discord') }}" class="nav-link {% if request.path.startswith('/category/discord') %}active{% endif %}">
+                  <i class="nav-icon layui-icon layui-icon-app" ></i>
+                  <p>Discord分组</p>
+                </a>
+              </li>
+
+              <li class="nav-item">
+                <a href="/" class="nav-link">
+                  <i class="nav-icon layui-icon layui-icon-survey"></i>
+                  <p>推文总结</p>
+                </a>
+              </li>
+              <li class="nav-item">
+                <a href="/" class="nav-link">
+                  <i class="nav-icon layui-icon layui-icon-user"></i>
+                  <p>共同关注</p>
+                </a>
+              </li>
+
+              <li class="nav-item">
+                <a href="/" class="nav-link">
+                  <i class="nav-icon layui-icon layui-icon-chart-screen"></i>
+                  <p>最新项目</p>
+                </a>
+              </li>
+
+            </ul>
+            <!--end::Sidebar Menu-->
+          </nav>
+        </div>
+        <!--end::Sidebar Wrapper-->
+      </aside>
+      <!--end::Sidebar-->

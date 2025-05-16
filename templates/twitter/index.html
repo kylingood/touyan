@@ -1,0 +1,554 @@
+{% extends "base.html" %}
+
+{% block content %}
+ <!--begin::App Content Header-->
+        <div class="app-content-header">
+          <!--begin::Container-->
+          <div class="container-fluid">
+            <!--begin::Row-->
+            <div class="row">
+              <div class="col-sm-6"><h4 class="mb-0">推特列表</h4></div>
+              <div class="col-sm-6">
+                <ol class="breadcrumb float-sm-end">
+                  <li class="breadcrumb-item"> <button type="button" class="btn btn-primary mb-2 btn-sm"  lay-on="add-twitter-page-custom">添加新推特</button></li>
+                  <li class="breadcrumb-item active" aria-current="page"><button type="button" lay-on="add-category-page-custom"  class="btn btn-success btn-sm mb-2">添加分组</button></li>
+                </ol>
+              </div>
+            </div>
+
+            <div class="layui-btn-container" id="category_html">
+
+            </div>
+
+            <!--end::Row-->
+          </div>
+          <!--end::Container-->
+        </div>
+        <div class="app-content">
+          <!--begin::Container-->
+          <div class="container-fluid">
+
+               <div class="card mb-4">
+                  <div class="card-header">
+                    <h3 class="card-title">推特监控列表</h3>
+                  </div>
+                  <!-- /.card-header -->
+                  <div class="card-body p-0">
+
+                    <table class="table table-striped">
+                      <thead>
+                        <tr>
+                          <th style="width: 80px">序号</th>
+                          <th>推特账号</th>
+                          <th>所属分组</th>
+                          <th>备注信息</th>
+                          <th>关注数</th>
+                          <th>粉丝量</th>
+                          <th style="width: 150px">操作</th>
+                        </tr>
+                      </thead>
+                      <tbody id="data-table">
+
+                      </tbody>
+                    </table>
+                    <div style="text-align: center;" id="demo-laypage-all"></div>
+                  </div>
+                  <!-- /.card-body -->
+                </div>
+                <!-- /.card -->
+
+
+          </div>
+          <!--end::Container-->
+        </div>
+        <!--end::App Content-->
+
+<script>
+
+layui.use(['laypage', 'jquery'], function() {
+  var laypage = layui.laypage;
+  var $ = layui.jquery;
+  const token = localStorage.getItem('token');
+  let  cid = 0;
+
+  // 监听分类按钮点击
+  $('#category_html').on('click', '.layui-btn', function() {
+    cid = $(this).data('id');
+    // 样式切换：移除其他按钮的 cur，添加当前按钮的 cur
+    $('#category_html .layui-btn').addClass('layui-btn-primary');
+    $(this).removeClass('layui-btn-primary');
+
+    fetchData(1, 10,cid); // 点击分类时重置为第一页
+  });
+
+  function fetchData(page, limit, cid) {
+    $.ajax({
+      url: '{{ url_for('twitter.page') }}',  // 替换为你的后端接口
+      type: 'GET',
+      headers: {
+        'Authorization': 'Bearer ' + token,
+        'Content-Type': 'application/json'
+      },
+      data: { page: page, limit: limit, cid: cid },
+      success: function(res) {
+        // 假设 res 格式：{ code: 0, count: 100, data: [...] }
+        if (res.code === 0) {
+          renderTable(res.data);  // 渲染表格
+          laypage.render({
+            elem: 'demo-laypage-all',
+            count: res.count,
+            limit: limit,
+            curr: page,
+            layout: ['count', 'prev', 'page', 'next', 'limit', 'skip'], // 功能布局
+            jump: function(obj, first) {
+              if (!first) {
+                fetchData(obj.curr, obj.limit, cid);  // 重新获取数据
+              }
+            }
+          });
+        }
+      }
+    });
+  }
+
+  function renderTable(data) {
+    var html = '';
+    const colorClasses = [
+      'layui-bg-orange',
+      'layui-bg-green',
+      'layui-bg-cyan',
+      'layui-bg-blue',
+      'layui-bg-black'
+    ];
+
+    data.forEach(function(item) {
+      // 随机选择一个 class
+      const randomClass = colorClasses[Math.floor(Math.random() * colorClasses.length)];
+      html += `<tr class="align-middle" id="del_twitter_${item.id}">
+                          <td>${item.num}.</td>
+                          <td><a href="https://x.com/${item.username}" class="alert-link" target="_blank">${item.username}</a></td>
+                          <td><span class="layui-badge ${randomClass}">${item.cate_name}</span></td>
+                          <td>${item.remark}</td>
+                          <td>${item.followers}</td>
+                          <td>${item.fans}</td>
+                          <td>
+                          <span   lay-on="edit-confirm"  data-id="${item.id}" data-cid="${item.cid}"  data-title="${item.username}" data-remark="${item.remark}" ><button type="button" class="layui-btn layui-bg-blue  layui-btn-sm">修改</button></span>
+                           <span   lay-on="del-confirm"  data-id="${item.id}" ><button type="button" class="layui-btn layui-bg-red  layui-btn-sm">删除</button></span>
+                           </td>
+                        </tr>`;
+    });
+    $('#data-table').html(html);
+  }
+
+
+    // ✅ 取到分类列表
+  function getCategory(){
+
+       const token = localStorage.getItem('token');
+       $.ajax({
+        url:'{{ url_for('category.list') }}',// ✅ 你后端接口地址
+        headers: {
+            'Authorization': 'Bearer ' + token,
+        },
+        type: 'GET',
+        success: function(res) {
+          if (res.status === 1 && Array.isArray(res.data)) {
+            const select = $('#category_html');
+            select.empty();  // 清空旧内容
+            select.append('<button type="button" data-id="0"  class="layui-btn  layui-btn-sm ">全部分组</button>');
+            res.data.forEach(item => {
+                const selected = (item.id === cid) ? 'selected' : '';
+                select.append(`<button type="button" data-id="${item.id}" class="layui-btn layui-btn-primary layui-btn-sm  ${selected}"> ${item.title}</button>`);
+            });
+
+          } else {
+            layer.msg('下拉数据加载失败');
+          }
+        },
+        error: function() {
+          layer.msg('请求出错');
+        }
+      });
+  }
+
+  fetchData(1, 10,0);  // 默认加载第1页，10条数据
+  setTimeout(getCategory, 500);
+});
+
+
+
+
+
+layui.use(function(){
+  var $ = layui.$;
+  var layer = layui.layer;
+  var util = layui.util;
+  var form = layui.form;
+
+  const token = localStorage.getItem('token');
+
+
+  // 事件
+  util.on('lay-on', {
+    'del-twitter-confirm': function(){
+      const id = $(this).data('id');       // 获取 data-id 的值
+
+        layer.confirm('你确定删除此信息？', {
+        btn: ['确定', '取消'] //按钮
+      }, function(){
+        // 此处可执行 Ajax 等操作
+        $.ajax({
+                url:'{{ url_for('twitter.delete') }}',
+                data:{
+                    "id":id,
+                },
+                headers: {
+                    'Authorization': 'Bearer ' + token,
+                },
+                dataType:"json",
+                type:"post",
+                async:false,
+                success:function(result){
+                    if(result.status == 1){
+                        $('#del_twitter_'+id).remove();
+                        layer.msg(result.message);
+                        return true
+                    }else{
+                    	layer.msg(result.message);
+                    	return false
+                    }
+                }
+        })
+
+
+      }, function(){
+            return true
+
+      });
+    },
+    'edit-confirm': function(){
+
+      const id = $(this).data('id');       // 获取 data-id 的值
+      const cid = $(this).data('cid');       // 获取 data-id 的值
+      const title = $(this).data('title');       // 获取 data-title 的值
+      const remark = $(this).data('remark');       // 获取 data-remark 的值
+
+      layer.open({
+        type: 1,
+        area: '350px',
+        resize: false,
+        shadeClose: true,
+        title: '修改推特',
+        content: `
+          <div class="layui-form" lay-filter="filter-test-layer" style="margin: 16px;">
+            <div class="demo-login-container">
+              <div class="layui-form-item">
+                <div class="layui-input-wrap">
+                  <div class="layui-input-prefix">
+                    <i class="layui-icon layui-icon-username"></i>
+                  </div>
+
+                  <input type="text" name="username" value="${title}" lay-verify="required" placeholder="推特名称" lay-reqtext="请填写推特用户名" autocomplete="off" class="layui-input" lay-affix="clear">
+                </div>
+              </div>
+
+               <div class="layui-form-item">
+                <div class="layui-input-wrap">
+                  <div class="layui-input-prefix">
+                    <i class="layui-icon layui-icon-list"></i>
+                  </div>
+                    <select name="category_id" id="category_select" lay-verify="required" lay-search>
+                      <option value="">直接选择或搜索分组</option>
+                    </select>
+                    </div>
+              </div>
+
+              <div class="layui-form-item">
+                <div class="layui-input-wrap">
+                  <div class="layui-input-prefix">
+                    <i class="layui-icon layui-icon-password"></i>
+                  </div>
+                    <textarea placeholder="请输入此推特备注" name="remark" class="layui-textarea" lay-verify="required"  lay-reqtext="请填写推特备注"  >${remark}</textarea>
+                     <input type="hidden" name="id" value="${id}" lay-verify="required"  autocomplete="off" >
+                     <input type="hidden" name="cid" value="${cid}" lay-verify="required"  autocomplete="off" >
+                 </div>
+              </div>
+              <div class="layui-form-item">
+                <button class="layui-btn layui-btn-fluid" id="add-button" lay-submit lay-filter="demo-login">确定修改</button>
+              </div>
+
+            </div>
+          </div>
+        `,
+        success: function(){
+          // 对弹层中的表单进行初始化渲染
+          form.render();
+
+          // Step 2: 异步加载下拉数据
+          $.ajax({
+            url:'{{ url_for('category.list') }}',// ✅ 你后端接口地址
+            headers: {
+                'Authorization': 'Bearer ' + token,
+            },
+            type: 'GET',
+            data: { is_type: 1 },
+            success: function(res) {
+              if (res.status === 1 && Array.isArray(res.data)) {
+                const select = $('#category_select');
+                select.empty();  // 清空旧内容
+                select.append('<option value="">直接选择或搜索选择</option>');
+                res.data.forEach(item => {
+                    const selected = (item.id === cid) ? 'selected' : '';
+                    select.append(`<option value="${item.id}" ${selected}>${item.title}</option>`);
+                });
+                form.render('select');  // ⭐ 重要：重新渲染 layui select
+              } else {
+                layer.msg('下拉数据加载失败');
+              }
+            },
+            error: function() {
+              layer.msg('请求出错');
+            }
+          });
+          // 表单提交事件
+          form.on('submit(demo-login)', function(data){
+
+            $("#add-button").html("请稍等，正在提交数据...").attr("disabled","disabled");
+            // 此处可执行 Ajax 等操作
+            $.ajax({
+                url:'{{ url_for('twitter.edit') }}',
+                headers: {
+                    'Authorization': 'Bearer ' + token,
+                },
+                data:{
+                    "username":data.field.username,
+                    "id":data.field.id,
+                    "cid":data.field.category_id,
+                    "remark":data.field.remark
+                },
+                dataType:"json",
+                type:"post",
+                async:false,
+                success:function(result){
+                    if(result.status == 1){
+
+                        layer.confirm(result.message, {
+                          btn: ['确定', '关闭'] //按钮
+                        }, function(){
+                          window.location.href='{{ url_for('twitter.index') }}';
+                        }, function(){
+                          window.location.href='{{ url_for('twitter.index') }}';
+                        });
+
+                        return true
+
+                    }else{
+                    	$("#add-button").html("确定提交").removeAttr("disabled");
+                    	return layer.msg(result.message);
+                    }
+                }
+            })
+            return false; // 阻止默认 form 跳转
+          });
+        }
+      });
+    },
+    'add-twitter-page-custom': function(){
+      layer.open({
+        type: 1,
+        area: '350px',
+        resize: false,
+        shadeClose: true,
+        title: '新增推特账号',
+        content: `
+          <div class="layui-form" lay-filter="filter-test-layer" style="margin: 16px;">
+            <div class="demo-login-container">
+              <div class="layui-form-item">
+                <div class="layui-input-wrap">
+                  <div class="layui-input-prefix">
+                    <i class="layui-icon layui-icon-username"></i>
+                  </div>
+                  <input type="text" name="username" value="" lay-verify="required" placeholder="@推特用户名" lay-reqtext="请填写推特用户名" autocomplete="off" class="layui-input" lay-affix="clear">
+                </div>
+              </div>
+
+             <div class="layui-form-item">
+                <div class="layui-input-wrap">
+                  <div class="layui-input-prefix">
+                    <i class="layui-icon layui-icon-list"></i>
+                  </div>
+                    <select name="category_id" id="category_select" lay-verify="required" lay-search>
+                      <option value="">直接选择或搜索分组</option>
+                    </select>
+                    </div>
+              </div>
+
+              <div class="layui-form-item">
+                <div class="layui-input-wrap">
+                  <div class="layui-input-prefix">
+                    <i class="layui-icon layui-icon-password"></i>
+                  </div>
+                    <textarea placeholder="请输入此推特备注" name = "remark" class="layui-textarea" lay-verify="required"  lay-reqtext="请填写推特备注"  ></textarea>
+                 </div>
+              </div>
+
+              <div class="layui-form-item">
+                <button class="layui-btn layui-btn-fluid" id="add-button" lay-submit lay-filter="demo-login">确定增加</button>
+              </div>
+
+            </div>
+          </div>
+        `,
+        success: function(){
+          // 对弹层中的表单进行初始化渲染
+          form.render();
+           // Step 2: 异步加载下拉数据
+          $.ajax({
+            url:'{{ url_for('category.list') }}',// ✅ 你后端接口地址
+            headers: {
+                'Authorization': 'Bearer ' + token,
+            },
+            type: 'GET',
+            data: { is_type: 1 },
+            success: function(res) {
+              if (res.status === 1 && Array.isArray(res.data)) {
+                const select = $('#category_select');
+                select.empty();  // 清空旧内容
+                select.append('<option value="">直接选择或搜索选择</option>');
+                res.data.forEach(item => {
+                  select.append(`<option value="${item.id}">${item.title}</option>`);
+                });
+                form.render('select');  // ⭐ 重要：重新渲染 layui select
+              } else {
+                layer.msg('下拉数据加载失败');
+              }
+            },
+            error: function() {
+              layer.msg('请求出错');
+            }
+          });
+          // 表单提交事件
+          form.on('submit(demo-login)', function(data){
+
+            $("#add-button").html("请稍等，正在提交数据...").attr("disabled","disabled");
+            // 此处可执行 Ajax 等操作
+            $.ajax({
+                url:'{{ url_for('twitter.add') }}',
+                headers: {
+                    'Authorization': 'Bearer ' + token,
+                },
+                data:{
+                    "username":data.field.username,
+                    "cid":data.field.category_id,
+                    "remark":data.field.remark
+                },
+                dataType:"json",
+                type:"post",
+                async:false,
+                success:function(result){
+                    if(result.status == 1){
+
+                        layer.confirm(result.message, {
+                          btn: ['确定', '关闭'] //按钮
+                        }, function(){
+                          window.location.href='{{ url_for('twitter.index') }}';
+                        }, function(){
+                          window.location.href='{{ url_for('twitter.index') }}';
+                        });
+
+                        return true
+
+                    }else{
+                    	$("#add-button").html("确定提交").removeAttr("disabled");
+                    	return layer.msg(result.message);
+                    }
+                }
+            })
+            return false; // 阻止默认 form 跳转
+          });
+        }
+      });
+    },
+    'add-category-page-custom': function(){
+      layer.open({
+        type: 1,
+        area: '350px',
+        resize: false,
+        shadeClose: true,
+        title: '新增分组',
+        content: `
+          <div class="layui-form" lay-filter="filter-test-layer" style="margin: 16px;">
+            <div class="demo-login-container">
+              <div class="layui-form-item">
+                <div class="layui-input-wrap">
+                  <div class="layui-input-prefix">
+                    <i class="layui-icon layui-icon-username"></i>
+                  </div>
+                  <input type="text" name="username" value="" lay-verify="required" placeholder="分组名称" lay-reqtext="请填写分组名称" autocomplete="off" class="layui-input" lay-affix="clear">
+                </div>
+              </div>
+              <div class="layui-form-item">
+                <div class="layui-input-wrap">
+                  <div class="layui-input-prefix">
+                    <i class="layui-icon layui-icon-password"></i>
+                  </div>
+                    <textarea placeholder="请输入此分组备注" name = "remark" class="layui-textarea" lay-verify="required"  lay-reqtext="请填写分组备注"  ></textarea>
+                 </div>
+              </div>
+
+              <div class="layui-form-item">
+                <button class="layui-btn layui-btn-fluid" id="add-button" lay-submit lay-filter="demo-login">确定增加</button>
+              </div>
+
+            </div>
+          </div>
+        `,
+        success: function(){
+          // 对弹层中的表单进行初始化渲染
+          form.render();
+          // 表单提交事件
+          form.on('submit(demo-login)', function(data){
+
+            $("#add-button").html("请稍等，正在提交数据...").attr("disabled","disabled");
+            // 此处可执行 Ajax 等操作
+            $.ajax({
+                url:'{{ url_for('category.add') }}',
+                headers: {
+                    'Authorization': 'Bearer ' + token,
+                },
+                data:{
+                    "username":data.field.username,
+                    "remark":data.field.remark
+                },
+                dataType:"json",
+                type:"post",
+                async:false,
+                success:function(result){
+                    if(result.status == 1){
+
+                        layer.confirm(result.message, {
+                          btn: ['确定', '关闭'] //按钮
+                        }, function(){
+                          window.location.href='{{ url_for('twitter.index') }}';
+                        }, function(){
+                          window.location.href='{{ url_for('twitter.index') }}';
+                        });
+
+                        return true
+
+                    }else{
+                    	$("#add-button").html("确定提交").removeAttr("disabled");
+                    	return layer.msg(result.message);
+                    }
+                }
+            })
+            return false; // 阻止默认 form 跳转
+          });
+        }
+      });
+    }
+  })
+});
+</script>
+
+{% endblock %}

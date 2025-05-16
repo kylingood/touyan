@@ -1,0 +1,249 @@
+<!--begin::Footer-->
+      <footer class="app-footer">
+        <!--begin::To the end-->
+        <div class="float-end d-none d-sm-inline">Anything you want</div>
+        <!--end::To the end-->
+        <!--begin::Copyright-->
+        <strong>
+          Copyright &copy; 2024-2025&nbsp;
+          <a href="https://x.com/guzibiji" class="text-decoration-none">Guzi</a>.
+        </strong>
+        All rights reserved.
+        <!--end::Copyright-->
+      </footer>
+      <!--end::Footer-->
+    </div>
+    <!--end::App Wrapper-->
+    <!--begin::Script-->
+    <!--begin::Third Party Plugin(OverlayScrollbars)-->
+    <script
+      src="https://cdn.jsdelivr.net/npm/overlayscrollbars@2.10.1/browser/overlayscrollbars.browser.es6.min.js"
+      integrity="sha256-dghWARbRe2eLlIJ56wNB+b760ywulqK3DzZYEpsg2fQ="
+      crossorigin="anonymous"
+    ></script>
+    <!--end::Third Party Plugin(OverlayScrollbars)--><!--begin::Required Plugin(popperjs for Bootstrap 5)-->
+    <script
+      src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js"
+      integrity="sha384-I7E8VVD/ismYTF4hNIPjVp/Zjvgyol6VFvRkX/vR+Vc4jQkC+hVqc2pM8ODewa9r"
+      crossorigin="anonymous"
+    ></script>
+    <!--end::Required Plugin(popperjs for Bootstrap 5)--><!--begin::Required Plugin(Bootstrap 5)-->
+    <script
+      src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.min.js"
+      integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqruptLy"
+      crossorigin="anonymous"
+    ></script>
+    <!--end::Required Plugin(Bootstrap 5)--><!--begin::Required Plugin(AdminLTE)-->
+    <script src="{{ url_for('static', filename='dist/js/adminlte.js') }}"></script>
+    <!--end::Required Plugin(AdminLTE)--><!--begin::OverlayScrollbars Configure-->
+
+    <script src="https://cdn.jsdelivr.net/npm/web3@1.10.0/dist/web3.min.js"></script>
+
+    <script>
+      const SELECTOR_SIDEBAR_WRAPPER = '.sidebar-wrapper';
+      const Default = {
+        scrollbarTheme: 'os-theme-light',
+        scrollbarAutoHide: 'leave',
+        scrollbarClickScroll: true,
+      };
+      document.addEventListener('DOMContentLoaded', function () {
+        const sidebarWrapper = document.querySelector(SELECTOR_SIDEBAR_WRAPPER);
+        if (sidebarWrapper && typeof OverlayScrollbarsGlobal?.OverlayScrollbars !== 'undefined') {
+          OverlayScrollbarsGlobal.OverlayScrollbars(sidebarWrapper, {
+            scrollbars: {
+              theme: Default.scrollbarTheme,
+              autoHide: Default.scrollbarAutoHide,
+              clickScroll: Default.scrollbarClickScroll,
+            },
+          });
+        }
+      });
+    </script>
+    <!--end::OverlayScrollbars Configure-->
+    <!-- OPTIONAL SCRIPTS -->
+
+    <script>
+
+async function loginWithWallet() {
+  if (typeof window.ethereum === 'undefined') {
+    layer.msg("请安装 MetaMask 或 OKX 钱包");
+    return;
+  }
+
+  const web3 = new Web3(window.ethereum);
+
+  try {
+    const accounts = await ethereum.request({ method: 'eth_requestAccounts' });
+    const address = accounts[0];
+
+    // 1. 获取后端签名消息
+    const msgRes = await fetch(`/api/auth/message?address=${address}`);
+    const { message } = await msgRes.json();
+
+    // 2. 用户签名消息
+    const signature = await web3.eth.personal.sign(message, address, '');
+
+    // 3. 发送签名和地址到后端验证
+    const verifyRes = await fetch('/api/auth/verify', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ address, message, signature })
+    });
+
+    const verifyData = await verifyRes.json();
+
+    if (verifyRes.ok && verifyData.token) {
+      // ✅ 保存 token 到 localStorage
+      localStorage.setItem('token', verifyData.token);
+      layer.msg('登录成功！');
+      checkLoginStatus(); // 刷新登录状态 UI
+      location.reload(); // ✅ 登录成功后刷新当前页面
+
+    } else {
+      layer.msg('登录失败: ' + (verifyData.error || '未知错误'));
+    }
+
+  } catch (err) {
+    console.error(err);
+    layer.msg('发生错误: ' + err.message);
+  }
+}
+
+
+
+
+    async function checkLoginStatus() {
+          const token = localStorage.getItem('token');
+          const loginContainer = document.getElementById('login_html');
+
+          if (!loginContainer) return; // 防止页面没有这个元素时报错
+
+          if (!token) {
+            // 未登录：显示登录按钮
+            loginContainer.innerHTML = `
+              <span class="d-none d-md-inline">
+                <button type="button" class="btn btn-primary btn-sm" onclick="loginWithWallet()">🔐 使用钱包登录</button>
+              </span>
+            `;
+            return;
+          }
+
+          try {
+            const res = await fetch('/api/protected', {
+              headers: {
+                'Authorization': 'Bearer ' + token
+              }
+            });
+
+            if (res.ok) {
+              const data = await res.json();
+              // 登录成功：显示用户头像
+              loginContainer.innerHTML = `
+                <img
+                  src="/static/dist/assets/img/avatar5.png"
+                  class="user-image rounded-circle shadow"
+                  alt="User Image"
+                />
+                <ul class="dropdown-menu dropdown-menu-end">
+                <!--begin::Menu Footer-->
+                <li class="user-footer">
+                  <a href="#" class="btn btn-default btn-flat">个人资料</a>
+                  <a href="#" class="btn btn-default btn-flat float-end" onclick="logout()">退出</a>
+                </li>
+                <!--end::Menu Footer-->
+                </ul>
+
+              `;
+            } else {
+              throw new Error('无效 token');
+            }
+          } catch (error) {
+            console.log('Token 无效或已过期');
+            localStorage.removeItem('token');
+            // 显示登录按钮
+            loginContainer.innerHTML = `
+              <span class="d-none d-md-inline">
+                <button type="button" class="btn btn-primary btn-sm" onclick="loginWithWallet()">🔐 使用钱包登录</button>
+              </span>
+            `;
+          }
+        }
+
+    // 页面加载完成后执行
+    window.addEventListener('DOMContentLoaded', checkLoginStatus);
+
+    // 退出登录
+    function logout() {
+      localStorage.removeItem('token');
+      checkLoginStatus(); // 刷新登录状态 UI
+      layer.msg('退出成功！', { time: 1000 }, function() {
+        location.reload(); // ✅ 退出成功后刷新当前页面
+      });
+
+    }
+
+    </script>
+    <!--end::Script-->
+<script>
+layui.use(['form'], function() {
+  const form = layui.form;
+
+  // 获取本地主题
+  const storedTheme = localStorage.getItem('theme');
+
+  // 设置主题函数
+  function setTheme(theme) {
+    if (theme === 'dark') {
+      document.documentElement.classList.add('dark');
+      document.documentElement.setAttribute('data-bs-theme', 'dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+      document.documentElement.setAttribute('data-bs-theme', 'light');
+    }
+    updateSidebarTheme(theme);
+  }
+
+  // 侧边栏主题同步
+  function updateSidebarTheme(theme) {
+    const sidebar = document.querySelector('.app-sidebar');
+    if (!sidebar) return;
+
+    if (theme === 'dark') {
+      sidebar.classList.remove('bg-light');
+    } else {
+      sidebar.classList.add('bg-light');
+    }
+  }
+
+  // 初始化主题
+  const initTheme = storedTheme || (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+  setTheme(initTheme);
+
+  // 设置开关状态（如果你想同步 switch 状态）
+  const switchElem = document.getElementById('ID-header-theme-mode');
+  if (switchElem) {
+    switchElem.checked = initTheme === 'dark';
+  }
+
+  // 监听开关切换
+  form.on('switch(header-theme-mode)', function(data){
+    const theme = data.elem.checked ? 'dark' : 'light';
+    localStorage.setItem('theme', theme);
+    setTheme(theme);
+  });
+
+  // 响应系统暗色变化（可选）
+  window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", (e) => {
+    const autoTheme = e.matches ? "dark" : "light";
+    const saved = localStorage.getItem('theme');
+    if (saved !== 'light' && saved !== 'dark') {
+      setTheme(autoTheme);
+    }
+  });
+});
+</script>
+
+
+  </body>
+  <!--end::Body-->
+</html>

@@ -1,0 +1,160 @@
+html.dark .layui-laypage {
+  display: inline-block;
+  vertical-align: middle;
+  margin: 10px 0;
+  font-size: 0;
+}
+
+html.dark .layui-laypage > a:first-child,
+html.dark .layui-laypage > a:first-child em {
+  border-radius: 2px 0 0 2px;
+}
+html.dark .layui-laypage > a:last-child,
+html.dark .layui-laypage > a:last-child em {
+  border-radius: 0 2px 2px 0;
+}
+html.dark .layui-laypage > *:first-child {
+  margin-left: 0 !important;
+}
+html.dark .layui-laypage > *:last-child {
+  margin-right: 0 !important;
+}
+rgb(30 30 47)
+html.dark .layui-laypage a,
+html.dark .layui-laypage span,
+html.dark .layui-laypage input,
+html.dark .layui-laypage button,
+html.dark .layui-laypage select {
+  border: 1px solid #444;
+}
+
+html.dark .layui-laypage a,
+html.dark .layui-laypage span {
+  display: inline-block;
+  vertical-align: middle;
+  padding: 0 15px;
+  height: 28px;
+  line-height: 28px;
+  margin: 0 -1px 5px 0;
+  background-color: #212529;
+  color: #ccc;
+  font-size: 12px;
+}
+
+html.dark .layui-laypage a[data-page] {
+  color: #ccc;
+}
+
+html.dark .layui-laypage a {
+  text-decoration: none !important;
+  cursor: pointer;
+}
+
+html.dark .layui-laypage a:hover {
+  color: #00e0c6;
+  background-color: #333;
+}
+
+html.dark .layui-laypage em {
+  font-style: normal;
+}
+
+html.dark .layui-laypage .layui-laypage-spr {
+  color: #888;
+  font-weight: 700;
+}
+
+html.dark .layui-laypage .layui-laypage-curr {
+  position: relative;
+}
+
+html.dark .layui-laypage .layui-laypage-curr em {
+  position: relative;
+  color: #fff;
+}
+
+html.dark .layui-laypage .layui-laypage-curr .layui-laypage-em {
+  position: absolute;
+  left: -1px;
+  top: -1px;
+  padding: 1px;
+  width: 100%;
+  height: 100%;
+  background-color: #00e0c6;
+}
+
+html.dark .layui-laypage-em {
+  border-radius: 2px;
+}
+
+html.dark .layui-laypage-prev em,
+html.dark .layui-laypage-next em {
+  font-family: Sim sun;
+  font-size: 16px;
+}
+
+html.dark .layui-laypage .layui-laypage-count,
+html.dark .layui-laypage .layui-laypage-limits,
+html.dark .layui-laypage .layui-laypage-refresh,
+html.dark .layui-laypage .layui-laypage-skip {
+  margin-left: 10px;
+  margin-right: 10px;
+  padding: 0;
+  border: none;
+}
+
+html.dark .layui-laypage .layui-laypage-limits,
+html.dark .layui-laypage .layui-laypage-refresh {
+  vertical-align: top;
+}
+
+html.dark .layui-laypage .layui-laypage-refresh i {
+  font-size: 18px;
+  cursor: pointer;
+  color: #aaa;
+}
+
+html.dark .layui-laypage select {
+  height: 22px;
+  padding: 3px;
+  border-radius: 2px;
+  cursor: pointer;
+  background-color: #212529;
+  color: #eee;
+}
+
+html.dark .layui-laypage .layui-laypage-skip {
+  height: 30px;
+  line-height: 30px;
+  color: #888;
+}
+
+html.dark .layui-laypage input,
+html.dark .layui-laypage button {
+  height: 30px;
+  line-height: 30px;
+  border-radius: 2px;
+  vertical-align: top;
+  background-color: #212529;
+  color: #eee;
+  box-sizing: border-box;
+}
+
+html.dark .layui-laypage input {
+  display: inline-block;
+  width: 40px;
+  margin: 0 10px;
+  padding: 0 3px;
+  text-align: center;
+}
+
+html.dark .layui-laypage input:focus,
+html.dark .layui-laypage select:focus {
+  border-color: #00e0c6 !important;
+}
+
+html.dark .layui-laypage button {
+  margin-left: 10px;
+  padding: 0 10px;
+  cursor: pointer;
+}
