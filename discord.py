@@ -1,14 +1,7 @@
 from quart import Quart, render_template, request, jsonify, g, Blueprint
-
-from eth_account.messages import encode_defunct
-from eth_account import Account
-from functools import wraps
-import time
-import jwt
-import datetime
-
 from util.db import *
-from auth import require_user
+from auth import require_user,require_user_async
+import asyncio
 
 
 # 创建一个 Blueprint 用于 Web3 登录功能
@@ -75,18 +68,19 @@ def page():
 
 
 @discord.route('/discord/edit', methods=['GET', 'POST'])
-@require_user  # 使用装饰器来验证登录状态
-def edit():
+@require_user_async  # 使用装饰器来验证登录状态
+async def edit():
     uid = g.uid
 
     if request.method == 'POST':
-        username = request.form.get('username')
-        remark = request.form.get('remark')
-        cid = request.form.get('cid')
-        id = request.form.get('id')
-        email = request.form.get('email')
-        token = request.form.get('token')
-        global_name = request.form.get('global_name')
+        form = await request.form  # 注意必须 await
+        username = form.get('username')
+        remark = form.get('remark')
+        cid = form.get('cid')
+        id = form.get('id')
+        email = form.get('email')
+        token = form.get('token')
+        global_name = form.get('global_name')
 
 
         ## 先查看此钱包有没有数据，没有就插入，有就更新数据状态
@@ -144,17 +138,18 @@ def edit():
 
 
 @discord.route('/discord/add', methods=['GET', 'POST'])
-@require_user  # 使用装饰器来验证登录状态
-def add():
+@require_user_async  # 使用装饰器来验证登录状态
+async def add():
     uid = g.uid
 
     if request.method == 'POST':
-        username = request.form.get('username')
-        global_name = request.form.get('global_name')
-        remark = request.form.get('remark')
-        cid = request.form.get('cid')
-        email = request.form.get('email')
-        token = request.form.get('token')
+        form = await request.form  # 注意必须 await
+        username = form.get('username')
+        global_name = form.get('global_name')
+        remark = form.get('remark')
+        cid = form.get('cid')
+        email = form.get('email')
+        token = form.get('token')
 
         ## 先查看此钱包有没有数据，没有就插入，有就更新数据状态
         data_one = dbMysql.table('guzi_discord').where(
@@ -226,10 +221,11 @@ def add():
 
 
 @discord.route('/discord/delete', methods=['POST'])
-@require_user  # 使用装饰器来验证登录状态
-def delete():  # 因为 require_login 会解码 token
+@require_user_async  # 使用装饰器来验证登录状态
+async def delete():  # 因为 require_login 会解码 token
     if request.method == 'POST':
-        id = request.form.get('id')
+        form = await request.form  # 注意必须 await
+        id = form.get('id')
         uid = g.uid
         where = f"id='{id}' AND uid='{uid}'"
         result = dbMysql.table('guzi_discord').where(where).delete()  # 返回删除的行数
@@ -278,21 +274,22 @@ def list():
 
 
 @discord.route('/discord/add_channel', methods=['GET', 'POST'])
-@require_user  # 使用装饰器来验证登录状态
-def add_channel():
+@require_user_async  # 使用装饰器来验证登录状态
+async def add_channel():
     uid = g.uid
-
     if request.method == 'POST':
-        username = request.form.get('username')
-        remark = request.form.get('remark')
-        did = request.form.get('did')
-        token = request.form.get('token')
-        url = request.form.get('url')
-        guild_id = request.form.get('guild_id')
-        channel_id = request.form.get('channel_id')
-        guild_name = request.form.get('guild_name')
-        guild_icon = request.form.get('guild_icon')
-        guild_description = request.form.get('guild_description')
+        form = await request.form  # 注意必须 await
+
+        username = form.get('username')
+        remark = form.get('remark')
+        did = form.get('did')
+        token = form.get('token')
+        url = form.get('url')
+        guild_id = form.get('guild_id')
+        channel_id = form.get('channel_id')
+        guild_name = form.get('guild_name')
+        guild_icon = form.get('guild_icon')
+        guild_description = form.get('guild_description')
 
         ## 先查看此钱包有没有数据，没有就插入，有就更新数据状态
         data_one = dbMysql.table('guzi_discord_channel').where(
@@ -347,26 +344,25 @@ def add_channel():
 
 
 @discord.route('/discord/edit_channel', methods=['GET', 'POST'])
-@require_user  # 使用装饰器来验证登录状态
-def edit_channel():
+@require_user_async
+async def edit_channel():
     uid = g.uid
 
     if request.method == 'POST':
-        id = request.form.get('id')
-        username = request.form.get('username')
-        remark = request.form.get('remark')
-        did = request.form.get('did')
-        token = request.form.get('token')
-        url = request.form.get('url')
-        guild_id = request.form.get('guild_id')
-        channel_id = request.form.get('channel_id')
-        guild_name = request.form.get('guild_name')
-        guild_icon = request.form.get('guild_icon')
-        guild_description = request.form.get('guild_description')
+        form = await request.form  # 注意必须 await
+        id = form.get('id')
+        username = form.get('username')
+        remark = form.get('remark')
+        did = form.get('did')
+        token = form.get('token')
+        url = form.get('url')
+        guild_id = form.get('guild_id')
+        channel_id = form.get('channel_id')
+        guild_name = form.get('guild_name')
+        guild_icon = form.get('guild_icon')
+        guild_description = form.get('guild_description')
 
-        ## 先查看此钱包有没有数据，没有就插入，有就更新数据状态
-        data_one = dbMysql.table('guzi_discord_channel').where(
-            f"id='{id}' AND uid='{uid}'").find()
+        data_one = dbMysql.table('guzi_discord_channel').where(f"id='{id}' AND uid='{uid}'").find()
         dbdata = {}
         today_time = int(time.time())
 
@@ -385,7 +381,6 @@ def edit_channel():
             dbdata['token'] = token
             discord_id = dbMysql.table('guzi_discord_channel').where(f"id = '{discord_id}'").save(dbdata)
         else:
-            # 获取当前日期
             dbdata['username'] = username
             dbdata['remark'] = remark
             dbdata['url'] = url
@@ -401,20 +396,16 @@ def edit_channel():
             dbdata['created'] = today_time
             discord_id = dbMysql.table('guzi_discord_channel').add(dbdata)
 
-        #print(dbMysql.getLastSql())  # 打印由Model类拼接填充生成的SQL语句
         if discord_id:
-
             return jsonify({
                 'status': 1,
                 'message': '恭喜您，数据修改成功！'
             })
-
         else:
             return jsonify({
                 'status': 0,
                 'message': f'对不起，数据增加失败！{discord_id}'
             })
-
 
 
 @discord.route("/discord/page_channel", methods=['GET', 'POST'])
@@ -477,10 +468,11 @@ def page_channel():
 
 
 @discord.route('/discord/delete_channel', methods=['POST'])
-@require_user  # 使用装饰器来验证登录状态
-def delete_channel():  # 因为 require_login 会解码 token
+@require_user_async  # 使用装饰器来验证登录状态
+async def delete_channel():  # 因为 require_login 会解码 token
     if request.method == 'POST':
-        id = request.form.get('id')
+        form = await request.form  # 注意必须 await
+        id = form.get('id')
         uid = g.uid
         where = f"id='{id}' AND uid='{uid}'"
         result = dbMysql.table('guzi_discord_channel').where(where).delete()  # 返回删除的行数
@@ -497,3 +489,63 @@ def delete_channel():  # 因为 require_login 会解码 token
                 'status': 0,
                 'message': f'对不起，数据删除失败！{id}'
             })
+
+
+
+@discord.route("/discord/page_messages", methods=['GET', 'POST'])
+@require_user  # 使用装饰器来验证登录状态
+def page_messages():
+    uid = g.uid
+    if request.method == 'GET':
+
+        # 获取参数并设置默认值（如未传则为1或10）
+        page = request.args.get('page', default=1, type=int)
+        limit = request.args.get('limit', default=10, type=int)
+        did = request.args.get('did', default=0, type=int)
+        guild_id = request.args.get('guild_id', default=0, type=int)
+
+        where = f" status=1 "
+        order = "timestamp DESC,mid DESC"
+        if did:
+            where = f" did='{did}'  AND {where} "
+
+        if guild_id:
+            where = f" guild_id='{guild_id}' AND {where}"
+
+        # 然后再计算偏移量
+        start_index = (page - 1) * limit + 1
+
+
+        data_list = dbMysql.table('guzi_discord_message').where(where).order(order).page(page, limit).select()
+        #print(dbMysql.getLastSql())  # 打印由Model类拼接填充生成的SQL语句
+        total_page =  dbMysql.table('guzi_discord_message').where(where).count()
+        #print(dbMysql.getLastSql())  # 打印由Model类拼接填充生成的SQL语句
+        total_page = 10
+        rows = dbMysql.table('guzi_discord').where(f"uid='{uid}' AND status=1").field('id,global_name').select()
+        discord_data = {}
+        for row in rows:
+            discord_data[row['id']] = row['global_name']
+
+        layui_result = {
+            "code": 0,
+            "count": total_page,
+            "data": [
+                {
+                    "num": i + start_index,
+                    "id": item["id"],
+                    "did": item["did"],
+                    "discord_name": discord_data.get(item["did"], "未知discord"),
+                    "username": item["username"],
+                    "timestamp": datetime.utcfromtimestamp(int(item["timestamp"])).strftime("%Y-%m-%d %H:%M:%S"),
+                    "guild_id": item["guild_id"],
+                    "guild_name": item["guild_name"],
+                    "guild_icon": item["guild_icon"],
+                    "guild_description": item["guild_description"],
+                    "channel_id": item["channel_id"],
+                    "url": item["url"],
+                    "content": item["content"]
+                } for i, item in enumerate(data_list)
+            ]
+        }
+
+        return jsonify(layui_result)

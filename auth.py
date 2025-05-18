@@ -61,7 +61,7 @@ def require_login(f):
         address = get_logged_in_address()
 
         if not address:
-            return jsonify({'error': '未登录或Token无效'}), 401
+            return jsonify({'error': 'login 未登录或Token无效'}), 401
         return f(address, *args, **kwargs)
     return wrapper
 
@@ -71,7 +71,7 @@ def require_user(f):
     @wraps(f)
     def wrapper(*args, **kwargs):
         if not extract_user_from_token():
-            return  jsonify({'error': '未登录或Token无效'}), 401
+            return  jsonify({'error': 'auth 未登录或Token无效'}), 401
         return f(*args, **kwargs)
     return wrapper
 
@@ -79,7 +79,7 @@ def require_user_async(f):
     @wraps(f)
     async def wrapper(*args, **kwargs):  # wrapper也要是async
         if not extract_user_from_token():
-            return jsonify({'error': '未登录或Token无效'}), 401
+            return jsonify({'error': 'async 未登录或Token无效'}), 401
         return await f(*args, **kwargs)  # 一定要 await f(...)
     return wrapper
 

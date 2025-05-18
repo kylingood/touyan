@@ -9,7 +9,7 @@ from auth import require_user,require_login,require_user_async
 from curl_cffi.requests import AsyncSession
 import asyncio
 from src.model.discord.get_discord_info import *
-from datetime import datetime
+from datetime import datetime, timedelta
 from googletrans import Translator
 
 SECRET_KEY = '681f4d8e-d290-800f-a7e5-06bd9291c0d8'
@@ -60,10 +60,7 @@ async def get_channel():
 
 
 
-def translate_en_to_zh(text_en: str) -> str:
-    translator = Translator()
-    result = translator.translate(text_en, src='en', dest='zh-cn')
-    return result.text
+
 
 
 @web3_auth.route('/api/auth/update_message')
@@ -81,6 +78,7 @@ async def update_message():
         token = item['token']
         guild_id = item['guild_id']
         channel_id = item['channel_id']
+        did = item['did']
         async with AsyncSession() as session:
             message_info = await get_discord_message(token, guild_id, channel_id, 5,session)
 
@@ -104,11 +102,12 @@ async def update_message():
                 #return jsonify({'status': 0, 'message': data_one})
                 dbdata = {}
                 today_time = int(time.time())
-                content_cn = translate_en_to_zh(content)
+                content_cn = ''
                 if data_one and edited_timestamp != data_one.get('edited_timestamp'):
                     id = data_one['id']
                     dbdata['updated'] = today_time
                     dbdata['content'] = content
+                    dbdata['did'] = did
                     dbdata['content_cn'] = content_cn
                     dbdata['timestamp'] = timestamp
                     dbdata['edited_timestamp'] = edited_timestamp
@@ -117,6 +116,7 @@ async def update_message():
                     # 获取当前日期
                     dbdata['mid'] = mid
                     dbdata['username'] = item['username']
+                    dbdata['did'] = did
                     dbdata['guild_id'] = item['guild_id']
                     dbdata['guild_name'] = item['guild_name']
                     dbdata['guild_icon'] = item['guild_icon']
@@ -203,13 +203,13 @@ async def verify():
                 dbdata['status'] = 1
                 dbdata['created'] = today_time
                 uid = dbMysql.table('guzi_member').add(dbdata)
-                print(dbMysql.getLastSql())  # 打印由Model类拼接填充生成的SQL语句
+                #print(dbMysql.getLastSql())  # 打印由Model类拼接填充生成的SQL语句
 
             # 登录成功，生成 JWT Token
             payload = {
                 'address': address,
                 'uid':uid,
-                'exp': datetime.datetime.utcnow() + datetime.timedelta(days=30)  # 设置过期时间
+                'exp': datetime.utcnow() + timedelta(days=30) # 设置过期时间
             }
             token = jwt.encode(payload, SECRET_KEY, algorithm='HS256')
 
@@ -231,7 +231,7 @@ def protected():
     address = g.address
 
     if not address:
-        return jsonify({"error": "未登录或Token无效"}), 403
+        return jsonify({"error": "protected 未登录或Token无效"}), 403
 
     return jsonify({"message": f"欢迎 {address} 登录成功！"})
 

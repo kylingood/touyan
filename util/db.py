@@ -1,7 +1,7 @@
 import os
 import sys
 import time
-import datetime
+from datetime import datetime
 import urllib3
 import warnings
 from cryptography.fernet import Fernet
@@ -15,7 +15,7 @@ urllib3.disable_warnings()
 warnings.filterwarnings("ignore", category=UserWarning, message="The log with transaction hash*")
 
 ##取到0点0分的时间戳
-today_time = int(time.mktime(datetime.date.today().timetuple()))
+#today_time = int(time.mktime(datetime.date.today().timetuple()))
 
 
 ###  实例化mysql数据库

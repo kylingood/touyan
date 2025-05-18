@@ -7,7 +7,7 @@ import time
 import jwt
 import datetime
 from util.db import *
-from auth import require_user
+from auth import require_user,require_user_async
 
 # 创建一个 Blueprint 用于 Web3 登录功能
 category = Blueprint('category', __name__)
@@ -77,10 +77,11 @@ def page():
 
 
 @category.route('/category/del_cate', methods=['POST'])
-@require_user  # 使用装饰器来验证登录状态
-def del_cate():  # 因为 require_login 会解码 token
+@require_user_async  # 使用装饰器来验证登录状态
+async def del_cate():  # 因为 require_login 会解码 token
     if request.method == 'POST':
-        id = request.form.get('id')
+        form = await request.form  # 注意必须 await
+        id = form.get('id')
         uid = g.uid
         where = f"id='{id}' AND uid='{uid}'"
         result = dbMysql.table('guzi_category').where(where).delete()  # 返回删除的行数
@@ -101,8 +102,8 @@ def del_cate():  # 因为 require_login 会解码 token
             })
 
 @category.route('/category/add', methods=['POST'])
-@require_user
-def add():
+@require_user_async
+async def add():
     uid = g.uid
     address = g.address
     if not address:
@@ -110,10 +111,10 @@ def add():
 
 
     if request.method == 'POST':
-
-        title = request.form.get('username')
-        remark = request.form.get('remark')
-        is_type = request.form.get('is_type')
+        form = await request.form  # 注意必须 await
+        title = form.get('username')
+        remark = form.get('remark')
+        is_type = form.get('is_type')
 
         ## 先查看此钱包有没有数据，没有就插入，有就更新数据状态
         data_one = dbMysql.table('guzi_category').where(
@@ -150,8 +151,8 @@ def add():
 
 
 @category.route('/category/edit', methods=['POST'])
-@require_user
-def edit():
+@require_user_async
+async def edit():
     uid = g.uid
     address = g.address
     if not address:
@@ -159,10 +160,10 @@ def edit():
 
 
     if request.method == 'POST':
-
-        title = request.form.get('username')
-        remark = request.form.get('remark')
-        id = request.form.get('id')
+        form = await request.form  # 注意必须 await
+        title = form.get('username')
+        remark = form.get('remark')
+        id = form.get('id')
 
         ## 先查看此钱包有没有数据，没有就插入，有就更新数据状态
         data_one = dbMysql.table('guzi_category').where(
@@ -175,7 +176,7 @@ def edit():
             dbdata['updated'] = today_time
             dbdata['remark'] = remark
             dbdata['title'] = title
-            result_db = dbMysql.table('guzi_category').where(f"id='{id}'").save(dbdata)
+            result_db = dbMysql.table('guzi_category').where(f"id='{id}' AND uid='{uid}'").save(dbdata)
 
             if result_db:
                 return jsonify({

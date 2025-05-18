@@ -9,14 +9,13 @@
 }
 
 .flow-demo li {
-  display: inline-block;
-  margin: 0 5px;
+  display: block;              /* 改为块级元素，一整行显示 */
+  width: 100%;                 /* 占满整行 */
+  margin: 0 0 10px 0;          /* 只设置下边距，左右无空隙 */
   font-size: 14px;
-  width: 48%;
-  margin-bottom: 10px;
   text-align: left;
-  vertical-align: top;
 }
+
 
 /* 卡片整体容器 */
 .messaget-card {
@@ -53,7 +52,7 @@
 /* 消息标题 */
 .messaget-card-title {
   font-weight: bold;
-  font-size: 15px;
+  font-size: 20px;
   line-height: 1.2;
 }
 
@@ -66,14 +65,16 @@
 
 /* 英文消息 */
 .message-en {
-  font-size: 14px;
+  margin-left: 55px;
+  font-size: 16px;
 }
 
 /* 中文消息，左边加“译”标识 */
 .message-zh {
   font-size: 14px;
   color: #666;
-  padding-left: 25px;
+  margin-top:10px;
+  padding-left: 55px;
   position: relative;
 }
 
@@ -83,10 +84,14 @@
   left: 0;
   top: 0;
   font-size: 12px;
-  background-color: #007bff;
+  background-color: #666;
   color: white;
   border-radius: 3px;
   padding: 1px 4px;
+}
+.msg-link {
+    color: #16b777;
+    text-decoration: underline;
 }
 </style>
  <!--begin::App Content Header-->
@@ -133,42 +138,85 @@
         <!--end::App Content-->
 
 <script>
-layui.use(function(){
-  var flow = layui.flow;
-  // 流加载实例
-  flow.load({
-    elem: '#ID-flow-demo', // 流加载容器
-    scrollElem: '#ID-flow-demo', // 滚动条所在元素，一般不用填，此处只是演示需要。
-    done: function(page, next){ // 执行下一页的回调
-      // 模拟数据插入
-      setTimeout(function(){
-        var lis = [];
-        for (var i = 0; i < 18; i++) {
-          var num = (page - 1) * 18 + i + 1;
-          lis.push(`
-            <li>
-              <div class="messaget-card">
-                <div class="messaget-card-header">
-                  <img class="avatar" src="https://cdn.discordapp.com/icons/1350994593642053734/9ef81bc96295077f55774dc2fa497f03.jpeg" alt="logo">
-                  <div class="messaget-card-title-group">
-                    <div class="messaget-card-title">消息标题消息标题题消息标题消息标题 ${num}</div>
-                    <div class="messaget-card-time">2025-05-18 14:00</div>
-                  </div>
-                </div>
-                <div class="message-en">This is message ${num} in English.</div>
-                <div class="message-zh"> 这是第 ${num} 条中文翻译内容。</div>
-              </div>
-            </li>
-            `);
-        }
 
-        // 执行下一页渲染，第二参数为：满足“加载更多”的条件，即后面仍有分页
-        // pages 为 Ajax返回的总页数，只有当前页小于总页数的情况下，才会继续出现加载更多
-        next(lis.join(''), page < 10); // 此处假设总页数为 10
-      }, 520);
+// 翻译函数（Google Translate 非官方接口）
+async function translateToZh(text) {
+  const res = await fetch(`https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=zh-CN&dt=t&q=${encodeURIComponent(text)}`);
+  const data = await res.json();
+  return data[0].map(item => item[0]).join('');
+}
+
+function formatContent(content) {
+  return content
+    .replace(/<([^>\s]+)>/g, '$1') // 去掉尖括号
+    .replace(/(https?:\/\/[^\s<]+)/g, '<a href="$1" target="_blank" style="color: #16b777; text-decoration: underline;">$1</a>') // 设置颜色和下划线
+    .replace(/\n/g, "<br>");
+}
+layui.use(['flow', 'jquery'], function(){
+  var flow = layui.flow;
+  var $ = layui.jquery;
+  const token = localStorage.getItem('token');
+  let  did = {{did}};
+
+  flow.load({
+    elem: '#ID-flow-demo',
+    scrollElem: '#ID-flow-demo',
+    done: function(page, next){
+      $.ajax({
+        url: '{{ url_for('discord.page_messages') }}',
+        type: 'GET',
+        data: { page: page, limit: 18 },
+        dataType: 'json',
+        headers: {
+        'Authorization': 'Bearer ' + token,
+        },
+        success: function(res){
+          var lis = [];
+          // 假设后端返回 res.data 是数组，res.total_pages 是总页数
+          $.each(res.data, function(index, item){
+              const contentEn = item.content || '';
+              const contentHtml = formatContent(item.content || '');
+              const contentId = `content-cn-${item.id || Math.random().toString(36).substr(2, 8)}`;
+               // 判断是否是最近一天的消息
+              const now = Date.now();
+              const msgTime = new Date(item.timestamp).getTime();  // 注意这里时间格式要能被解析
+              const isRecent = (now - msgTime) <= 48 * 60 * 60 * 1000; // 24小时内
+
+            lis.push(`
+              <li >
+                  <div class="messaget-card">
+                    <div class="messaget-card-header">
+                      <img class="avatar" src="https://cdn.discordapp.com/icons/${item.guild_id}/${item.guild_icon}.png" alt="logo">
+                      <div class="messaget-card-title-group">
+                        <div class="messaget-card-title" >${item.discord_name} ${item.username} ${isRecent ? '<span class="new-tag" style="color:#ffb800;font-size:12px;" > <i class="layui-icon layui-icon-sound" style="font-size: 30px; color: #1E9FFF;"></i>最近24小时新消息</span>' : ''} </div>
+                        <div class="messaget-card-time"> ${item.timestamp} </div>
+                      </div>
+                    </div>
+                    <div class="message-en" >${contentHtml}</div>
+                    <div class="message-zh" id="${contentId}">翻译中...</div>
+                  </div>
+                </li>
+            `);
+
+              // 异步翻译并填入对应位置
+              translateToZh(contentEn).then(result => {
+                document.getElementById(contentId).innerText = result;
+              }).catch(() => {
+                document.getElementById(contentId).innerText = '翻译失败';
+              });
+          });
+          // 判断是否还有下一页
+          next(lis.join(''), page < res.count);
+        },
+        error: function(){
+          // 请求失败时提示并结束加载
+          next('', false);
+        }
+      });
     }
   });
 });
+
 
 
 
@@ -401,7 +449,7 @@ layui.use(['laypage', 'jquery'], function() {
       });
   }
 
-  fetchData(1, 10,{{did}});  // 默认加载第1页，10条数据
+  //fetchData(1, 10,{{did}});  // 默认加载第1页，10条数据
   setTimeout(getCategory, 300);
 });
 </script>

@@ -6,7 +6,7 @@ import time
 import jwt
 import datetime
 from util.db import *
-from auth import require_user
+from auth import require_user,require_user_async
 
 
 # 创建一个 Blueprint 用于 Web3 登录功能
@@ -72,15 +72,16 @@ def page():
 
 
 @twitter.route('/twitter/edit', methods=['GET', 'POST'])
-@require_user  # 使用装饰器来验证登录状态
-def edit():
+@require_user_async  # 使用装饰器来验证登录状态
+async def edit():
     uid = g.uid
 
     if request.method == 'POST':
-        username = request.form.get('username')
-        remark = request.form.get('remark')
-        cid = request.form.get('cid')
-        id = request.form.get('id')
+        form = await request.form  # 注意必须 await
+        username = form.get('username')
+        remark = form.get('remark')
+        cid = form.get('cid')
+        id = form.get('id')
 
         ## 先查看此钱包有没有数据，没有就插入，有就更新数据状态
         data_one = dbMysql.table('guzi_twitter').where(
@@ -134,14 +135,15 @@ def edit():
 
 
 @twitter.route('/twitter/add', methods=['GET', 'POST'])
-@require_user  # 使用装饰器来验证登录状态
-def add():
+@require_user_async  # 使用装饰器来验证登录状态
+async def add():
     uid = g.uid
 
     if request.method == 'POST':
-        username = request.form.get('username')
-        remark = request.form.get('remark')
-        cid = request.form.get('cid')
+        form = await request.form  # 注意必须 await
+        username = form.get('username')
+        remark = form.get('remark')
+        cid = form.get('cid')
 
         ## 先查看此钱包有没有数据，没有就插入，有就更新数据状态
         data_one = dbMysql.table('guzi_twitter').where(
@@ -206,10 +208,11 @@ def add():
 
 
 @twitter.route('/twitter/delete', methods=['POST'])
-@require_user  # 使用装饰器来验证登录状态
-def delete():  # 因为 require_login 会解码 token
+@require_user_async  # 使用装饰器来验证登录状态
+async def delete():  # 因为 require_login 会解码 token
     if request.method == 'POST':
-        id = request.form.get('id')
+        form = await request.form  # 注意必须 await
+        id = form.get('id')
         uid = g.uid
         where = f"id='{id}' AND uid='{uid}'"
         result = dbMysql.table('guzi_twitter').where(where).delete()  # 返回删除的行数
@@ -228,6 +231,4 @@ def delete():  # 因为 require_login 会解码 token
                 'status': 0,
                 'message': f'对不起，数据删除失败！{id}'
             })
-
-
 
