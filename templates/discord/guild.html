@@ -7,18 +7,14 @@
           <div class="container-fluid">
             <!--begin::Row-->
             <div class="row">
-              <div class="col-sm-6"><h4 class="mb-0">Discord列表</h4></div>
+              <div class="col-sm-6"><h4 class="mb-0">Discord监控频道列表</h4></div>
               <div class="col-sm-6">
                 <ol class="breadcrumb float-sm-end">
-                    <li class="breadcrumb-item"> <button type="button" class="layui-btn layui-bg-blue"  lay-on="add-discord-page-custom">添加Discord账号</button></li>
-                    <li class="breadcrumb-item active" aria-current="page"><button type="button" lay-on="add-category-page-custom"  class="layui-btn" style="background-color: #16b777">添加分组</button></li>
-
-                    <li class="breadcrumb-item active" aria-current="page">
-                        <a href="{{ url_for('category.discord') }}" >
-                            <button type="button"  class="layui-btn">管理分组</button>
-                        </a>
-                    </li>
-
+                  <li class="breadcrumb-item active" aria-current="page">
+                      <a href="{{ url_for('discord.message') }}" >
+                        <button type="button" class="layui-btn">查看全部消息</button>
+                      </a>
+                  </li>
                 </ol>
               </div>
             </div>
@@ -37,7 +33,7 @@
 
                <div class="card mb-4">
                   <div class="card-header">
-                    <h3 class="card-title">Discord监控账号</h3>
+                    <h3 class="card-title">Discord监控频道</h3>
                   </div>
                   <!-- /.card-header -->
                   <div class="card-body p-0">
@@ -46,11 +42,11 @@
                       <thead>
                         <tr >
                           <th style="width: 80px;">序号</th>
-                          <th >DC账号</th>
-                          <th >分组</th>
-                          <th >Token信息</th>
+                          <th >服务器名</th>
+                          <th >频道名称</th>
+                          <th >所属账号</th>
+                          <!--<th >服务器ID/频道ID</th>-->
                           <th >备注信息</th>
-                          <th >邮箱</th>
                           <th >操作</th>
                         </tr>
                       </thead>
@@ -76,16 +72,16 @@ layui.use(['laypage', 'jquery'], function() {
   var laypage = layui.laypage;
   var $ = layui.jquery;
   const token = localStorage.getItem('token');
-  let  cid = 0;
+  let  did = {{did}};
 
   // 监听分类按钮点击
   $('#category_html').on('click', '.layui-btn', function() {
-    cid = $(this).data('id');
+    did = $(this).data('id');
     // 样式切换：移除其他按钮的 cur，添加当前按钮的 cur
     $('#category_html .layui-btn').addClass('layui-btn-primary');
     $(this).removeClass('layui-btn-primary');
 
-    fetchData(1, 10,cid); // 点击分类时重置为第一页
+    fetchData(1, 10,did); // 点击分类时重置为第一页
   });
 
  // 增加discord 委托给 body 或更合适的父容器
@@ -103,7 +99,6 @@ layui.use(['laypage', 'jquery'], function() {
         success: function (res) {
           if (res.status) {
             $("#add-username").val(res.data.username)
-            $("#add-global-name").val(res.data.global_name)
             $("#add-remark").val(res.data.global_name)
             $("#add-email").val(res.data.email)
           } else {
@@ -148,6 +143,7 @@ layui.use(['laypage', 'jquery'], function() {
                 $("#guild_name").val(res.data.guild_name)
                 $("#guild_icon").val(res.data.guild_icon)
                 $("#guild_description").val(res.data.guild_description)
+
               } else {
                 layer.msg('未加入此服务器或网络出错，失败原因：' + res.message);
               }
@@ -165,7 +161,6 @@ layui.use(['laypage', 'jquery'], function() {
        return
     }
   });
-
  // 修改discord
   $('body').on('blur', '#edit-token-input', function () {
     const discord_token = $(this).val().trim();
@@ -181,7 +176,6 @@ layui.use(['laypage', 'jquery'], function() {
         success: function (res) {
           if (res.status) {
             $("#edit-username").val(res.data.username)
-            $("#edit-global-name").val(res.data.global_name)
             $("#edit-remark").val(res.data.global_name)
             $("#edit-email").val(res.data.email)
           } else {
@@ -195,15 +189,15 @@ layui.use(['laypage', 'jquery'], function() {
     }
   });
 
-  function fetchData(page, limit, cid) {
+  function fetchData(page, limit, did) {
     $.ajax({
-      url: '{{ url_for('discord.page') }}',  // 替换为你的后端接口
+      url: '{{ url_for('discord.page_channel') }}',  // 替换为你的后端接口
       type: 'GET',
       headers: {
         'Authorization': 'Bearer ' + token,
         'Content-Type': 'application/json'
       },
-      data: { page: page, limit: limit, cid: cid },
+      data: { page: page, limit: limit, did: did},
       success: function(res) {
         // 假设 res 格式：{ code: 0, count: 100, data: [...] }
         if (res.code === 0) {
@@ -216,7 +210,7 @@ layui.use(['laypage', 'jquery'], function() {
             layout: ['count', 'prev', 'page', 'next', 'limit', 'skip'], // 功能布局
             jump: function(obj, first) {
               if (!first) {
-                fetchData(obj.curr, obj.limit, cid);  // 重新获取数据
+                fetchData(obj.curr, obj.limit, did);  // 重新获取数据
               }
             }
           });
@@ -235,21 +229,28 @@ layui.use(['laypage', 'jquery'], function() {
       'layui-bg-black'
     ];
 
+
     data.forEach(function(item) {
       // 随机选择一个 class
       const randomClass = colorClasses[Math.floor(Math.random() * colorClasses.length)];
       html += `<tr class="align-middle" id="del_discord_${item.id}">
                           <td>${item.num}.</td>
-                          <td><a href="https://discord.com" class="alert-link" target="_blank">${item.global_name}</a></td>
-                          <td><span class="layui-badge ${randomClass}">${item.cate_name}</span></td>
-                          <td>${item.token}</td>
+                          <td><a href="${item.url}" class="alert-link" target="_blank"><img src="https://cdn.discordapp.com/icons/${item.guild_id}/${item.guild_icon}.jpeg" class="user-image rounded-circle shadow"  style="width:30px; height:30px;" alt="User Image"><br/> ${item.guild_name}</a></td>
+                          <td><a href="${item.url}" class="alert-link" target="_blank"><span class="layui-badge ${randomClass}">${item.username}</span></a></td>
+                          <!--<td><a href="${item.url}" class="alert-link" target="_blank">${item.guild_id}</br>${item.channel_id}</a></td>-->
+                          <td>${item.discord_name}</td>
                           <td>${item.remark}</td>
-                          <td>${item.email}</td>
                           <td>
-                          <span   lay-on="add-channel-confirm"  data-id="${item.id}"  data-global-name="${item.global_name}" data-username="${item.username}" data-discord-token="${item.token}"  ><button type="button" class="layui-btn  layui-btn-sm">增加监控</button></span>
-                          <span><a href="/discord/guild/did/${item.id}" class="alert-link" ><button type="button" class="layui-btn   layui-btn-sm" style="background-color: #16b777">查看列表</button></a></span>
+                           <span><a href="/discord/guild/did/${item.id}" class="alert-link" target="_blank"><button type="button" class="layui-btn  layui-btn-sm" style="background-color: #16b777;">消息列表</button></a></span>
 
-                          <span   lay-on="edit-confirm"  data-id="${item.id}" data-email="${item.email}" data-discord-token="${item.token}"  data-cid="${item.cid}"  data-title="${item.username}" data-remark="${item.remark}" ><button type="button" class="layui-btn layui-bg-blue  layui-btn-sm">修改</button></span>
+                          <span   lay-on="add-channel-confirm"  data-id="${item.did}"  data-title="${item.discord_name}" data-discord-token="${item.token}"  ><button type="button" class="layui-btn  layui-btn-sm">增加监控</button></span>
+
+                          <span   lay-on="edit-confirm"  data-id="${item.id}" data-did="${item.did}" data-discord-token="${item.token}"  data-username="${item.username}"
+                          data-guild-id="${item.guild_id}" data-guild-name="${item.guild_name}"  data-guild-icon="${item.guild_icon}" data-guild-description="${item.guild_description}"
+                            data-channel-id="${item.channel_id}"   data-remark="${item.remark}"   data-url="${item.url}"
+                           >
+                          <button type="button" class="layui-btn layui-bg-blue  layui-btn-sm">修改</button>
+                          </span>
                            <span   lay-on="del-discord-confirm"  data-id="${item.id}" ><button type="button" class="layui-btn layui-bg-red  layui-btn-sm">删除</button></span>
                            </td>
                         </tr>`;
@@ -258,12 +259,12 @@ layui.use(['laypage', 'jquery'], function() {
   }
 
 
-    // ✅ 取到分类列表
+  // ✅ 取到分类列表
   function getCategory(){
-
+       const  did = {{did}};
        const token = localStorage.getItem('token');
        $.ajax({
-        url:'{{ url_for('category.list') }}',// ✅ 你后端接口地址
+        url:'{{ url_for('discord.list') }}',
         headers: {
             'Authorization': 'Bearer ' + token,
         },
@@ -273,10 +274,16 @@ layui.use(['laypage', 'jquery'], function() {
           if (res.status === 1 && Array.isArray(res.data)) {
             const select = $('#category_html');
             select.empty();  // 清空旧内容
-            select.append('<button type="button" data-id="0"  class="layui-btn  layui-btn-sm ">全部分组</button>');
+            if (did>0) {
+                select.append('<button type="button" data-id="0"  class="layui-btn layui-btn-primary layui-btn-sm ">全部Discord账号</button>');
+            }else{
+                select.append('<button type="button" data-id="0"  class="layui-btn  layui-btn-sm ">全部Discord账号</button>');
+            }
+
             res.data.forEach(item => {
-                const selected = (item.id === cid) ? 'selected' : '';
-                select.append(`<button type="button" data-id="${item.id}" class="layui-btn layui-btn-primary layui-btn-sm  ${selected}"> ${item.title}</button>`);
+                const selected = (parseInt(item.id) === parseInt(did)) ? '' : 'layui-btn-primary';
+                console.log(item.id+'----'+ did);
+                select.append(`<button type="button" data-id="${item.id}" class="layui-btn  layui-btn-sm  ${selected}"> ${item.global_name}</button>`);
             });
 
           } else {
@@ -289,8 +296,32 @@ layui.use(['laypage', 'jquery'], function() {
       });
   }
 
-  fetchData(1, 10,0);  // 默认加载第1页，10条数据
-  setTimeout(getCategory, 500);
+
+
+  function getMessage(){
+       const  did = {{did}};
+       const token = localStorage.getItem('token');
+       $.ajax({
+        url:'/api/auth/update_message',
+        headers: {
+            'Authorization': 'Bearer ' + token,
+        },
+        type: 'GET',
+        data: {  },
+        success: function(res) {
+          if (res.status === 1) {
+            //layer.msg(res);
+          }
+        },
+        error: function() {
+           //layer.msg('请求出错');
+        }
+      });
+  }
+
+  fetchData(1, 10,{{did}});  // 默认加载第1页，10条数据
+  setTimeout(getCategory, 300);
+  setTimeout(getMessage, 500);
 });
 
 
@@ -316,7 +347,7 @@ layui.use(function(){
       }, function(){
         // 此处可执行 Ajax 等操作
         $.ajax({
-                url:'{{ url_for('discord.delete') }}',
+                url:'{{ url_for('discord.delete_channel') }}',
                 data:{
                     "id":id,
                 },
@@ -355,7 +386,7 @@ layui.use(function(){
         area: '350px',
         resize: false,
         shadeClose: true,
-        title: '增加'+title+'频道监控',
+        title: '新增 '+title+' 账号监控',
         content: `
           <div class="layui-form" lay-filter="filter-test-layer" style="margin: 16px;">
             <div class="demo-login-container">
@@ -454,9 +485,9 @@ layui.use(function(){
                         layer.confirm(result.message, {
                           btn: ['确定', '关闭'] //按钮
                         }, function(){
-                          window.location.href='{{ url_for('discord.index') }}';
+                          window.location.href='/discord/guild/did/'+id;
                         }, function(){
-                          window.location.href='{{ url_for('discord.index') }}';
+                          window.location.href='/discord/guild/did/'+id;
                         });
 
                         return true
@@ -475,67 +506,81 @@ layui.use(function(){
     'edit-confirm': function(){
 
       const id = $(this).data('id');
-      const cid = $(this).data('cid');
-      const global_name = $(this).data('global-name');
+      const did = $(this).data('did');
       const username = $(this).data('username');
       const remark = $(this).data('remark');
-      const email = $(this).data('email');
       const discord_token = $(this).data('discord-token');
+      const guild_id = $(this).data('guild-id');
+      const guild_name = $(this).data('guild-name');
+      const guild_icon = $(this).data('guild-icon');
+      const guild_description = $(this).data('guild-description');
+      const channel_id = $(this).data('channel-id');
+      const url = $(this).data('url');
 
       layer.open({
         type: 1,
         area: '350px',
         resize: false,
         shadeClose: true,
-        title: '修改账号的'+global_name+'信息',
+        title: '修改'+username+'监控频道',
         content: `
-          <div class="layui-form" lay-filter="filter-test-layer" style="margin: 16px;">
+            <div class="layui-form" lay-filter="filter-test-layer" style="margin: 16px;">
             <div class="demo-login-container">
 
             <div class="layui-form-item">
                 <div class="layui-input-wrap">
                   <div class="layui-input-prefix">
-                    <i class="layui-icon layui-icon-menu-fill"></i>
+                    <i class="layui-icon layui-icon-link"></i>
                   </div>
-                  <input type="text" name="discord_token" id="edit-token-input" value="${discord_token}" lay-verify="required" placeholder="Discord Token值会自动取信息 " lay-reqtext="请填写Discord的Token值" autocomplete="off" class="layui-input" lay-affix="clear">
+                  <input type="text" name="discord_url" id="edit-discord-input" value="${url}" lay-verify="required" placeholder="复制Discord URL到这里会自动取信息 " lay-reqtext="请填写Discord的链接URL" autocomplete="off" class="layui-input" lay-affix="clear">
                 </div>
               </div>
 
               <div class="layui-form-item">
                 <div class="layui-input-wrap">
                   <div class="layui-input-prefix">
-                    <i class="layui-icon layui-icon-username"></i>
+                    <i class="layui-icon layui-icon-menu-fill"></i>
                   </div>
-
-                  <input type="text" name="global_name" id="edit-global-name"   value="${global_name}" lay-verify="required" placeholder="Discord名称" lay-reqtext="请填写Discord用户名" autocomplete="off" class="layui-input" lay-affix="clear">
+                  <input type="text" name="username" id="edit-username"   value="${username}" lay-verify="required" placeholder="Discord频道名称" lay-reqtext="请填写频道名称" autocomplete="off" class="layui-input" lay-affix="clear">
                 </div>
               </div>
 
-               <div class="layui-form-item">
+              <div class="layui-form-item">
                 <div class="layui-input-wrap">
                   <div class="layui-input-prefix">
-                    <i class="layui-icon layui-icon-list"></i>
+                    <i class="layui-icon layui-icon-group"></i>
                   </div>
-                    <select name="category_id" id="category_select" lay-verify="required" lay-search>
-                      <option value="">直接选择或搜索分组</option>
-                    </select>
-                    </div>
+                  <input type="text" name="guild_id" id="edit-guild"   value="${guild_id}" lay-verify="required" placeholder="Discord服务器ID" lay-reqtext="请填写Discord服务器ID" autocomplete="off" class="layui-input" lay-affix="clear">
+                </div>
               </div>
+
+              <div class="layui-form-item">
+                <div class="layui-input-wrap">
+                  <div class="layui-input-prefix">
+                    <i class="layui-icon layui-icon-reply-fill"></i>
+                  </div>
+                  <input type="text" name="channel_id" id="edit-channel"   value="${channel_id}" lay-verify="required" placeholder="Discord频道ID" lay-reqtext="请填写Discord频道ID" autocomplete="off" class="layui-input" lay-affix="clear">
+                </div>
+              </div>
+
 
               <div class="layui-form-item">
                 <div class="layui-input-wrap">
                   <div class="layui-input-prefix">
                     <i class="layui-icon layui-icon-password"></i>
                   </div>
-                    <textarea placeholder="请输入此Discord备注" id="edit-remark"  name="remark" class="layui-textarea" lay-verify="required"  lay-reqtext="请填写Discord备注"  >${remark}</textarea>
-                     <input type="hidden" name="id" value="${id}" lay-verify="required"  autocomplete="off" >
-                     <input type="hidden" name="cid" value="${cid}" lay-verify="required"  autocomplete="off" >
-                     <input type="hidden" name="email" id="edit-email" value="${email}"  autocomplete="off" >
-                     <input type="hidden" name="username" id="edit-username" value="${username}"  autocomplete="off" >
+                    <textarea placeholder="请输入此频道备注" id="edit-remark"  name="remark" class="layui-textarea" lay-verify="required"  lay-reqtext="请填写频道备注"  >${remark}</textarea>
+                    <input type="hidden" name="id" value="${id}" lay-verify="required"  autocomplete="off" >
+                    <input type="hidden" name="did" value="${did}" lay-verify="required"  autocomplete="off" >
+                    <input type="hidden" name="guild_name" id="guild_name" value="${guild_name}"   autocomplete="off" >
+                    <input type="hidden" name="guild_icon" id="guild_icon" value="${guild_icon}"   autocomplete="off" >
+                    <input type="hidden" name="guild_description" id="guild_description" value="${guild_description}"  autocomplete="off" >
+                    <input type="hidden" name="discord_token" id="my_discord_token" value="${discord_token}"  autocomplete="off" >
                  </div>
               </div>
 
               <div class="layui-form-item">
+
                 <button class="layui-btn layui-btn-fluid" id="add-button" lay-submit lay-filter="demo-login">确定修改</button>
               </div>
 
@@ -546,50 +591,29 @@ layui.use(function(){
           // 对弹层中的表单进行初始化渲染
           form.render();
 
-          // Step 2: 异步加载下拉数据
-          $.ajax({
-            url:'{{ url_for('category.list') }}',
-            headers: {
-                'Authorization': 'Bearer ' + token,
-            },
-            type: 'GET',
-            data: { is_type: 2 },
-            success: function(res) {
-              if (res.status === 1 && Array.isArray(res.data)) {
-                const select = $('#category_select');
-                select.empty();  // 清空旧内容
-                select.append('<option value="">直接选择或搜索选择</option>');
-                 res.data.forEach(item => {
-                    const selected = (item.id === cid) ? 'selected' : '';
-                    select.append(`<option value="${item.id}" ${selected}>${item.title}</option>`);
-                });
-                form.render('select');  // ⭐ 重要：重新渲染 layui select
-              } else {
-                layer.msg('下拉数据加载失败');
-              }
-            },
-            error: function() {
-              layer.msg('请求出错');
-            }
-          });
+
           // 表单提交事件
           form.on('submit(demo-login)', function(data){
 
             $("#add-button").html("请稍等，正在提交数据...").attr("disabled","disabled");
             // 此处可执行 Ajax 等操作
             $.ajax({
-                url:'{{ url_for('discord.edit') }}',
+                url:'{{ url_for('discord.edit_channel') }}',
                 headers: {
                     'Authorization': 'Bearer ' + token,
                 },
                 data:{
-                    "username":data.field.username,
-                    "global_name":data.field.global_name,
                     "id":data.field.id,
-                    "cid":data.field.category_id,
-                    "email":data.field.email,
+                    "username":data.field.username,
+                    "did":data.field.did,
                     "token":data.field.discord_token,
-                    "remark":data.field.remark
+                    "url":data.field.discord_url,
+                    "remark":data.field.remark,
+                    "guild_id":data.field.guild_id,
+                    "guild_name":data.field.guild_name,
+                    "guild_description":data.field.guild_description,
+                    "guild_icon":data.field.guild_icon,
+                    "channel_id":data.field.channel_id
                 },
                 dataType:"json",
                 type:"post",
@@ -600,15 +624,15 @@ layui.use(function(){
                         layer.confirm(result.message, {
                           btn: ['确定', '关闭'] //按钮
                         }, function(){
-                          window.location.href='{{ url_for('discord.index') }}';
+                          window.location.href='/discord/guild/did/'+id;
                         }, function(){
-                          window.location.href='{{ url_for('discord.index') }}';
+                          window.location.href='/discord/guild/did/'+id;
                         });
 
                         return true
 
                     }else{
-                    	$("#add-button").html("确定提交").removeAttr("disabled");
+                    	$("#add-button").html("确定修改").removeAttr("disabled");
                     	return layer.msg(result.message);
                     }
                 }
@@ -643,7 +667,7 @@ layui.use(function(){
                   <div class="layui-input-prefix">
                     <i class="layui-icon layui-icon-username"></i>
                   </div>
-                  <input type="text" name="global_name" id="add-global-name"   value="" lay-verify="required" placeholder="@Discord用户名" lay-reqtext="请填写Discord用户名" autocomplete="off" class="layui-input" lay-affix="clear">
+                  <input type="text" name="username" id="add-username"   value="" lay-verify="required" placeholder="@Discord用户名" lay-reqtext="请填写Discord用户名" autocomplete="off" class="layui-input" lay-affix="clear">
                 </div>
               </div>
 
@@ -665,8 +689,6 @@ layui.use(function(){
                   </div>
                     <textarea placeholder="请输入此Discord备注" id="add-remark"   name="remark" class="layui-textarea" lay-verify="required"  lay-reqtext="请填写Discord备注"  ></textarea>
                      <input type="hidden" name="email" id="add-email"   value=""   autocomplete="off" >
-                    <input type="hidden" name="username" id="add-username"   value="" lay-verify="required" placeholder="@Discord用户名" lay-reqtext="请填写Discord用户名" autocomplete="off" class="layui-input" lay-affix="clear">
-
                  </div>
               </div>
 
@@ -717,7 +739,6 @@ layui.use(function(){
                 },
                 data:{
                     "username":data.field.username,
-                    "global_name":data.field.global_name,
                     "cid":data.field.category_id,
                     "email":data.field.email,
                     "token":data.field.discord_token,

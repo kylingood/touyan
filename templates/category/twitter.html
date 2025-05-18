@@ -106,7 +106,7 @@ layui.use(['laypage', 'jquery'], function() {
       const randomClass = colorClasses[Math.floor(Math.random() * colorClasses.length)];
       html += `<tr class="align-middle" id="del_twitter_${item.id}">
                           <td>${item.num}.</td>
-                          <td><a href="{{ url_for('category.twitter') }}/${item.cid}" class="alert-link" target="_blank"><button type="button" class="layui-btn ${randomClass} layui-btn-sm">${item.title}</button></a></td>
+                          <td><a href="{{ url_for('category.twitter') }}/${item.cid}" class="alert-link" target="_blank"><span class="layui-badge ${randomClass} ">${item.title}</span></a></td>
                           <td>${item.remark}</td>
                           <td>${item.total}</td>
                           <td>

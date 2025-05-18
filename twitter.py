@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, jsonify,g, Blueprint
+from quart import Quart, render_template, request, jsonify,g, Blueprint
 from eth_account.messages import encode_defunct
 from eth_account import Account
 from functools import wraps
@@ -14,9 +14,9 @@ twitter = Blueprint('twitter', __name__)
 
 
 @twitter.route('/twitter/index', methods=['GET'])
-def index():
+async def index():
 
-    return render_template("/twitter/index.html")
+    return await render_template("/twitter/index.html")
 
 
 @twitter.route("/twitter/page", methods=['GET', 'POST'])
@@ -24,8 +24,6 @@ def index():
 def page():
     uid = g.uid
     if request.method == 'GET':
-
-
 
         # 获取参数并设置默认值（如未传则为1或10）
         page = request.args.get('page', default=1, type=int)
@@ -68,7 +66,7 @@ def page():
             ]
         }
 
-        return jsonify(layui_result)
+        return  jsonify(layui_result)
 
 
 

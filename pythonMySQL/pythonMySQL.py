@@ -21,7 +21,7 @@ CONFIG = {
         'database': 'twitter',  # 必选
         'port': '3306',  # 可选，默认3306
         'dbms': 'mysql',  # 可选，默认mysql
-        'charset': 'utf8',  # 可选
+        'charset': 'utf8mb4',  # 可选charset='utf8mb4'
         'DB_DEBUG': True,  # 可选，是否开启DEBUG模式，请在系统上线后关闭DEBUG模式
         'autocommit': True,  # 开启自动提交事务
         'connect_timeout':1800

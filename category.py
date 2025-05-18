@@ -1,4 +1,5 @@
-from flask import Flask, render_template, request, jsonify,g, Blueprint
+from quart import Quart, render_template, request, jsonify,g, Blueprint
+
 from eth_account.messages import encode_defunct
 from eth_account import Account
 from functools import wraps
@@ -13,13 +14,13 @@ category = Blueprint('category', __name__)
 
 
 @category.route('/category/twitter', methods=['GET'])
-def twitter():
-    return render_template("category/twitter.html")
+async def twitter():
+    return await render_template("category/twitter.html")
 
 
 @category.route('/category/discord', methods=['GET'])
-def discord():
-    return render_template("category/discord.html")
+async def discord():
+    return await render_template("category/discord.html")
 
 @category.route('/category/list', methods=['GET', 'POST'])
 @require_user

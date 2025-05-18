@@ -5,7 +5,7 @@
           <!--begin::Brand Link-->
           <a href="/" class="brand-link">
             <!--begin::Brand Image-->
-           <i class="nav-icon layui-icon layui-icon-bot"></i>
+            <img src="{{ url_for('static', filename='dist/assets/img/logo.png') }}" alt="Logo" class="brand-image opacity-75 shadow">
             <!--end::Brand Image-->
             <!--begin::Brand Text-->
             <span class="brand-text fw-light">投研工具</span>
@@ -50,16 +50,16 @@
               </li>
 
               <li class="nav-item">
-                <a href="{{ url_for('discord.index') }}" class="nav-link {% if request.path.startswith('/discord/index') %}active{% endif %} ">
+                <a href="{{ url_for('discord.index') }}" class="nav-link {% if request.path.startswith('/discord/index') %}active{% endif %}  {% if request.path.startswith('/category/discord') %}active{% endif %}  ">
                   <i class="nav-icon layui-icon layui-icon-reply-fill"></i>
                   <p>Discord列表</p>
                 </a>
               </li>
 
               <li class="nav-item">
-                <a href="{{ url_for('category.discord') }}" class="nav-link {% if request.path.startswith('/category/discord') %}active{% endif %}">
+                <a href="{{ url_for('discord.guild') }}" class="nav-link {% if request.path.startswith('/discord/guild') %}active{% endif %}  {% if request.path.startswith('/discord/message') %}active{% endif %} ">
                   <i class="nav-icon layui-icon layui-icon-app" ></i>
-                  <p>Discord分组</p>
+                  <p>监控列表</p>
                 </a>
               </li>
 

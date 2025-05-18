@@ -1,0 +1,408 @@
+{% extends "base.html" %}
+
+{% block content %}
+<style>
+.flow-demo {
+  height: 70vh;
+  overflow: auto;
+  font-size: 0;
+}
+
+.flow-demo li {
+  display: inline-block;
+  margin: 0 5px;
+  font-size: 14px;
+  width: 48%;
+  margin-bottom: 10px;
+  text-align: left;
+  vertical-align: top;
+}
+
+/* 卡片整体容器 */
+.messaget-card {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 10px;
+
+  border-radius: 6px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+/* 头部：头像 + 标题区域在一行 */
+.messaget-card-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* logo头像 */
+.avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+/* 标题和时间的容器（在 logo 右侧垂直排列） */
+.messaget-card-title-group {
+  display: flex;
+  flex-direction: column;
+}
+
+/* 消息标题 */
+.messaget-card-title {
+  font-weight: bold;
+  font-size: 15px;
+  line-height: 1.2;
+}
+
+/* 发布时间 */
+.messaget-card-time {
+  font-size: 12px;
+  color: #999;
+  margin-top: 2px;
+}
+
+/* 英文消息 */
+.message-en {
+  font-size: 14px;
+}
+
+/* 中文消息，左边加“译”标识 */
+.message-zh {
+  font-size: 14px;
+  color: #666;
+  padding-left: 25px;
+  position: relative;
+}
+
+.message-zh::before {
+  content: "译";
+  position: absolute;
+  left: 0;
+  top: 0;
+  font-size: 12px;
+  background-color: #007bff;
+  color: white;
+  border-radius: 3px;
+  padding: 1px 4px;
+}
+</style>
+ <!--begin::App Content Header-->
+         <div class="app-content-header">
+          <!--begin::Container-->
+          <div class="container-fluid">
+            <!--begin::Row-->
+            <div class="row">
+              <div class="col-sm-6"><h4 class="mb-0">Discord监控面版</h4></div>
+              <div class="col-sm-6">
+                <ol class="breadcrumb float-sm-end">
+                  <li class="breadcrumb-item active" aria-current="page">
+                      <a href="{{ url_for('discord.guild') }}" >
+                        <button type="button" class="layui-btn">查看全部监控频道</button>
+                      </a>
+                  </li>
+                </ol>
+              </div>
+            </div>
+
+            <div class="layui-btn-container" id="category_html">
+
+            </div>
+
+            <!--end::Row-->
+          </div>
+          <!--end::Container-->
+        </div>
+        <div class="app-content">
+          <!--begin::Container-->
+          <div class="container-fluid">
+
+
+
+            <div class="row">
+              <div class="flow-demo" id="ID-flow-demo"></div>
+
+            </div>
+
+
+          </div>
+          <!--end::Container-->
+        </div>
+        <!--end::App Content-->
+
+<script>
+layui.use(function(){
+  var flow = layui.flow;
+  // 流加载实例
+  flow.load({
+    elem: '#ID-flow-demo', // 流加载容器
+    scrollElem: '#ID-flow-demo', // 滚动条所在元素，一般不用填，此处只是演示需要。
+    done: function(page, next){ // 执行下一页的回调
+      // 模拟数据插入
+      setTimeout(function(){
+        var lis = [];
+        for (var i = 0; i < 18; i++) {
+          var num = (page - 1) * 18 + i + 1;
+          lis.push(`
+            <li>
+              <div class="messaget-card">
+                <div class="messaget-card-header">
+                  <img class="avatar" src="https://cdn.discordapp.com/icons/1350994593642053734/9ef81bc96295077f55774dc2fa497f03.jpeg" alt="logo">
+                  <div class="messaget-card-title-group">
+                    <div class="messaget-card-title">消息标题消息标题题消息标题消息标题 ${num}</div>
+                    <div class="messaget-card-time">2025-05-18 14:00</div>
+                  </div>
+                </div>
+                <div class="message-en">This is message ${num} in English.</div>
+                <div class="message-zh"> 这是第 ${num} 条中文翻译内容。</div>
+              </div>
+            </li>
+            `);
+        }
+
+        // 执行下一页渲染，第二参数为：满足“加载更多”的条件，即后面仍有分页
+        // pages 为 Ajax返回的总页数，只有当前页小于总页数的情况下，才会继续出现加载更多
+        next(lis.join(''), page < 10); // 此处假设总页数为 10
+      }, 520);
+    }
+  });
+});
+
+
+
+layui.use(['laypage', 'jquery'], function() {
+  var laypage = layui.laypage;
+  var $ = layui.jquery;
+  const token = localStorage.getItem('token');
+  let  did = {{did}};
+
+  // 监听分类按钮点击
+  $('#category_html').on('click', '.layui-btn', function() {
+    did = $(this).data('id');
+    // 样式切换：移除其他按钮的 cur，添加当前按钮的 cur
+    $('#category_html .layui-btn').addClass('layui-btn-primary');
+    $(this).removeClass('layui-btn-primary');
+
+    fetchData(1, 10,did); // 点击分类时重置为第一页
+  });
+
+ // 增加discord 委托给 body 或更合适的父容器
+  $('body').on('blur', '#add-token-input', function () {
+    const discord_token = $(this).val().trim();
+    if (discord_token) {
+      $.ajax({
+        url: '/api/auth/get_discord',  // 你需要创建这个后端路由
+        type: 'GET',
+        headers: {
+        'Authorization': 'Bearer ' + token,
+        },
+        contentType: 'application/json',
+        data: { token: discord_token },
+        success: function (res) {
+          if (res.status) {
+            $("#add-username").val(res.data.username)
+            $("#add-remark").val(res.data.global_name)
+            $("#add-email").val(res.data.email)
+          } else {
+            layer.msg('获取失败：' + res.message);
+          }
+        },
+        error: function () {
+           layer.msg('服务器错误，请稍后重试');
+        }
+      });
+    }
+  });
+
+
+
+  // 自动取discord的guild_id和channel_id
+  $('body').on('blur', '#edit-discord-input', function () {
+    const discord_url = $(this).val().trim();
+    const discord_token = $("#my_discord_token").val();      // 获取 data-discord_token 的值
+
+    // 校验格式 + 提取 ID
+    const match = discord_url.match(/^https:\/\/discord\.com\/channels\/(\d+)\/(\d+)$/);
+
+    if (match) {
+      const guild_id = match[1];  // 第一个数字
+      const channel_id = match[2];  // 第二个数字
+      $("#edit-guild").val(guild_id)
+      $("#edit-channel").val(channel_id)
+              if (discord_token) {
+          $.ajax({
+            url: '/api/auth/get_channel',  // 你需要创建这个后端路由
+            type: 'GET',
+            headers: {
+                'Authorization': 'Bearer ' + token,
+            },
+            contentType: 'application/json',
+            data: { token: discord_token,channel_id: channel_id,guild_id: guild_id },
+            success: function (res) {
+              if (res.status) {
+                $("#edit-username").val(res.data.name)
+                $("#edit-remark").val('监控服务器：'+res.data.guild_name+' 的 '+res.data.name+' 频道')
+                $("#guild_name").val(res.data.guild_name)
+                $("#guild_icon").val(res.data.guild_icon)
+                $("#guild_description").val(res.data.guild_description)
+
+              } else {
+                layer.msg('未加入此服务器或网络出错，失败原因：' + res.message);
+              }
+            },
+            error: function () {
+               layer.msg('未加入此服务器或网络错误，请稍后重试');
+            }
+          });
+        }
+
+      console.log("Guild ID:", guild_id);
+      console.log("Channel ID:", channel_id);
+    } else {
+       layer.msg('链接格式不正确,参考例子：https://discord.com/channels/1141419161893998702/1260130052956360724');
+       return
+    }
+  });
+ // 修改discord
+  $('body').on('blur', '#edit-token-input', function () {
+    const discord_token = $(this).val().trim();
+    if (discord_token) {
+      $.ajax({
+        url: '/api/auth/get_discord',  // 你需要创建这个后端路由
+        type: 'GET',
+        headers: {
+        'Authorization': 'Bearer ' + token,
+        },
+        contentType: 'application/json',
+        data: { token: discord_token },
+        success: function (res) {
+          if (res.status) {
+            $("#edit-username").val(res.data.username)
+            $("#edit-remark").val(res.data.global_name)
+            $("#edit-email").val(res.data.email)
+          } else {
+            layer.msg('获取失败：' + res.message);
+          }
+        },
+        error: function () {
+           layer.msg('服务器错误，请稍后重试');
+        }
+      });
+    }
+  });
+
+  function fetchData(page, limit, did) {
+    $.ajax({
+      url: '{{ url_for('discord.page_channel') }}',  // 替换为你的后端接口
+      type: 'GET',
+      headers: {
+        'Authorization': 'Bearer ' + token,
+        'Content-Type': 'application/json'
+      },
+      data: { page: page, limit: limit, did: did},
+      success: function(res) {
+        // 假设 res 格式：{ code: 0, count: 100, data: [...] }
+        if (res.code === 0) {
+          renderTable(res.data);  // 渲染表格
+          laypage.render({
+            elem: 'demo-laypage-all',
+            count: res.count,
+            limit: limit,
+            curr: page,
+            layout: ['count', 'prev', 'page', 'next', 'limit', 'skip'], // 功能布局
+            jump: function(obj, first) {
+              if (!first) {
+                fetchData(obj.curr, obj.limit, did);  // 重新获取数据
+              }
+            }
+          });
+        }
+      }
+    });
+  }
+
+  function renderTable(data) {
+    var html = '';
+    const colorClasses = [
+      'layui-bg-orange',
+      'layui-bg-green',
+      'layui-bg-cyan',
+      'layui-bg-blue',
+      'layui-bg-black'
+    ];
+
+
+    data.forEach(function(item) {
+      // 随机选择一个 class
+      const randomClass = colorClasses[Math.floor(Math.random() * colorClasses.length)];
+      html += `<tr class="align-middle" id="del_discord_${item.id}">
+                          <td>${item.num}.</td>
+                          <td><a href="${item.url}" class="alert-link" target="_blank"><img src="https://cdn.discordapp.com/icons/${item.guild_id}/${item.guild_icon}.jpeg" class="user-image rounded-circle shadow"  style="width:30px; height:30px;" alt="User Image"><br/> ${item.guild_name}</a></td>
+                          <td><a href="${item.url}" class="alert-link" target="_blank"><span class="layui-badge ${randomClass}">${item.username}</span></a></td>
+                          <!--<td><a href="${item.url}" class="alert-link" target="_blank">${item.guild_id}</br>${item.channel_id}</a></td>-->
+                          <td>${item.discord_name}</td>
+                          <td>${item.remark}</td>
+                          <td>
+                           <span><a href="/discord/guild/did/${item.id}" class="alert-link" target="_blank"><button type="button" class="layui-btn  layui-btn-sm" style="background-color: #16b777;">消息列表</button></a></span>
+
+                          <span   lay-on="add-channel-confirm"  data-id="${item.did}"  data-title="${item.discord_name}" data-discord-token="${item.token}"  ><button type="button" class="layui-btn  layui-btn-sm">增加监控</button></span>
+
+                          <span   lay-on="edit-confirm"  data-id="${item.id}" data-did="${item.did}" data-discord-token="${item.token}"  data-username="${item.username}"
+                          data-guild-id="${item.guild_id}" data-guild-name="${item.guild_name}"  data-guild-icon="${item.guild_icon}" data-guild-description="${item.guild_description}"
+                            data-channel-id="${item.channel_id}"   data-remark="${item.remark}"   data-url="${item.url}"
+                           >
+                          <button type="button" class="layui-btn layui-bg-blue  layui-btn-sm">修改</button>
+                          </span>
+                           <span   lay-on="del-discord-confirm"  data-id="${item.id}" ><button type="button" class="layui-btn layui-bg-red  layui-btn-sm">删除</button></span>
+                           </td>
+                        </tr>`;
+    });
+    $('#data-table').html(html);
+  }
+
+
+    // ✅ 取到分类列表
+  function getCategory(){
+       const  did = {{did}};
+       const token = localStorage.getItem('token');
+       $.ajax({
+        url:'{{ url_for('discord.list') }}',
+        headers: {
+            'Authorization': 'Bearer ' + token,
+        },
+        type: 'GET',
+        data: { is_type: 2 },
+        success: function(res) {
+          if (res.status === 1 && Array.isArray(res.data)) {
+            const select = $('#category_html');
+            select.empty();  // 清空旧内容
+            if (did>0) {
+                select.append('<button type="button" data-id="0"  class="layui-btn layui-btn-primary layui-btn-sm ">全部Discord账号</button>');
+            }else{
+                select.append('<button type="button" data-id="0"  class="layui-btn  layui-btn-sm ">全部Discord账号</button>');
+            }
+
+
+            res.data.forEach(item => {
+                const selected = (parseInt(item.id) === parseInt(did)) ? '' : 'layui-btn-primary';
+                console.log(item.id+'----'+ did);
+                select.append(`<button type="button" data-id="${item.id}" class="layui-btn  layui-btn-sm  ${selected}"> ${item.global_name}</button>`);
+            });
+
+          } else {
+            layer.msg('下拉数据加载失败');
+          }
+        },
+        error: function() {
+          layer.msg('请求出错');
+        }
+      });
+  }
+
+  fetchData(1, 10,{{did}});  // 默认加载第1页，10条数据
+  setTimeout(getCategory, 300);
+});
+</script>
+{% endblock %}

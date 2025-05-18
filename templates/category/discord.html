@@ -7,10 +7,15 @@
           <div class="container-fluid">
             <!--begin::Row-->
             <div class="row">
-              <div class="col-sm-6"><h4 class="mb-0">Discord分组管理</h4></div>
+              <div class="col-sm-6"><h4 class="mb-0">管理Discord分组</h4></div>
               <div class="col-sm-6">
                 <ol class="breadcrumb float-sm-end">
-                  <li class="breadcrumb-item"> <button type="button" class="btn btn-primary mb-2 btn-sm" lay-on="add-category-page-custom" >添加Discord分组</button></li>
+                  <li class="breadcrumb-item"> <button type="button" class="layui-btn layui-bg-blue" lay-on="add-category-page-custom" >添加Discord分组</button></li>
+                     <li class="breadcrumb-item active" aria-current="page">
+                        <a href="{{ url_for('discord.index') }}" >
+                            <button type="button"  class="layui-btn">管理Discord</button>
+                        </a>
+                    </li>
                 </ol>
               </div>
             </div>
@@ -106,7 +111,7 @@ layui.use(['laypage', 'jquery'], function() {
       const randomClass = colorClasses[Math.floor(Math.random() * colorClasses.length)];
       html += `<tr class="align-middle" id="del_twitter_${item.id}">
                           <td>${item.num}.</td>
-                          <td><a href="{{ url_for('category.discord') }}/${item.cid}" class="alert-link" target="_blank"><button type="button" class="layui-btn ${randomClass} layui-btn-sm">${item.title}</button></a></td>
+                          <td><a href="{{ url_for('category.discord') }}/${item.cid}" class="alert-link" target="_blank"><span class="layui-badge ${randomClass} ">${item.title}</span></a></td>
                           <td>${item.remark}</td>
                           <td>${item.total}</td>
                           <td>

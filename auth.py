@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify, g, Blueprint
+from quart import Quart, request, jsonify, g, Blueprint
 from eth_account.messages import encode_defunct
 from eth_account import Account
 from functools import wraps
@@ -71,8 +71,16 @@ def require_user(f):
     @wraps(f)
     def wrapper(*args, **kwargs):
         if not extract_user_from_token():
-            return jsonify({'error': '未登录或Token无效'}), 401
+            return  jsonify({'error': '未登录或Token无效'}), 401
         return f(*args, **kwargs)
+    return wrapper
+
+def require_user_async(f):
+    @wraps(f)
+    async def wrapper(*args, **kwargs):  # wrapper也要是async
+        if not extract_user_from_token():
+            return jsonify({'error': '未登录或Token无效'}), 401
+        return await f(*args, **kwargs)  # 一定要 await f(...)
     return wrapper
 
 
