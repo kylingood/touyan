@@ -58,81 +58,82 @@ async def get_channel():
         return jsonify({'status': 0, 'message': '无效或被封禁的 token'})
 
 
+async def insert_message_db(item):
 
+    token = item['token']
+    guild_id = item['guild_id']
+    channel_id = item['channel_id']
+    did = item['did']
+    async with AsyncSession() as session:
+        message_info = await get_discord_message(token, guild_id, channel_id, 5, session)
 
+        for message in message_info:
+            mid = message['id']
+            content = message['content']
 
+            # print(f"edited_timestamp: {message['edited_timestamp']}, timestamp: {message['timestamp']}")
+            dt = datetime.fromisoformat(message['timestamp'])
+            timestamp = int(dt.timestamp())
+
+            edited_timestamp = 0
+            if message['edited_timestamp']:
+                edit_dt = datetime.fromisoformat(message['edited_timestamp'])
+                edited_timestamp = int(edit_dt.timestamp())
+
+            ## 先查看此钱包有没有数据，没有就插入，有就更新数据状态
+            data_one = dbMysql.table('guzi_discord_message').where(
+                f"channel_id='{channel_id}' AND mid='{mid}'").find()
+            # print(dbMysql.getLastSql())  # 打印由Model类拼接填充生成的SQL语句
+            # return jsonify({'status': 0, 'message': data_one})
+            dbdata = {}
+            today_time = int(time.time())
+            content_cn = ''
+            if data_one and edited_timestamp != data_one.get('edited_timestamp'):
+                dbid = data_one['id']
+                dbdata['updated'] = today_time
+                dbdata['content'] = content
+                dbdata['did'] = did
+                dbdata['content_cn'] = content_cn
+                dbdata['timestamp'] = timestamp
+                dbdata['edited_timestamp'] = edited_timestamp
+                id = dbMysql.table('guzi_discord_message').where(f"id = '{dbid}'").save(dbdata)
+            else:
+                # 获取当前日期
+                dbdata['mid'] = mid
+                dbdata['username'] = item['username']
+                dbdata['did'] = did
+                dbdata['guild_id'] = item['guild_id']
+                dbdata['guild_name'] = item['guild_name']
+                dbdata['guild_icon'] = item['guild_icon']
+                dbdata['guild_description'] = item['guild_description']
+                dbdata['channel_id'] = channel_id
+                dbdata['guild_id'] = guild_id
+                dbdata['content'] = content
+                dbdata['content_cn'] = content_cn
+                dbdata['timestamp'] = timestamp
+                dbdata['edited_timestamp'] = edited_timestamp
+                dbdata['url'] = item['url']
+                dbdata['status'] = 1
+                dbdata['created'] = today_time
+                id = dbMysql.table('guzi_discord_message').add(dbdata)
+
+            # print(dbMysql.getLastSql())  # 打印由Model类拼接填充生成的SQL语句
+    return id
 
 
 @web3_auth.route('/api/auth/update_message')
 @require_user_async
 async def update_message():
     uid = g.uid
-    data = dbMysql.table('guzi_discord_channel').where(f"uid='{uid}' AND status=1").select()
+    data = dbMysql.table('guzi_discord_channel').where(f"uid='{uid}' AND status=1").order("id DESC").limit(5).select()
     # 判断 data 是否为非空列表
     if not data:
         return  jsonify({'status': 0, 'data': [], 'msg': '暂无数据'})
 
     # 循环打印日志（或处理你想要的字段）
     for item in data:
-        print(f"id: {item['id']}, 用户名: {item['username']}")
-        token = item['token']
-        guild_id = item['guild_id']
-        channel_id = item['channel_id']
-        did = item['did']
-        async with AsyncSession() as session:
-            message_info = await get_discord_message(token, guild_id, channel_id, 5,session)
-
-            for message in message_info:
-                mid = message['id']
-                content = message['content']
-
-                print(f"edited_timestamp: {message['edited_timestamp']}, timestamp: {message['timestamp']}")
-                dt = datetime.fromisoformat(message['timestamp'])
-                timestamp = int(dt.timestamp())
-
-                edited_timestamp = 0
-                if message['edited_timestamp']:
-                    edit_dt = datetime.fromisoformat(message['edited_timestamp'])
-                    edited_timestamp = int(edit_dt.timestamp())
-
-                ## 先查看此钱包有没有数据，没有就插入，有就更新数据状态
-                data_one = dbMysql.table('guzi_discord_message').where(
-                    f"channel_id='{channel_id}' AND mid='{mid}'").find()
-                #print(dbMysql.getLastSql())  # 打印由Model类拼接填充生成的SQL语句
-                #return jsonify({'status': 0, 'message': data_one})
-                dbdata = {}
-                today_time = int(time.time())
-                content_cn = ''
-                if data_one and edited_timestamp != data_one.get('edited_timestamp'):
-                    id = data_one['id']
-                    dbdata['updated'] = today_time
-                    dbdata['content'] = content
-                    dbdata['did'] = did
-                    dbdata['content_cn'] = content_cn
-                    dbdata['timestamp'] = timestamp
-                    dbdata['edited_timestamp'] = edited_timestamp
-                    id = dbMysql.table('guzi_discord_message').where(f"id = '{id}'").save(dbdata)
-                else:
-                    # 获取当前日期
-                    dbdata['mid'] = mid
-                    dbdata['username'] = item['username']
-                    dbdata['did'] = did
-                    dbdata['guild_id'] = item['guild_id']
-                    dbdata['guild_name'] = item['guild_name']
-                    dbdata['guild_icon'] = item['guild_icon']
-                    dbdata['guild_description'] = item['guild_description']
-                    dbdata['channel_id'] = channel_id
-                    dbdata['guild_id'] = guild_id
-                    dbdata['content'] = content
-                    dbdata['content_cn'] = content_cn
-                    dbdata['timestamp'] = timestamp
-                    dbdata['edited_timestamp'] = edited_timestamp
-                    dbdata['url'] = item['url']
-                    dbdata['status'] = 1
-                    dbdata['created'] = today_time
-                    id = dbMysql.table('guzi_discord_message').add(dbdata)
-                    # print(dbMysql.getLastSql())  # 打印由Model类拼接填充生成的SQL语句
-
+        #print(f"id: {item['id']}, 用户名: {item['username']}")
+        id = await insert_message_db(item)
 
     if id:
         # 有值，处理逻辑

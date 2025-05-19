@@ -72,7 +72,7 @@ layui.use(['laypage', 'jquery'], function() {
   var laypage = layui.laypage;
   var $ = layui.jquery;
   const token = localStorage.getItem('token');
-  let  did = {{did}};
+  let  did = 0;
 
   // 监听分类按钮点击
   $('#category_html').on('click', '.layui-btn', function() {
@@ -241,7 +241,7 @@ layui.use(['laypage', 'jquery'], function() {
                           <td>${item.discord_name}</td>
                           <td>${item.remark}</td>
                           <td>
-                           <span><a href="/discord/guild/did/${item.id}" class="alert-link" target="_blank"><button type="button" class="layui-btn  layui-btn-sm" style="background-color: #16b777;">消息列表</button></a></span>
+                           <span><a href="/discord/message/gid/${item.guild_id}" class="alert-link" target="_blank"><button type="button" class="layui-btn  layui-btn-sm" style="background-color: #16b777;">消息列表</button></a></span>
 
                           <span   lay-on="add-channel-confirm"  data-id="${item.did}"  data-title="${item.discord_name}" data-discord-token="${item.token}"  ><button type="button" class="layui-btn  layui-btn-sm">增加监控</button></span>
 
@@ -261,7 +261,7 @@ layui.use(['laypage', 'jquery'], function() {
 
   // ✅ 取到分类列表
   function getCategory(){
-       const  did = {{did}};
+       const  did = 0;
        const token = localStorage.getItem('token');
        $.ajax({
         url:'{{ url_for('discord.list') }}',
@@ -298,30 +298,9 @@ layui.use(['laypage', 'jquery'], function() {
 
 
 
-  function getMessage(){
-       const  did = {{did}};
-       const token = localStorage.getItem('token');
-       $.ajax({
-        url:'/api/auth/update_message',
-        headers: {
-            'Authorization': 'Bearer ' + token,
-        },
-        type: 'GET',
-        data: {  },
-        success: function(res) {
-          if (res.status === 1) {
-            //layer.msg(res);
-          }
-        },
-        error: function() {
-           //layer.msg('请求出错');
-        }
-      });
-  }
 
   fetchData(1, 10,{{did}});  // 默认加载第1页，10条数据
   setTimeout(getCategory, 300);
-  setTimeout(getMessage, 500);
 });
 
 
@@ -485,9 +464,9 @@ layui.use(function(){
                         layer.confirm(result.message, {
                           btn: ['确定', '关闭'] //按钮
                         }, function(){
-                          window.location.href='/discord/guild/did/'+id;
+                          window.location.href='/discord/guild';
                         }, function(){
-                          window.location.href='/discord/guild/did/'+id;
+                          window.location.href='/discord/guild';
                         });
 
                         return true
@@ -624,9 +603,9 @@ layui.use(function(){
                         layer.confirm(result.message, {
                           btn: ['确定', '关闭'] //按钮
                         }, function(){
-                          window.location.href='/discord/guild/did/'+id;
+                          window.location.href='/discord/guild';
                         }, function(){
-                          window.location.href='/discord/guild/did/'+id;
+                          window.location.href='/discord/guild';
                         });
 
                         return true

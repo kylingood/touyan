@@ -1,6 +1,7 @@
 from quart import Quart, render_template, request, jsonify, g, Blueprint
 from util.db import *
 from auth import require_user,require_user_async
+from web3_auth import insert_message_db
 import asyncio
 
 
@@ -249,18 +250,18 @@ async def delete():  # 因为 require_login 会解码 token
 
 ## 监控频道列表
 @discord.route('/discord/guild', methods=['GET'])
-@discord.route('/discord/guild/did/<int:did>', methods=['GET'])
-async def guild(did=0):
+@discord.route('/discord/guild/gid/<int:gid>', methods=['GET'])
+async def guild(gid=0):
 
-    return await render_template("/discord/guild.html", did=did)
+    return await render_template("/discord/guild.html", gid=gid)
 
 
 ## 监控频道列表
 @discord.route('/discord/message', methods=['GET'])
-@discord.route('/discord/message/did/<int:did>', methods=['GET'])
-async def message(did=0):
+@discord.route('/discord/message/gid/<int:gid>', methods=['GET'])
+async def message(gid=0):
 
-    return await render_template("/discord/message.html", did=did)
+    return await render_template("/discord/message.html", gid=gid)
 
 
 
@@ -271,6 +272,24 @@ def list():
     data = dbMysql.table('guzi_discord').where(f"uid='{uid}'  AND  status=1").field('id,global_name').select()
     #print(dbMysql.getLastSql())  # 打印由Model类拼接填充生成的SQL语句
     return jsonify({'status': 1, 'data': data})
+
+
+
+@discord.route('/discord/guild_data', methods=['GET', 'POST'])
+@require_user
+def guild_data():
+    uid = g.uid
+    data = dbMysql.table('guzi_discord_channel').where(f"uid='{uid}'  AND  status=1").field('guild_id,guild_name,guild_icon').select()
+    #print(dbMysql.getLastSql())  # 打印由Model类拼接填充生成的SQL语句
+    seen = set()
+    result = []
+    for row in data:
+        gid = row.get('guild_id')
+        if gid not in seen:
+            seen.add(gid)
+            result.append(row)
+    return jsonify({'status': 1, 'data': result})
+
 
 
 @discord.route('/discord/add_channel', methods=['GET', 'POST'])
@@ -330,7 +349,8 @@ async def add_channel():
 
         #print(dbMysql.getLastSql())  # 打印由Model类拼接填充生成的SQL语句
         if discord_id:
-
+            ## 修改的频道数据后，同步更新频道公告
+            mid = await insert_message_db(dbdata)
             return jsonify({
                 'status': 1,
                 'message': '恭喜您，数据增加成功！'
@@ -397,6 +417,10 @@ async def edit_channel():
             discord_id = dbMysql.table('guzi_discord_channel').add(dbdata)
 
         if discord_id:
+
+            ## 修改的频道数据后，同步更新频道公告
+            mid = await insert_message_db(dbdata)
+
             return jsonify({
                 'status': 1,
                 'message': '恭喜您，数据修改成功！'
@@ -504,23 +528,38 @@ def page_messages():
         did = request.args.get('did', default=0, type=int)
         guild_id = request.args.get('guild_id', default=0, type=int)
 
-        where = f" status=1 "
+
+        # 初始化
+        where_clauses = ["status=1"]  # 永远有的条件
         order = "timestamp DESC,mid DESC"
+        # 可选条件
         if did:
-            where = f" did='{did}'  AND {where} "
+            where_clauses.append(f"did='{did}'")
 
         if guild_id:
-            where = f" guild_id='{guild_id}' AND {where}"
+            where_clauses.append(f"guild_id='{guild_id}'")
+
+        ## 先取到所有关注频道信息
+        channel_list = dbMysql.table('guzi_discord_channel').where(f"uid='{uid}' AND status='1' ").field('channel_id').select()
+        if channel_list:
+            channel_ids = [f"'{row['channel_id']}'" for row in channel_list]
+            channel_in_sql = f"channel_id IN ({', '.join(channel_ids)})"
+            where_clauses.append(channel_in_sql)
+
+        where = ' AND '.join(where_clauses)
+
+        print(where)
+
 
         # 然后再计算偏移量
         start_index = (page - 1) * limit + 1
 
-
+        #print(where)
         data_list = dbMysql.table('guzi_discord_message').where(where).order(order).page(page, limit).select()
-        #print(dbMysql.getLastSql())  # 打印由Model类拼接填充生成的SQL语句
+        print(dbMysql.getLastSql())  # 打印由Model类拼接填充生成的SQL语句
         total_page =  dbMysql.table('guzi_discord_message').where(where).count()
         #print(dbMysql.getLastSql())  # 打印由Model类拼接填充生成的SQL语句
-        total_page = 10
+        #total_page = 10
         rows = dbMysql.table('guzi_discord').where(f"uid='{uid}' AND status=1").field('id,global_name').select()
         discord_data = {}
         for row in rows:
