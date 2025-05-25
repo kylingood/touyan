@@ -7,12 +7,19 @@
           <div class="container-fluid">
             <!--begin::Row-->
             <div class="row">
-              <div class="col-sm-6"><h4 class="mb-0">Discord监控频道列表</h4></div>
+              <div class="col-sm-6"><h4 class="mb-0">全部监控频道</h4></div>
               <div class="col-sm-6">
                 <ol class="breadcrumb float-sm-end">
+
+                     <li class="breadcrumb-item active" aria-current="page">
+                        <a href="{{ url_for('discord.index') }}" >
+                            <button type="button"  class="layui-btn" style="background-color: #16b777">账号列表</button>
+                        </a>
+                    </li>
+
                   <li class="breadcrumb-item active" aria-current="page">
                       <a href="{{ url_for('discord.message') }}" >
-                        <button type="button" class="layui-btn">查看全部消息</button>
+                        <button type="button" class="layui-btn">查看全部监控信息</button>
                       </a>
                   </li>
                 </ol>
@@ -241,7 +248,7 @@ layui.use(['laypage', 'jquery'], function() {
                           <td>${item.discord_name}</td>
                           <td>${item.remark}</td>
                           <td>
-                           <span><a href="/discord/message/gid/${item.guild_id}" class="alert-link" target="_blank"><button type="button" class="layui-btn  layui-btn-sm" style="background-color: #16b777;">消息列表</button></a></span>
+                           <span><a href="/discord/message/gid/${item.guild_id}" class="alert-link" ><button type="button" class="layui-btn  layui-btn-sm" style="background-color: #16b777;">消息列表</button></a></span>
 
                           <span   lay-on="add-channel-confirm"  data-id="${item.did}"  data-title="${item.discord_name}" data-discord-token="${item.token}"  ><button type="button" class="layui-btn  layui-btn-sm">增加监控</button></span>
 
@@ -261,7 +268,7 @@ layui.use(['laypage', 'jquery'], function() {
 
   // ✅ 取到分类列表
   function getCategory(){
-       const  did = 0;
+       const  did = {{did}};
        const token = localStorage.getItem('token');
        $.ajax({
         url:'{{ url_for('discord.list') }}',

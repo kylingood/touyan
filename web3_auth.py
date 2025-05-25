@@ -11,6 +11,7 @@ import asyncio
 from src.model.discord.get_discord_info import *
 from datetime import datetime, timedelta
 from googletrans import Translator
+from rapidapi import getDataByUsername
 
 SECRET_KEY = '681f4d8e-d290-800f-a7e5-06bd9291c0d8'
 
@@ -22,7 +23,7 @@ EXPIRE_SECONDS = 300  # 5分钟有效
 web3_auth = Blueprint('web3_auth', __name__)
 
 
-# 获取签名消息（带时间戳/nonce）
+# 根据Token获取discord相关信息
 @web3_auth.route('/api/auth/get_discord')
 async def get_discord():
     if request.method == 'GET':
@@ -37,6 +38,33 @@ async def get_discord():
                 return jsonify({'status': 1, 'data': discord_info})
 
         return jsonify({'status': 0, 'message': '无效或被封禁的 token'})
+
+# 根据用户名获取推特信息
+@web3_auth.route('/api/auth/get_twitter')
+async def get_twitter():
+    if request.method == 'GET':
+        username = request.args.get("username")
+        if not username:
+            return jsonify({"error": "Missing username"}), 400
+
+        twitter_info = getDataByUsername(username)
+
+        data = {
+            "followers": twitter_info['legacy']['friends_count'],
+            "fans": twitter_info['legacy']['followers_count'],
+            "description": twitter_info['legacy']['description'],
+            "avatar": twitter_info['legacy']['profile_image_url_https'],
+            "username": username,
+            "rest_id": twitter_info['rest_id'],
+            "screen_name": twitter_info['legacy']['screen_name'],
+            "show_name": twitter_info['legacy']['name']
+        }
+        if data:
+            # 有值，处理逻辑
+            return jsonify({'status': 1, 'data': data})
+
+        return jsonify({'status': 0, 'message': '无效或被封禁的 token'})
+
 
 
 # 获取签名消息（带时间戳/nonce）

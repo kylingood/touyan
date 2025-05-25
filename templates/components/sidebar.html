@@ -33,38 +33,38 @@
 
 
               <li class="nav-item">
-                <a href="{{ url_for('twitter.index') }}" class="nav-link {% if request.path.startswith('/twitter/index') %}active{% endif %} ">
+                <a href="{{ url_for('twitter.index') }}" class="nav-link {% if request.path.startswith('/twitter/index') %}active{% endif %} {% if request.path.startswith('/category/twitter') %}active{% endif %} ">
                   <i class="nav-icon layui-icon layui-icon-group"></i>
                   <p>推特列表</p>
                 </a>
               </li>
 
-
-
-
               <li class="nav-item">
-                <a href="{{ url_for('category.twitter') }}" class="nav-link {% if request.path.startswith('/category/twitter') %}active{% endif %}">
+                <a href="{{ url_for('twitter.message') }}" class="nav-link {% if request.path.startswith('/twitter/message') %}active{% endif %}">
                   <i class="nav-icon layui-icon layui-icon-template-1" ></i>
-                  <p>推特分组</p>
+                  <p>推特信息流</p>
+                </a>
+              </li>
+
+
+               <li class="nav-item">
+                <a href="{{ url_for('discord.message') }}" class="nav-link  {% if request.path.startswith('/discord/message') %}active{% endif %} ">
+                  <i class="nav-icon layui-icon layui-icon-reply-fill" ></i>
+                  <p>Discord信息流</p>
                 </a>
               </li>
 
               <li class="nav-item">
-                <a href="{{ url_for('discord.index') }}" class="nav-link {% if request.path.startswith('/discord/index') %}active{% endif %}  {% if request.path.startswith('/category/discord') %}active{% endif %}  ">
-                  <i class="nav-icon layui-icon layui-icon-reply-fill"></i>
-                  <p>Discord列表</p>
+                <a href="{{ url_for('discord.guild') }}" class="nav-link {% if request.path.startswith('/discord/index') %}active{% endif %}  {% if request.path.startswith('/category/discord') %}active{% endif %}  {% if request.path.startswith('/discord/guild') %}active{% endif %}   ">
+                  <i class="nav-icon layui-icon layui-icon-app "></i>
+                  <p>Discord频道</p>
                 </a>
               </li>
 
-              <li class="nav-item">
-                <a href="{{ url_for('discord.guild') }}" class="nav-link {% if request.path.startswith('/discord/guild') %}active{% endif %}  {% if request.path.startswith('/discord/message') %}active{% endif %} ">
-                  <i class="nav-icon layui-icon layui-icon-app" ></i>
-                  <p>监控列表</p>
-                </a>
-              </li>
+
 
               <li class="nav-item">
-                <a href="/" class="nav-link">
+               <a href="{{ url_for('twitter.summary') }}" class="nav-link {% if request.path.startswith('/twitter/summary') %}active{% endif %}">
                   <i class="nav-icon layui-icon layui-icon-survey"></i>
                   <p>推文总结</p>
                 </a>

@@ -8,91 +8,105 @@
   font-size: 0;
 }
 
-.flow-demo li {
-  display: block;              /* 改为块级元素，一整行显示 */
-  width: 100%;                 /* 占满整行 */
-  margin: 0 0 10px 0;          /* 只设置下边距，左右无空隙 */
-  font-size: 14px;
-  text-align: left;
+#ID-flow-demo {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(480px, 1fr));
+  gap: 16px;
+  padding: 16px;
 }
 
-
-/* 卡片整体容器 */
-.messaget-card {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  padding: 10px;
-
-  border-radius: 6px;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+.project-card {
+  border: 1px solid #eee;
+  border-radius: 10px;
+  padding: 16px;
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  background-color: #fff;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+  max-width: 600px;
+  margin: 16px auto;
+  line-height: 1.6;
+  color: #333;
 }
 
-/* 头部：头像 + 标题区域在一行 */
-.messaget-card-header {
+.header {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
+  margin-bottom: 8px;
 }
 
-/* logo头像 */
 .avatar {
-  width: 40px;
-  height: 40px;
+  width: 48px;
+  height: 48px;
   border-radius: 50%;
   object-fit: cover;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
 }
 
-/* 标题和时间的容器（在 logo 右侧垂直排列） */
-.messaget-card-title-group {
-  display: flex;
-  flex-direction: column;
-}
-
-/* 消息标题 */
-.messaget-card-title {
+.username {
   font-weight: bold;
-  font-size: 20px;
-  line-height: 1.2;
-}
-
-/* 发布时间 */
-.messaget-card-time {
-  font-size: 12px;
-  color: #999;
-  margin-top: 2px;
-}
-
-/* 英文消息 */
-.message-en {
-  margin-left: 55px;
   font-size: 16px;
 }
 
-/* 中文消息，左边加“译”标识 */
-.message-zh {
-  font-size: 14px;
-  color: #666;
-  margin-top:10px;
-  padding-left: 55px;
-  position: relative;
+.meta {
+  font-size: 12px;
+  color: #888;
+  margin-left: auto;
 }
 
-.message-zh::before {
-  content: "译";
-  position: absolute;
-  left: 0;
-  top: 0;
-  font-size: 12px;
-  background-color: #666;
-  color: white;
-  border-radius: 3px;
-  padding: 1px 4px;
+.intro {
+  margin: 12px 0;
+  font-size: 14px;
+  color: #444;
 }
-.msg-link {
-    color: #16b777;
-    text-decoration: underline;
+
+.evaluation-box {
+  background-color: #f9f9f9;
+  border-left: 4px solid #16b777;
+  padding: 12px;
+  border-radius: 6px;
+  font-size: 14px;
+  margin-bottom: 12px;
 }
+
+.score {
+  font-weight: bold;
+  color: #16b777;
+  margin-bottom: 6px;
+}
+
+.section-title {
+  font-weight: bold;
+}
+
+.section-title.teal {
+  color: #16baaa;
+}
+
+.section-title.blue {
+  color: #31bdec;
+}
+
+.footer {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+  color: #666;
+  border-top: 1px dashed #ddd;
+  padding-top: 8px;
+  margin-top: 10px;
+}
+
+.footer .links a {
+  margin-left: 12px;
+  color: #16b777;
+  text-decoration: none;
+}
+
+.footer .links a:hover {
+  text-decoration: underline;
+}
+
 </style>
  <!--begin::App Content Header-->
          <div class="app-content-header">
@@ -200,19 +214,31 @@ layui.use(['flow', 'jquery'], function(){
                   const isRecent = (now - msgTime) <= 48 * 60 * 60 * 1000; // 24小时内
 
                 lis.push(`
-                  <li >
-                      <div class="messaget-card">
-                        <div class="messaget-card-header">
-                          <img class="avatar" src="https://cdn.discordapp.com/icons/${item.guild_id}/${item.guild_icon}.png" alt="logo">
-                          <div class="messaget-card-title-group">
-                            <div class="messaget-card-title" >${item.guild_name} 频道: ${item.username}  DC账号:${item.discord_name} ${isRecent ? '<span class="new-tag" style="color:red;font-size:12px;" > <i class="layui-icon layui-icon-sound" style="font-size: 30px; color: #1E9FFF;"></i>最近48小时内新消息</span>' : ''} </div>
-                            <div class="messaget-card-time"> ${item.timestamp} </div>
-                          </div>
+                      <div class="project-card">
+                          <section class="header">
+                            <img src="https://pbs.twimg.com/profile_images/1871891133544251392/TnccZ1pt_normal.jpg" alt="avatar" class="avatar">
+                            <span class="username">StarDoge (@StarDogeGold)</span>
+                            <span class="meta">23 粉丝　注册时间：2025/4/29 22:35:58</span>
+                          </section>
+
+                          <p class="intro">
+                            <strong>Gold Genesis:</strong> a Doge project like never before. Built for @Base.
+                          </p>
+
+                          <section class="evaluation-box">
+                            <p class="score">评分：45 😐</p>
+                            <p><strong class="section-title teal">AI 总结：</strong> StarDoge是一个基于Base链的Doge主题加密货币项目，自称是前所未有的Doge项目（Gold Genesis）。项目定位可能与meme币或社区驱动型代币相关，但目前信息有限，缺乏详细功能或路线图说明。</p>
+                            <p><strong class="section-title blue">评分理由：</strong> 项目基本信息明确（Base链，Doge主题），但缺乏关键数据支持：无推文内容、互动数据极低（仅23粉丝）、无路线图或代币信息说明，疑似新启动阶段且热度不足。</p>
+                          </section>
+
+                          <footer class="footer">
+                            <span class="time">推送时间：2025/5/3 13:20:33</span>
+                            <span class="links">
+                              <a href="#">查看详情</a>
+                              <a href="#">添加到观察列表</a>
+                            </span>
+                          </footer>
                         </div>
-                        <div class="message-en" >${contentHtml}</div>
-                        <div class="message-zh" id="${contentId}">翻译中...</div>
-                      </div>
-                    </li>
                 `);
 
                   // 异步翻译并填入对应位置

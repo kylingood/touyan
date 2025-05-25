@@ -1,0 +1,761 @@
+{% extends "base.html" %}
+
+{% block content %}
+<style>
+.flow-demo {
+  height: 70vh;
+  overflow: auto;
+  font-size: 0;
+}
+
+#ID-flow-demo {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(780px, 1fr));
+  gap: 16px;
+  padding: 16px;
+}
+
+.tweet-container {
+  max-width: 100%;
+  width: 100%;
+  margin: auto;
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  padding: 16px;
+}
+
+/* 推文主布局 */
+.tweet {
+  display: flex;
+  gap: 12px;
+  border-bottom: 1px solid #e6ecf0;
+  padding-bottom: 12px;
+}
+
+.avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+}
+
+.content {
+  flex: 1;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 14px;
+  margin-bottom: 4px;
+}
+
+.user-info {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.name {
+  font-weight: 600;
+  color: #16b777;
+}
+
+.handle, .timestamp {
+  color: #666;
+}
+
+.view-link {
+  color: #31bdec;
+  text-decoration: none;
+  font-size: 13px;
+}
+
+.text_content {
+  font-size: 15px;
+  margin: 8px 0;
+}
+
+/* 引用推文 */
+.quoted-tweet {
+  border: 1px solid #ddd;
+  border-radius: 10px;
+  padding: 10px;
+}
+
+.quoted-header {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin-bottom: 6px;
+}
+
+.quoted-tweet .avatar {
+  width: 32px;
+  height: 32px;
+}
+.quoted-header {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin-bottom: 6px;
+}
+
+.quoted-header .name {
+  font-weight: 600;
+  color: #16b777;
+  font-size: 14px;
+}
+
+.quoted-header .handle,
+.quoted-header .timestamp {
+  color: #888;
+  font-size: 13px;
+  margin-left: 4px;
+}
+
+.quoted-header div {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px;
+}
+
+.quoted-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.quoted-header > div {
+  flex-grow: 1; /* 让中间信息占满剩余空间 */
+}
+
+.quoted-header .view-link {
+
+  color: #31bdec;
+  text-decoration: none;
+  font-size: 13px;
+}
+
+
+/* 从第二张图起，每张图占 50%，自动排布成 2 列  display: flex;*/
+.text_content {
+
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: flex-start;
+}
+
+.text_content > img {
+  display: block;       /* 图片独占一行 */
+  width: 50%;           /* 宽度50% */
+  border-radius: 8px;
+  object-fit: cover;
+  margin-top: 5px;
+  margin-bottom: 5px;
+}
+
+
+/* 手机端：每行一张图 */
+@media (max-width: 600px) {
+  .content > img {
+    width: 100%;
+  }
+}
+
+/* 交互按钮栏 */
+.tweet-actions {
+  display: flex;
+  justify-content: space-between;
+  font-size: 14px;
+  color: #999;
+  margin-top: 10px;
+}
+
+/* 响应式 */
+@media (max-width: 600px) {
+  .tweet {
+    flex-direction: column;
+  }
+
+  .header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .tweet-actions {
+    justify-content: space-around;
+  }
+}
+
+
+.tweet-card-title {
+  font-size: 16px;
+  font-weight: bold;
+  margin: 0 20px 10px 20px;
+  font-family: Arial, sans-serif;
+}
+
+.tweet-card {
+  width: 92%;
+  border: 1px solid #e6e6e6;
+  border-radius: 8px;
+  padding: 12px;
+  font-family: Arial, sans-serif;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+  margin: 0 20px 20px 20px;
+}
+
+.sub-account {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 8px;
+    padding: 6px 0;
+}
+
+.sub-account .avatar {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    border: 2px solid #ccc;
+    flex-shrink: 0;
+    margin: 0;
+}
+
+.sub-info {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    margin: 0;
+    padding: 0;
+}
+
+.sub-name {
+    font-weight: 700;
+    font-size: 14px;
+    color: #16b777;
+    margin: 0;
+    line-height: 1.1;
+}
+
+.sub-handle {
+    font-size: 13px;
+    color: #999;
+    margin: 2px 0 0 0;
+    line-height: 1.1;
+}
+.sub_avatar{
+      width: 45px;
+      height: 45px;
+      border-radius: 50%;
+      margin-right: 10px;
+      border: 2px solid #ccc;
+}
+
+.follow-btn {
+    margin-left: auto;
+    color: #999999;
+    font-size: 12px;
+    white-space: nowrap;
+}
+
+.divider {
+  border: none;
+  border-top: 1px solid #ccc;
+  margin: 10px 15px;
+}
+
+.main-account {
+  display: flex;
+  align-items: flex-start;
+}
+
+.avatar {
+  width: 45px;
+  height: 45px;
+  border-radius: 50%;
+  margin-right: 10px;
+  border: 2px solid #ccc;
+}
+
+.main-info {
+  flex: 1;
+}
+
+.main-header {
+  display: flex;
+  align-items: center;
+  line-height: 1.2;
+  margin-bottom: 2px;
+}
+
+.main-header .name {
+  font-weight: bold;
+  font-size: 15px;
+  color: #16b777;
+}
+
+.main-header .timestamp {
+  font-size: 12px;
+  color: #999;
+  margin-left: 6px;
+}
+
+.handle {
+  font-size: 13px;
+  color: #999;
+}
+
+.description {
+  margin: 4px 0;
+  font-size: 14px;
+  color: #444;
+}
+
+.timestamp {
+  font-size: 12px;
+  color: #999;
+}
+
+
+</style>
+ <!--begin::App Content Header-->
+         <div class="app-content-header">
+          <!--begin::Container-->
+          <div class="container-fluid">
+            <!--begin::Row-->
+            <div class="row">
+              <div class="col-sm-6"><h4 class="mb-0">全部监控信息</h4></div>
+              <div class="col-sm-6">
+                <ol class="breadcrumb float-sm-end">
+                  <li class="breadcrumb-item active" aria-current="page">
+                      <a href="{{ url_for('discord.guild') }}" >
+                        <button type="button" class="layui-btn">查看全部监控频道</button>
+                      </a>
+                  </li>
+                </ol>
+              </div>
+            </div>
+
+            <div class="layui-btn-container" id="category_html">
+
+            </div>
+
+            <div class="layui-btn-container" id="guild_html">
+
+            </div>
+
+            <!--end::Row-->
+          </div>
+          <!--end::Container-->
+        </div>
+        <div class="app-content">
+          <!--begin::Container-->
+          <div class="container-fluid">
+
+
+
+            <div class="row">
+
+              <div class="layui-row">
+              <div class="layui-col-xs4 layui-col-sm7 layui-col-md8">
+                <div class="grid-demo">
+                    <div class="flow-demo" id="ID-flow-demo">
+
+
+                    </div>
+
+                </div>
+              </div>
+              <div class="layui-col-xs4 layui-col-sm5 layui-col-md4">
+                <div class="grid-demo">
+                <div class="tweet-card-title"><h4 class="mb-0">最近关注</h4></div>
+
+                <div class="flow-demo" id="ID-flow-followings">
+
+
+
+
+                </div>
+
+
+
+                </div>
+              </div>
+            </div>
+
+
+
+            </div>
+
+
+          </div>
+          <!--end::Container-->
+        </div>
+        <!--end::App Content-->
+
+<script>
+
+// 翻译函数（Google Translate 非官方接口）
+async function translateToZh(text) {
+  const res = await fetch(`https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=zh-CN&dt=t&q=${encodeURIComponent(text)}`);
+  const data = await res.json();
+  return data[0].map(item => item[0]).join('');
+}
+
+function formatContent(content) {
+  return content
+    .replace(/<([^>\s]+)>/g, '$1') // 去掉尖括号
+    .replace(/(https?:\/\/[^\s<]+)/g, '<a href="$1" target="_blank" style="color: #16b777; text-decoration: underline;">$1</a>') // 设置颜色和下划线
+    .replace(/\n/g, "<br>");
+}
+
+function formatTimestamp(unixTime) {
+  const date = new Date(unixTime * 1000); // 如果是毫秒则不乘
+  const Y = date.getFullYear();
+  const M = String(date.getMonth() + 1).padStart(2, '0');
+  const D = String(date.getDate()).padStart(2, '0');
+  const h = String(date.getHours()).padStart(2, '0');
+  const m = String(date.getMinutes()).padStart(2, '0');
+  return `${Y}/${M}/${D} ${h}:${m}`;
+}
+
+function linkifyShortUrls(text) {
+  // 正则匹配 https://t.co/ 后面跟一串字母数字的短链接
+  const urlRegex = /(https:\/\/t\.co\/[a-zA-Z0-9]+)/g;
+
+  return text.replace(urlRegex, (match) => {
+    return `<a href="${match}" target="_blank" style="color:#16b777;" rel="noopener noreferrer">${match}</a>`;
+  });
+}
+
+layui.use(['flow', 'jquery'], function(){
+  var flow = layui.flow;
+  var $ = layui.jquery;
+  const token = localStorage.getItem('token');
+  let  guild_id = BigInt("{{gid}}");
+  let  user_id = 0;
+  localStorage.setItem('message_did', user_id);
+  localStorage.setItem('message_guild', guild_id);
+
+
+
+  function fetchFollowings(page, limit, user_id,guild_id){
+
+      flow.load({
+        elem: '#ID-flow-followings',
+        scrollElem: '#ID-flow-followings',
+        done: function(page, next){
+          if (guild_id<0) {
+            let  guild_id = BigInt("{{gid}}");
+          }else{
+             guild_id = localStorage.getItem('message_guild');
+          }
+
+          console.log('guild_id+----'+ guild_id);
+          $.ajax({
+            url: '{{ url_for('twitter.page_followings') }}',
+            type: 'GET',
+            data: { page: page, user_id: user_id,  limit: 10 },
+            dataType: 'json',
+            headers: {
+            'Authorization': 'Bearer ' + token,
+            },
+            success: function(res){
+              var lis = [];
+              // 假设后端返回 res.data 是数组，res.total_pages 是总页数
+              $.each(res.data, function(index, item){
+                  const contentEn = item.content || '';
+                  const contentHtml = formatContent(item.content || '');
+                  const contentId = `content-cn-${item.id || Math.random().toString(36).substr(2, 8)}`;
+                   // 判断是否是最近一天的消息
+                  const now = Date.now();
+                  const msgTime = new Date(item.timestamp).getTime();  // 注意这里时间格式要能被解析
+                  const isRecent = (now - msgTime) <= 48 * 60 * 60 * 1000; // 24小时内
+
+                lis.push(`
+
+                 <div class="tweet-card">
+                      <!-- 上层账户信息 -->
+                       <div class="sub-account">
+                        <a class="view-link" href="https://x.com/${item.t1_username}" target="_blank" >
+                        <img class="avatar" src="${item.t1_avatar}" alt="Avatar">
+                        </a>
+                        <div class="sub-info">
+
+                          <span class="sub-name"><a href="https://x.com/${item.t1_username}" target="_blank" >${item.t1_show_name}</a></span>
+                          <span class="sub-handle"><a  href="https://x.com/${item.t1_username}" target="_blank" >@${item.t1_username}</a></span>
+
+                        </div>
+
+                        <span class="follow-btn">关注了</span>
+                      </div>
+
+                      <hr class="divider">
+
+                      <!-- 主账户信息 -->
+                      <div class="main-account">
+                      <a class="view-link" href="https://x.com/${item.t2_username}" target="_blank" >
+                        <img class="sub_avatar" src="${item.t2_avatar}" alt="Avatar">
+                        <div class="main-info">
+                          <div class="main-header">
+                          <span class="name">${item.t2_show_name}</span>
+                          <span class="timestamp">· ${formatTimestamp(item.t2_created)}</span>
+                        </div>
+                        </a>
+                        <span class="handle">@${item.t2_username}</span>
+
+                          <div class="description">
+                            ${item.t2_description}
+                          </div>
+
+                        </div>
+                      </div>
+                </div>
+
+                `);
+
+                  // 异步翻译并填入对应位置
+                  translateToZh(contentEn).then(result => {
+                    document.getElementById(contentId).innerText = result;
+                  }).catch(() => {
+                    //document.getElementById(contentId).innerText = '翻译失败';
+                  });
+              });
+              // 判断是否还有下一页
+              next(lis.join(''), page < res.count);
+            },
+            error: function(){
+              // 请求失败时提示并结束加载
+              next('', false);
+            }
+          });
+        }
+      });
+  }
+
+
+  function fetchMessage(page, limit, user_id,guild_id){
+
+      flow.load({
+        elem: '#ID-flow-demo',
+        scrollElem: '#ID-flow-demo',
+        done: function(page, next){
+          if (guild_id<0) {
+            let  guild_id = BigInt("{{gid}}");
+          }else{
+             guild_id = localStorage.getItem('message_guild');
+          }
+
+          console.log('guild_id+----'+ guild_id);
+          $.ajax({
+            url: '{{ url_for('twitter.page_messages') }}',
+            type: 'GET',
+            data: { page: page, user_id: user_id,  limit: 10 },
+            dataType: 'json',
+            headers: {
+            'Authorization': 'Bearer ' + token,
+            },
+            success: function(res){
+              var lis = [];
+              // 假设后端返回 res.data 是数组，res.total_pages 是总页数
+              $.each(res.data, function(index, item){
+                  const contentEn = item.content || '';
+                  const contentHtml = formatContent(item.content || '');
+                  const contentId = `content-cn-${item.id || Math.random().toString(36).substr(2, 8)}`;
+                   // 判断是否是最近一天的消息
+                  const now = Date.now();
+                  const msgTime = new Date(item.timestamp).getTime();  // 注意这里时间格式要能被解析
+                  const isRecent = (now - msgTime) <= 48 * 60 * 60 * 1000; // 24小时内
+
+                lis.push(`
+
+                  <div class="tweet-container">
+
+                    <!-- 主推文 -->
+                    <section class="tweet">
+                      <!-- 用户信息栏 -->
+                      <img class="avatar" src="${item.avatar}" alt="Avatar">
+                      <div class="content">
+                        <div class="header">
+                          <div class="user-info">
+                            <span class="name">${item.show_name}</span>
+                            <span class="handle">@${item.username}</span>
+                            <span class="timestamp">· ${item.created_at}</span>
+                          </div>
+                          <a class="view-link" href="https://x.com/${item.username}/status/${item.tweet_id}" target="_blank" >
+                          <button type="button" class="layui-btn layui-btn-normal layui-btn-sm layui-btn-radius">查看原文</button></a>
+                        </div>
+
+                        <!-- 正文 -->
+                        <p class="text_content">${linkifyShortUrls(item.content)}</p>
+
+                       <!-- 判断 original_tweet_id 是否有值再渲染引用推文卡片 -->
+                       ${item.original_tweet_id ? `
+                        <!-- 引用推文卡片 -->
+                        <div class="quoted-tweet">
+                          <div class="quoted-header">
+                            <img class="avatar" src="${item.data_original_user.avatar}" alt="Avatar">
+                            <div>
+                              <span class="name">${item.data_original_user.show_name}</span>
+                              <span class="handle">@${item.data_original_user.username}</span>
+                              <span class="timestamp">· ${formatTimestamp(item.data_original_tweets.created_at)}</span>
+                            </div>
+                            <a class="view-link" href="https://x.com/${item.data_original_user.username}/status/${item.data_original_tweets.tweet_id}" target="_blank">
+                            <button type="button" class="layui-btn layui-btn-normal layui-btn-sm layui-btn-radius">查看原文</button>
+                            </a>
+                          </div>
+                          <p class="text_content">
+                           ${linkifyShortUrls(item.data_original_tweets.content)}
+                          </p>
+                        </div>
+                        ` : ''}
+
+                        <!-- 交互栏 -->
+                        <div class="tweet-actions">
+                          <span>💬 ${item.replies}</span>
+                          <span>🔁 ${item.retweets}</span>
+                          <span>❤️ ${item.likes}</span>
+                        </div>
+                      </div>
+                    </section>
+
+                  </div>
+
+
+                `);
+
+                  // 异步翻译并填入对应位置
+                  translateToZh(contentEn).then(result => {
+                    document.getElementById(contentId).innerText = result;
+                  }).catch(() => {
+                    //document.getElementById(contentId).innerText = '翻译失败';
+                  });
+              });
+              // 判断是否还有下一页
+              next(lis.join(''), page < res.count);
+            },
+            error: function(){
+              // 请求失败时提示并结束加载
+              next('', false);
+            }
+          });
+        }
+      });
+  }
+
+
+  // 监听分类按钮点击
+  $('#category_html').on('click', '.layui-btn', function() {
+        user_id = $(this).data('id');
+        // 样式切换：移除其他按钮的 cur，添加当前按钮的 cur
+        $('#category_html .layui-btn').addClass('layui-btn-primary');
+        $(this).removeClass('layui-btn-primary');
+        $('#ID-flow-demo').html('');  // 清空当前内容
+        const message_guild = localStorage.getItem('message_guild');
+        localStorage.setItem('message_did', user_id);
+        //加载数据
+        fetchMessage(1,10,user_id,message_guild)// 点击分类时重置为第一页
+         $('#ID-flow-followings').html('');  // 清空当前内容
+        //加载最新关注数据
+        setTimeout(() => {
+             fetchFollowings(1,10,user_id,0)
+        }, 200);
+
+  });
+
+
+  // ✅ 取到分类列表
+  function getUser(){
+       const  user_id = 0;
+       const token = localStorage.getItem('token');
+       $.ajax({
+        url:'{{ url_for('twitter.listuser') }}',
+        headers: {
+            'Authorization': 'Bearer ' + token,
+        },
+        type: 'GET',
+        data: { is_type: 2 },
+        success: function(res) {
+          if (res.status === 1 && Array.isArray(res.data)) {
+            const select = $('#category_html');
+            select.empty();  // 清空旧内容
+            if (user_id>0) {
+                select.append('<button type="button" data-id="0"  class="layui-btn layui-btn-primary layui-btn-sm ">全部推特账号</button>');
+            }else{
+                select.append('<button type="button" data-id="0"  class="layui-btn  layui-btn-sm ">全部推特账号</button>');
+            }
+
+
+            res.data.forEach(item => {
+                const selected = (parseInt(item.tid) === parseInt(user_id)) ? '' : 'layui-btn-primary';
+                console.log(item.tid+'----'+ user_id);
+                select.append(`<button type="button" data-id="${item.tid}" class="layui-btn  layui-btn-sm  ${selected}"> ${item.show_name}</button>`);
+            });
+
+          } else {
+            layer.msg('下拉数据加载失败');
+          }
+        },
+        error: function() {
+          layer.msg('请求出错');
+        }
+      });
+  }
+
+  function updateMessage() {
+        const did = 0;
+        const token = localStorage.getItem('token');
+
+        // 获取上次更新时间
+        const lastUpdateTime = localStorage.getItem('updatetime');
+        const now = Date.now();
+
+        // 如果在1小时内，跳过请求
+        if (lastUpdateTime && (now - parseInt(lastUpdateTime) < 60 * 60 * 1000)) {
+            console.log('🔁 距离上次更新时间未超过2小时，跳过请求');
+            return;
+        }
+
+        // 发起请求
+        $.ajax({
+            url: '/api/auth/update_message',
+            headers: {
+                'Authorization': 'Bearer ' + token,
+            },
+            type: 'GET',
+            data: {},
+            success: function (res) {
+                if (res.status === 1) {
+                    // 成功后更新 updatetime
+                    localStorage.setItem('updatetime', Date.now().toString());
+                    console.log('🔁 更新时间'+Date.now().toString());
+                }
+            },
+            error: function () {
+                console.log('请求出错');
+            }
+        });
+    }
+
+
+  //加载数据
+  fetchMessage(1,10,0,0)
+
+  //加载最新关注数据
+  setTimeout(() => {
+     fetchFollowings(1,10,0,0)
+  }, 200);
+  //主动更新信息
+  setTimeout(updateMessage, 800);
+
+   //取到分类更新信息
+  setTimeout(getUser, 300);
+
+
+
+});
+</script>
+{% endblock %}

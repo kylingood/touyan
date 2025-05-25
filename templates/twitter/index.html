@@ -7,11 +7,20 @@
           <div class="container-fluid">
             <!--begin::Row-->
             <div class="row">
-              <div class="col-sm-6"><h4 class="mb-0">推特列表</h4></div>
+              <div class="col-sm-6"><h4 class="mb-0">我的推特列表</h4></div>
               <div class="col-sm-6">
                 <ol class="breadcrumb float-sm-end">
-                  <li class="breadcrumb-item"> <button type="button" class="btn btn-primary mb-2 btn-sm"  lay-on="add-twitter-page-custom">添加新推特</button></li>
-                  <li class="breadcrumb-item active" aria-current="page"><button type="button" lay-on="add-category-page-custom"  class="btn btn-success btn-sm mb-2">添加分组</button></li>
+                  <li class="breadcrumb-item"> <button type="button" class="layui-btn layui-bg-blue"  lay-on="add-twitter-page-custom">添加新推特</button></li>
+                  <li class="breadcrumb-item active" aria-current="page">
+                      <button type="button" lay-on="add-category-page-custom"  class="layui-btn btn-success">添加分组</button></li>
+
+                      <li class="breadcrumb-item active" aria-current="page">
+                          <a href="{{ url_for('category.twitter') }}" class="alert-link" target="_blank">
+                          <button type="button" class="layui-btn " style="background-color: #16b777" >管理分组</button>
+                            </a>
+                      </li>
+
+
                 </ol>
               </div>
             </div>
@@ -39,11 +48,12 @@
                       <thead>
                         <tr>
                           <th style="width: 80px">序号</th>
-                          <th>推特账号</th>
+                          <th style="text-align:center;">推特账号</th>
                           <th>所属分组</th>
-                          <th>备注信息</th>
-                          <th>关注数</th>
+                          <th>关注人数</th>
                           <th>粉丝量</th>
+                          <th >简介</th>
+                          <th>备注</th>
                           <th style="width: 150px">操作</th>
                         </tr>
                       </thead>
@@ -70,6 +80,102 @@ layui.use(['laypage', 'jquery'], function() {
   var $ = layui.jquery;
   const token = localStorage.getItem('token');
   let  cid = 0;
+
+   // 增加推特时，实时取粉丝量 委托给 body 或更合适的父容器
+  $('body').on('blur', '#add-twitter-input', function () {
+
+    const url = $(this).val().trim();
+    var twitter = ''
+    // 提取用户名
+    const match = url.match(/(?:https?:\/\/)?(?:x\.com|twitter\.com)\/([a-zA-Z0-9_]+)/);
+    if (match) {
+      twitter = match[1];
+      console.log("用户名:", twitter);
+    } else {
+      layer.msg('填写的推特链接无效，请参考：https://x.com/guzibiji');
+      return false;
+    }
+
+    if (twitter) {
+      $.ajax({
+        url: '/api/auth/get_twitter',  // 你需要创建这个后端路由
+        type: 'GET',
+        headers: {
+        'Authorization': 'Bearer ' + token,
+        },
+        contentType: 'application/json',
+        data: { username: twitter },
+        success: function (res) {
+          if (res.status) {
+            $("#add_username").val(res.data.username)
+            $("#add_remark").val(res.data.show_name)
+            $("#add_description").val(res.data.description)
+            $("#add_show_name").val(res.data.show_name)
+            $("#add_url").val(res.data.url)
+            $("#add_avatar").val(res.data.avatar)
+            $("#add_followers").val(res.data.followers)
+            $("#add_fans").val(res.data.fans)
+            $("#add_tid").val(res.data.rest_id)
+            $("#add_url").val(url)
+
+          } else {
+            layer.msg('获取失败：' + res.message);
+          }
+        },
+        error: function () {
+           layer.msg('服务器错误，请稍后重试');
+        }
+      });
+    }
+  });
+
+  // 修改推特时，实时取粉丝量 委托给 body 或更合适的父容器
+  $('body').on('blur', '#edit-twitter-input', function () {
+
+    const url = $(this).val().trim();
+    var twitter = ''
+    // 提取用户名
+    const match = url.match(/(?:https?:\/\/)?(?:x\.com|twitter\.com)\/([a-zA-Z0-9_]+)/);
+    if (match) {
+      twitter = match[1];
+      console.log("用户名:", twitter);
+    } else {
+      layer.msg('填写的推特链接无效，请参考：https://x.com/guzibiji');
+      return false;
+    }
+
+    if (twitter) {
+      $.ajax({
+        url: '/api/auth/get_twitter',  // 你需要创建这个后端路由
+        type: 'GET',
+        headers: {
+        'Authorization': 'Bearer ' + token,
+        },
+        contentType: 'application/json',
+        data: { username: twitter },
+        success: function (res) {
+          if (res.status) {
+            $("#edit_username").val(res.data.username)
+            $("#edit_remark").val(res.data.show_name)
+            $("#edit_description").val(res.data.description)
+            $("#edit_show_name").val(res.data.show_name)
+            $("#edit_url").val(res.data.url)
+            $("#edit_avatar").val(res.data.avatar)
+            $("#edit_followers").val(res.data.followers)
+            $("#edit_fans").val(res.data.fans)
+            $("#edit_tid").val(res.data.rest_id)
+            $("#edit_url").val(url)
+
+          } else {
+            layer.msg('获取失败：' + res.message);
+          }
+        },
+        error: function () {
+           layer.msg('服务器错误，请稍后重试');
+        }
+      });
+    }
+  });
 
   // 监听分类按钮点击
   $('#category_html').on('click', '.layui-btn', function() {
@@ -126,14 +232,25 @@ layui.use(['laypage', 'jquery'], function() {
       const randomClass = colorClasses[Math.floor(Math.random() * colorClasses.length)];
       html += `<tr class="align-middle" id="del_twitter_${item.id}">
                           <td>${item.num}.</td>
-                          <td><a href="https://x.com/${item.username}" class="alert-link" target="_blank">${item.username}</a></td>
+                          <td >
+                           <a href="https://x.com/${item.username}" class="alert-link" target="_blank">
+                           <div style="display: flex; align-items: center; gap: 10px;">
+                              <img src="${item.avatar}" class="user-image rounded-circle shadow"  style="width:40px; height:40px;" alt="User Image">
+                              <div style="display: flex; flex-direction: column;">
+                                <div style="font-weight: bold;">@${item.username}</div>
+                                <div style="font-size: 0.9em; color: #666;">${item.show_name}</div>
+                              </div>
+                            </div>
+                         </a>
+                          </td>
                           <td><span class="layui-badge ${randomClass}">${item.cate_name}</span></td>
-                          <td>${item.remark}</td>
                           <td>${item.followers}</td>
                           <td>${item.fans}</td>
+                          <td style="max-width:180px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${item.description}</td>
+                          <td  style="max-width:150px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${item.remark}</td>
                           <td>
-                          <span   lay-on="edit-confirm"  data-id="${item.id}" data-cid="${item.cid}"  data-title="${item.username}" data-remark="${item.remark}" ><button type="button" class="layui-btn layui-bg-blue  layui-btn-sm">修改</button></span>
-                           <span   lay-on="del-confirm"  data-id="${item.id}" ><button type="button" class="layui-btn layui-bg-red  layui-btn-sm">删除</button></span>
+                          <span   lay-on="edit-confirm"  data-id="${item.id}" data-cid="${item.cid}" data-tid="${item.tid}" data-description="${item.description}"    data-username="${item.username}" data-show_name="${item.show_name}" data-url="${item.url}" data-avatar="${item.avatar}" data-followers="${item.followers}" data-fans="${item.fans}"  data-remark="${item.remark}" ><button type="button" class="layui-btn layui-bg-blue  layui-btn-sm">修改</button></span>
+                           <span   lay-on="del-twitter-confirm"  data-id="${item.id}" ><button type="button" class="layui-btn layui-bg-red  layui-btn-sm">删除</button></span>
                            </td>
                         </tr>`;
     });
@@ -220,7 +337,6 @@ layui.use(function(){
                 }
         })
 
-
       }, function(){
             return true
 
@@ -229,9 +345,17 @@ layui.use(function(){
     'edit-confirm': function(){
 
       const id = $(this).data('id');       // 获取 data-id 的值
-      const cid = $(this).data('cid');       // 获取 data-id 的值
-      const title = $(this).data('title');       // 获取 data-title 的值
-      const remark = $(this).data('remark');       // 获取 data-remark 的值
+      const cid = $(this).data('cid');
+      const tid = $(this).data('tid');
+      const title = $(this).data('title');
+      const remark = $(this).data('remark');
+      const description = $(this).data('description');
+      const username = $(this).data('username');
+      const show_name = $(this).data('show_name');
+      const url = $(this).data('url');
+      const avatar = $(this).data('avatar');
+      const followers = $(this).data('followers');
+      const fans = $(this).data('fans');
 
       layer.open({
         type: 1,
@@ -242,15 +366,18 @@ layui.use(function(){
         content: `
           <div class="layui-form" lay-filter="filter-test-layer" style="margin: 16px;">
             <div class="demo-login-container">
-              <div class="layui-form-item">
+
+
+               <div class="layui-form-item">
                 <div class="layui-input-wrap">
                   <div class="layui-input-prefix">
-                    <i class="layui-icon layui-icon-username"></i>
+                    <i class="layui-icon layui-icon-link"></i>
                   </div>
-
-                  <input type="text" name="username" value="${title}" lay-verify="required" placeholder="推特名称" lay-reqtext="请填写推特用户名" autocomplete="off" class="layui-input" lay-affix="clear">
+                  <input type="text" id="edit-twitter-input" name="twitter_url" value="${url}" lay-verify="required" placeholder="复制推特链接，程序会自动取信息" lay-reqtext="请填写复制推特链接" autocomplete="off" class="layui-input" lay-affix="clear">
                 </div>
               </div>
+
+
 
                <div class="layui-form-item">
                 <div class="layui-input-wrap">
@@ -263,14 +390,64 @@ layui.use(function(){
                     </div>
               </div>
 
+               <div class="layui-form-item">
+                <div class="layui-input-wrap">
+
+                    <div class="layui-inline">
+
+                      <div class="layui-input-inline" style="width: 130px;">
+                      <div class="layui-input-prefix">
+                        <i class="layui-icon layui-icon-username"></i>
+                      </div>
+                        <input type="text" name="username" id="edit_username" value="${username}"  placeholder="账号名" disabled autocomplete="off" class="layui-input">
+                      </div>
+                         <div class="layui-form-mid">-</div>
+                      <div class="layui-input-inline" style="width: 130px;">
+                       <div class="layui-input-prefix">
+                        <i class="layui-icon layui-icon-chat"></i>
+                      </div>
+                        <input type="text" name="show_name" id="edit_show_name" value="${show_name}"  placeholder="显示名" disabled autocomplete="off" class="layui-input">
+                      </div>
+                    </div>
+                 </div>
+              </div>
+
+               <div class="layui-form-item">
+                <div class="layui-input-wrap">
+
+                    <div class="layui-inline">
+
+                      <div class="layui-input-inline" style="width: 130px;">
+                      <div class="layui-input-prefix">
+                        <i class="layui-icon layui-icon-user"></i>
+                      </div>
+                        <input type="text" name="fans" id="edit_fans" placeholder="粉丝量" value="${fans}" disabled autocomplete="off" class="layui-input">
+                      </div>
+                         <div class="layui-form-mid">-</div>
+                      <div class="layui-input-inline" style="width: 130px;">
+                       <div class="layui-input-prefix">
+                        <i class="layui-icon layui-icon-user"></i>
+                      </div>
+                        <input type="text" name="followers" id="edit_followers" value="${followers}"  placeholder="关注人数" disabled autocomplete="off" class="layui-input">
+                      </div>
+                    </div>
+                 </div>
+              </div>
+
               <div class="layui-form-item">
                 <div class="layui-input-wrap">
                   <div class="layui-input-prefix">
                     <i class="layui-icon layui-icon-password"></i>
                   </div>
-                    <textarea placeholder="请输入此推特备注" name="remark" class="layui-textarea" lay-verify="required"  lay-reqtext="请填写推特备注"  >${remark}</textarea>
+                    <textarea placeholder="请输入此推特备注" id="edit_remark" name="remark" class="layui-textarea" lay-verify="required"  lay-reqtext="请填写推特备注"  >${remark}</textarea>
                      <input type="hidden" name="id" value="${id}" lay-verify="required"  autocomplete="off" >
                      <input type="hidden" name="cid" value="${cid}" lay-verify="required"  autocomplete="off" >
+
+                     <input type="hidden" name="tid" id="edit_tid"  value="${tid}" lay-verify="required"  autocomplete="off" >
+                     <input type="hidden" name="description" id="edit_description"  value="${description}"   autocomplete="off" >
+                    <input type="hidden" name="avatar" id="edit_avatar" value="${avatar}" disabled autocomplete="off" class="layui-input">
+                    <input type="hidden" name="url" id="edit_url" value="${url}"  disabled autocomplete="off" class="layui-input">
+
                  </div>
               </div>
               <div class="layui-form-item">
@@ -296,7 +473,7 @@ layui.use(function(){
               if (res.status === 1 && Array.isArray(res.data)) {
                 const select = $('#category_select');
                 select.empty();  // 清空旧内容
-                select.append('<option value="">直接选择或搜索选择</option>');
+                select.append('<option value="">直接选择或搜索分组</option>');
                 res.data.forEach(item => {
                     const selected = (item.id === cid) ? 'selected' : '';
                     select.append(`<option value="${item.id}" ${selected}>${item.title}</option>`);
@@ -321,10 +498,18 @@ layui.use(function(){
                     'Authorization': 'Bearer ' + token,
                 },
                 data:{
-                    "username":data.field.username,
                     "id":data.field.id,
+                    "username":data.field.username,
+                    "show_name":data.field.show_name,
+                    "fans":data.field.fans,
+                    "followers":data.field.followers,
+                    "avatar":data.field.avatar,
+                    "url":data.field.url,
                     "cid":data.field.category_id,
+                    "tid":data.field.tid,
+                    "description":data.field.description,
                     "remark":data.field.remark
+
                 },
                 dataType:"json",
                 type:"post",
@@ -363,24 +548,70 @@ layui.use(function(){
         content: `
           <div class="layui-form" lay-filter="filter-test-layer" style="margin: 16px;">
             <div class="demo-login-container">
+
               <div class="layui-form-item">
                 <div class="layui-input-wrap">
                   <div class="layui-input-prefix">
-                    <i class="layui-icon layui-icon-username"></i>
+                    <i class="layui-icon layui-icon-link"></i>
                   </div>
-                  <input type="text" name="username" value="" lay-verify="required" placeholder="@推特用户名" lay-reqtext="请填写推特用户名" autocomplete="off" class="layui-input" lay-affix="clear">
+                  <input type="text" id="add-twitter-input" name="twitter_url" value="" lay-verify="required" placeholder="复制推特链接，程序会自动取信息" lay-reqtext="请填写复制推特链接" autocomplete="off" class="layui-input" lay-affix="clear">
                 </div>
               </div>
 
-             <div class="layui-form-item">
+
+              <div class="layui-form-item">
                 <div class="layui-input-wrap">
                   <div class="layui-input-prefix">
                     <i class="layui-icon layui-icon-list"></i>
                   </div>
                     <select name="category_id" id="category_select" lay-verify="required" lay-search>
-                      <option value="">直接选择或搜索分组</option>
+                      <option value="">选择或搜索分组</option>
                     </select>
+                 </div>
+              </div>
+
+               <div class="layui-form-item">
+                <div class="layui-input-wrap">
+
+                    <div class="layui-inline">
+
+                      <div class="layui-input-inline" style="width: 130px;">
+                      <div class="layui-input-prefix">
+                        <i class="layui-icon layui-icon-username"></i>
+                      </div>
+                        <input type="text" name="username" id="add_username"  placeholder="账号名" disabled autocomplete="off" class="layui-input">
+                      </div>
+                         <div class="layui-form-mid">-</div>
+                      <div class="layui-input-inline" style="width: 130px;">
+                       <div class="layui-input-prefix">
+                        <i class="layui-icon layui-icon-chat"></i>
+                      </div>
+                        <input type="text" name="show_name" id="add_show_name" placeholder="显示名" disabled autocomplete="off" class="layui-input">
+                      </div>
                     </div>
+                 </div>
+              </div>
+
+             <div class="layui-form-item">
+                <div class="layui-input-wrap">
+
+                    <div class="layui-inline">
+
+                      <div class="layui-input-inline" style="width: 130px;">
+                      <div class="layui-input-prefix">
+                        <i class="layui-icon layui-icon-user"></i>
+                      </div>
+                        <input type="text" name="fans" id="add_fans" placeholder="粉丝量" disabled autocomplete="off" class="layui-input">
+                      </div>
+                         <div class="layui-form-mid">-</div>
+                      <div class="layui-input-inline" style="width: 130px;">
+                       <div class="layui-input-prefix">
+                        <i class="layui-icon layui-icon-user"></i>
+                      </div>
+                        <input type="text" name="followers" id="add_followers" placeholder="关注人数" disabled autocomplete="off" class="layui-input">
+                      </div>
+                    </div>
+                 </div>
               </div>
 
               <div class="layui-form-item">
@@ -388,7 +619,11 @@ layui.use(function(){
                   <div class="layui-input-prefix">
                     <i class="layui-icon layui-icon-password"></i>
                   </div>
-                    <textarea placeholder="请输入此推特备注" name = "remark" class="layui-textarea" lay-verify="required"  lay-reqtext="请填写推特备注"  ></textarea>
+                    <input type="hidden" name="avatar" id="add_avatar"  disabled autocomplete="off" class="layui-input">
+                    <input type="hidden" name="url" id="add_url"  disabled autocomplete="off" class="layui-input">
+                    <input type="hidden" name="tid" id="add_tid"  disabled autocomplete="off" class="layui-input">
+                     <input type="hidden" name="description" id="add_description"  value="" lay-verify="required"  autocomplete="off" >
+                    <textarea placeholder="请输入此推特备注" name="remark" id="add_remark"  class="layui-textarea" lay-verify="required"  lay-reqtext="请填写推特备注"  ></textarea>
                  </div>
               </div>
 
@@ -414,7 +649,7 @@ layui.use(function(){
               if (res.status === 1 && Array.isArray(res.data)) {
                 const select = $('#category_select');
                 select.empty();  // 清空旧内容
-                select.append('<option value="">直接选择或搜索选择</option>');
+                select.append('<option value="">直接选择或搜索分组</option>');
                 res.data.forEach(item => {
                   select.append(`<option value="${item.id}">${item.title}</option>`);
                 });
@@ -439,7 +674,14 @@ layui.use(function(){
                 },
                 data:{
                     "username":data.field.username,
+                    "show_name":data.field.show_name,
+                    "fans":data.field.fans,
+                    "followers":data.field.followers,
+                    "avatar":data.field.avatar,
+                    "url":data.field.url,
                     "cid":data.field.category_id,
+                    "tid":data.field.tid,
+                    "description":data.field.description,
                     "remark":data.field.remark
                 },
                 dataType:"json",

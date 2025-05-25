@@ -251,9 +251,10 @@ async def delete():  # 因为 require_login 会解码 token
 ## 监控频道列表
 @discord.route('/discord/guild', methods=['GET'])
 @discord.route('/discord/guild/gid/<int:gid>', methods=['GET'])
-async def guild(gid=0):
+@discord.route('/discord/guild/did/<int:did>', methods=['GET'])
+async def guild(gid=0, did=0):
 
-    return await render_template("/discord/guild.html", gid=gid)
+    return await render_template("/discord/guild.html", gid=gid, did=did)
 
 
 ## 监控频道列表

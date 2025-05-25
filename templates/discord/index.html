@@ -7,17 +7,19 @@
           <div class="container-fluid">
             <!--begin::Row-->
             <div class="row">
-              <div class="col-sm-6"><h4 class="mb-0">Discord列表</h4></div>
+              <div class="col-sm-6"><h4 class="mb-0">Discord账号列表</h4></div>
               <div class="col-sm-6">
                 <ol class="breadcrumb float-sm-end">
-                    <li class="breadcrumb-item"> <button type="button" class="layui-btn layui-bg-blue"  lay-on="add-discord-page-custom">添加Discord账号</button></li>
-                    <li class="breadcrumb-item active" aria-current="page"><button type="button" lay-on="add-category-page-custom"  class="layui-btn" style="background-color: #16b777">添加分组</button></li>
+
+                    <li class="breadcrumb-item"> <button type="button" class="layui-btn layui-bg-blue"  lay-on="add-discord-page-custom">添加账号</button></li>
 
                     <li class="breadcrumb-item active" aria-current="page">
                         <a href="{{ url_for('category.discord') }}" >
                             <button type="button"  class="layui-btn">管理分组</button>
                         </a>
                     </li>
+                     <li class="breadcrumb-item active" aria-current="page"><button type="button" lay-on="add-category-page-custom"  class="layui-btn" style="background-color: #16b777">添加分组</button></li>
+
 
                 </ol>
               </div>
