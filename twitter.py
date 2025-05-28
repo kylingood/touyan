@@ -156,13 +156,18 @@ async def page_followings():
         print(dbMysql.getLastSql())  # 打印由Model类拼接填充生成的SQL语句
         #total_page = 10
 
-
-        layui_result = {
-            "code": 0,
-            "count": total_page,
-            "data": data_list
-        }
-
+        if total_page > 0:
+            layui_result = {
+                "code": 0,
+                "count": total_page,
+                "data": data_list
+            }
+        else:
+            layui_result = {
+                "code": 0,
+                "count": 0,
+                "data": []
+            }
         return jsonify(layui_result)
 
 
@@ -245,33 +250,41 @@ async def page_messages():
         else:
             data_original_user = {}
 
-        layui_result = {
-            "code": 0,
-            "count": total_page,
-            "data": [
-                {
-                    "num": i + start_index,
-                    "id": item["id"],
-                    "tweet_id": item["tweet_id"],
-                    "user_id": item["twitter_id"],
-                    "is_type": item["is_type"],
-                    "likes":item["likes"],
-                    "retweets": item["retweets"],
-                    "replies": item["replies"],
-                    "content": item["content"],
-                    "original_tweet_id": item["original_tweet_id"],
-                    "original_tweet_user_id": item["original_tweet_user_id"],
-                    "data_original_tweets": data_original_tweets.get(item["original_tweet_id"], None),
-                    "data_original_user": data_original_user.get(item["original_tweet_user_id"], None),
-                    "created_at":datetime.fromtimestamp(int(item["created_at"])).strftime("%Y/%m/%d %H:%M"),
-                    "avatar": twitter_data.get(str(item["twitter_id"]), {}).get("avatar") ,
-                    "username": twitter_data.get(str(item["twitter_id"]), {}).get("username"),
-                    "show_name": twitter_data.get(str(item["twitter_id"]), {}).get("show_name"),
-                    "description": twitter_data.get(str(item["twitter_id"]), {}).get("description"),
+        if total_page > 0:
+            layui_result = {
+                "code": 0,
+                "count": total_page,
+                "data": [
+                    {
+                        "num": i + start_index,
+                        "id": item["id"],
+                        "tweet_id": item["tweet_id"],
+                        "user_id": item["twitter_id"],
+                        "is_type": item["is_type"],
+                        "likes":item["likes"],
+                        "retweets": item["retweets"],
+                        "replies": item["replies"],
+                        "content": item["content"],
+                        "original_tweet_id": item["original_tweet_id"],
+                        "original_tweet_user_id": item["original_tweet_user_id"],
+                        "data_original_tweets": data_original_tweets.get(item["original_tweet_id"], None),
+                        "data_original_user": data_original_user.get(item["original_tweet_user_id"], None),
+                        "created_at":datetime.fromtimestamp(int(item["created_at"])).strftime("%Y/%m/%d %H:%M"),
+                        "avatar": twitter_data.get(str(item["twitter_id"]), {}).get("avatar") ,
+                        "username": twitter_data.get(str(item["twitter_id"]), {}).get("username"),
+                        "show_name": twitter_data.get(str(item["twitter_id"]), {}).get("show_name"),
+                        "description": twitter_data.get(str(item["twitter_id"]), {}).get("description"),
 
-                } for i, item in enumerate(data_list)
-            ]
-        }
+                    } for i, item in enumerate(data_list)
+                ]
+            }
+
+        else:
+            layui_result = {
+                "code": 0,
+                "count": 0,
+                "data": []
+            }
 
         return jsonify(layui_result)
 
@@ -310,28 +323,35 @@ async def page():
         for row in rows:
             cate_data[row['id']] = row['title']
 
-        layui_result = {
-            "code": 0,
-            "count": total,
-            "data": [
-                {
-                    "num": i + start_index,
-                    "id": item["id"],
-                    "uid": item["uid"],
-                    "cid": item["cid"],
-                    "tid": item["tid"],
-                    "cate_name": cate_data.get(item["cid"], "未知分类"),
-                    "username": item["username"],
-                    "url": item["url"],
-                    "show_name": item["show_name"],
-                    "avatar": item["avatar"],
-                    "followers": item["followers"],
-                    "fans": item["fans"],
-                    "description": item["description"],
-                    "remark": item["remark"]
-                } for i, item in enumerate(data_list)
-            ]
-        }
+        if total>0:
+            layui_result = {
+                "code": 0,
+                "count": total,
+                "data": [
+                    {
+                        "num": i + start_index,
+                        "id": item["id"],
+                        "uid": item["uid"],
+                        "cid": item["cid"],
+                        "tid": item["tid"],
+                        "cate_name": cate_data.get(item["cid"], "未知分类"),
+                        "username": item["username"],
+                        "url": item["url"],
+                        "show_name": item["show_name"],
+                        "avatar": item["avatar"],
+                        "followers": item["followers"],
+                        "fans": item["fans"],
+                        "description": item["description"],
+                        "remark": item["remark"]
+                    } for i, item in enumerate(data_list)
+                ]
+            }
+        else:
+            layui_result = {
+                "code": 0,
+                "count": 0,
+                "data": []
+            }
 
         return  jsonify(layui_result)
 

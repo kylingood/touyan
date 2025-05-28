@@ -44,24 +44,33 @@ async def page():
         for row in rows:
             cate_data[row['id']] = row['title']
 
-        layui_result = {
-            "code": 0,
-            "count": total,
-            "data": [
-                {
-                    "num": i + start_index,
-                    "id": item["id"],
-                    "uid": item["uid"],
-                    "cid": item["cid"],
-                    "cate_name": cate_data.get(item["cid"], "未知分类"),
-                    "username": item["username"],
-                    "global_name": item["global_name"],
-                    "token": item["token"],
-                    "email": item["email"],
-                    "remark": item["remark"]
-                } for i, item in enumerate(data_list)
-            ]
-        }
+        if total > 0:
+            layui_result = {
+                "code": 0,
+                "count": total,
+                "data": [
+                    {
+                        "num": i + start_index,
+                        "id": item["id"],
+                        "uid": item["uid"],
+                        "cid": item["cid"],
+                        "cate_name": cate_data.get(item["cid"], "未知分类"),
+                        "username": item["username"],
+                        "global_name": item["global_name"],
+                        "token": item["token"],
+                        "email": item["email"],
+                        "remark": item["remark"]
+                    } for i, item in enumerate(data_list)
+                ]
+            }
+        else:
+            layui_result = {
+                "code": 0,
+                "count": 0,
+                "data": []
+            }
+
+
 
         return jsonify(layui_result)
 
@@ -467,28 +476,36 @@ async def page_channel():
         for row in rows:
             discord_data[row['id']] = row['global_name']
 
-        layui_result = {
-            "code": 0,
-            "count": total,
-            "data": [
-                {
-                    "num": i + start_index,
-                    "id": item["id"],
-                    "uid": item["uid"],
-                    "did": item["did"],
-                    "discord_name": discord_data.get(item["did"], "未知discord"),
-                    "username": item["username"],
-                    "token": item["token"],
-                    "guild_id": item["guild_id"],
-                    "guild_name": item["guild_name"],
-                    "guild_icon": item["guild_icon"],
-                    "guild_description": item["guild_description"],
-                    "channel_id": item["channel_id"],
-                    "url": item["url"],
-                    "remark": item["remark"]
-                } for i, item in enumerate(data_list)
-            ]
-        }
+        if total > 0:
+            layui_result = {
+                "code": 0,
+                "count": total,
+                "data": [
+                    {
+                        "num": i + start_index,
+                        "id": item["id"],
+                        "uid": item["uid"],
+                        "did": item["did"],
+                        "discord_name": discord_data.get(item["did"], "未知discord"),
+                        "username": item["username"],
+                        "token": item["token"],
+                        "guild_id": item["guild_id"],
+                        "guild_name": item["guild_name"],
+                        "guild_icon": item["guild_icon"],
+                        "guild_description": item["guild_description"],
+                        "channel_id": item["channel_id"],
+                        "url": item["url"],
+                        "remark": item["remark"]
+                    } for i, item in enumerate(data_list)
+                ]
+            }
+
+        else:
+            layui_result = {
+                "code": 0,
+                "count": 0,
+                "data": []
+            }
 
         return jsonify(layui_result)
 
@@ -590,26 +607,32 @@ async def page_messages():
         for row in rows:
             discord_data[row['id']] = row['global_name']
 
-        layui_result = {
-            "code": 0,
-            "count": total_page,
-            "data": [
-                {
-                    "num": i + start_index,
-                    "id": item["id"],
-                    "did": item["did"],
-                    "discord_name": discord_data.get(item["did"], "未知discord"),
-                    "username": item["username"],
-                    "timestamp": datetime.utcfromtimestamp(int(item["timestamp"])).strftime("%Y-%m-%d %H:%M:%S"),
-                    "guild_id": item["guild_id"],
-                    "guild_name": item["guild_name"],
-                    "guild_icon": item["guild_icon"],
-                    "guild_description": item["guild_description"],
-                    "channel_id": item["channel_id"],
-                    "url": item["url"],
-                    "content": item["content"]
-                } for i, item in enumerate(data_list)
-            ]
-        }
-
+        if total_page > 0:
+            layui_result = {
+                "code": 0,
+                "count": total_page,
+                "data": [
+                    {
+                        "num": i + start_index,
+                        "id": item["id"],
+                        "did": item["did"],
+                        "discord_name": discord_data.get(item["did"], "未知discord"),
+                        "username": item["username"],
+                        "timestamp": datetime.utcfromtimestamp(int(item["timestamp"])).strftime("%Y-%m-%d %H:%M:%S"),
+                        "guild_id": item["guild_id"],
+                        "guild_name": item["guild_name"],
+                        "guild_icon": item["guild_icon"],
+                        "guild_description": item["guild_description"],
+                        "channel_id": item["channel_id"],
+                        "url": item["url"],
+                        "content": item["content"]
+                    } for i, item in enumerate(data_list)
+                ]
+            }
+        else:
+            layui_result = {
+                "code": 0,
+                "count": 0,
+                "data": []
+            }
         return jsonify(layui_result)

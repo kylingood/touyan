@@ -77,21 +77,28 @@ def page_discord():
         #print(dbMysql.getLastSql())  # 打印由Model类拼接填充生成的SQL语句
         total =  dbMysql.table('guzi_category').where(where).count()
 
-        layui_result = {
-            "code": 0,
-            "count": total,
-            "data": [
-                {
-                    "num": i + start_index,
-                    "id": item["id"],
-                    "uid": item["uid"],
-                    "title": item["title"],
-                    "total": item["twitter_count"],
-                    "created": item["created"],
-                    "remark": item["remark"]
-                } for i, item in enumerate(data_list)
-            ]
-        }
+        if total > 0:
+            layui_result = {
+                "code": 0,
+                "count": total,
+                "data": [
+                    {
+                        "num": i + start_index,
+                        "id": item["id"],
+                        "uid": item["uid"],
+                        "title": item["title"],
+                        "total": item["twitter_count"],
+                        "created": item["created"],
+                        "remark": item["remark"]
+                    } for i, item in enumerate(data_list)
+                ]
+            }
+        else:
+            layui_result = {
+                "code": 0,
+                "count": 0,
+                "data": []
+            }
 
         return jsonify(layui_result)
 
@@ -140,21 +147,29 @@ def page():
         #print(dbMysql.getLastSql())  # 打印由Model类拼接填充生成的SQL语句
         total =  dbMysql.table('guzi_category').where(where).count()
 
-        layui_result = {
-            "code": 0,
-            "count": total,
-            "data": [
-                {
-                    "num": i + start_index,
-                    "id": item["id"],
-                    "uid": item["uid"],
-                    "title": item["title"],
-                    "total": item["twitter_count"],
-                    "created": item["created"],
-                    "remark": item["remark"]
-                } for i, item in enumerate(data_list)
-            ]
-        }
+        if total > 0:
+            layui_result = {
+                "code": 0,
+                "count": total,
+                "data": [
+                    {
+                        "num": i + start_index,
+                        "id": item["id"],
+                        "uid": item["uid"],
+                        "title": item["title"],
+                        "total": item["twitter_count"],
+                        "created": item["created"],
+                        "remark": item["remark"]
+                    } for i, item in enumerate(data_list)
+                ]
+            }
+
+        else:
+            layui_result = {
+                "code": 0,
+                "count": 0,
+                "data": []
+            }
 
         return jsonify(layui_result)
 

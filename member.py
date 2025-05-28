@@ -64,21 +64,29 @@ async def page_codes():
         #print(dbMysql.getLastSql())  # 打印由Model类拼接填充生成的SQL语句
         total =  dbMysql.table('guzi_invite_codes').where(where).count()
 
-        layui_result = {
-            "code": 0,
-            "count": total,
-            "data": [
-                {
-                    "num": i + start_index,
-                    "id": item["id"],
-                    "code": item["code"],
-                    "is_used": item["is_used"],
-                    "used_uid": item["wallet"] if item["wallet"] else '-' ,
-                    "created": item["created"],
-                    "use_time": item["use_time"]
-                } for i, item in enumerate(data_list)
-            ]
-        }
+        if total > 0:
+            layui_result = {
+                "code": 0,
+                "count": total,
+                "data": [
+                    {
+                        "num": i + start_index,
+                        "id": item["id"],
+                        "code": item["code"],
+                        "is_used": item["is_used"],
+                        "used_uid": item["wallet"] if item["wallet"] else '-' ,
+                        "created": item["created"],
+                        "use_time": item["use_time"]
+                    } for i, item in enumerate(data_list)
+                ]
+            }
+
+        else:
+            layui_result = {
+                "code": 0,
+                "count": 0,
+                "data": []
+            }
 
         return jsonify(layui_result)
 
@@ -108,22 +116,28 @@ async def page():
         #print(dbMysql.getLastSql())  # 打印由Model类拼接填充生成的SQL语句
         total =  dbMysql.table('guzi_member').where(where).count()
 
-        layui_result = {
-            "code": 0,
-            "count": total,
-            "data": [
-                {
-                    "num": i + start_index,
-                    "uid": item["uid"],
-                    "wallet": item["wallet"],
-                    "status": item["status"],
-                    "code": item["code"] if item["code"] not in [None, '', 0, '0'] else '-',
-                    "created": item["created"],
-                    "remark": item["remark"] if item["remark"] else '-'
-                } for i, item in enumerate(data_list)
-            ]
-        }
-
+        if total > 0:
+            layui_result = {
+                "code": 0,
+                "count": total,
+                "data": [
+                    {
+                        "num": i + start_index,
+                        "uid": item["uid"],
+                        "wallet": item["wallet"],
+                        "status": item["status"],
+                        "code": item["code"] if item["code"] not in [None, '', 0, '0'] else '-',
+                        "created": item["created"],
+                        "remark": item["remark"] if item["remark"] else '-'
+                    } for i, item in enumerate(data_list)
+                ]
+            }
+        else:
+            layui_result = {
+                "code": 0,
+                "count": 0,
+                "data": []
+            }
         return jsonify(layui_result)
 
 

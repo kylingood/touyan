@@ -46,6 +46,13 @@
                 </a>
               </li>
 
+              <li class="nav-item">
+                <a href="{{ url_for('discord.index') }}" class="nav-link {% if request.path.startswith('/discord/index') %}active{% endif %}  {% if request.path.startswith('/category/discord') %}active{% endif %}  {% if request.path.startswith('/discord/guild') %}active{% endif %}   ">
+                  <i class="nav-icon layui-icon layui-icon-app "></i>
+                  <p>Discord列表</p>
+                </a>
+              </li>
+
 
                <li class="nav-item">
                 <a href="{{ url_for('discord.message') }}" class="nav-link  {% if request.path.startswith('/discord/message') %}active{% endif %} ">
@@ -54,12 +61,6 @@
                 </a>
               </li>
 
-              <li class="nav-item">
-                <a href="{{ url_for('discord.index') }}" class="nav-link {% if request.path.startswith('/discord/index') %}active{% endif %}  {% if request.path.startswith('/category/discord') %}active{% endif %}  {% if request.path.startswith('/discord/guild') %}active{% endif %}   ">
-                  <i class="nav-icon layui-icon layui-icon-app "></i>
-                  <p>Discord账号</p>
-                </a>
-              </li>
 
 
               <!--
