@@ -29,13 +29,14 @@
                   <!-- /.card-header -->
                   <div class="card-body p-0">
 
-                    <table class="table table-striped">
+                    <table class="table table-striped" style="text-align: center;">
                       <thead>
                         <tr>
                           <th style="width: 80px">序号</th>
                           <th>名称</th>
-                          <th>备注信息</th>
                           <th>账号数量</th>
+                          <th>备注信息</th>
+                          <th>增加时间</th>
                           <th style="width: 150px">操作</th>
                         </tr>
                       </thead>
@@ -92,6 +93,20 @@ layui.use(['laypage', 'jquery'], function() {
     });
   }
 
+
+  function formatTimestamp(unixTime) {
+      if (!unixTime || unixTime <= 0) {
+        return '-';
+      }
+      const date = new Date(unixTime * 1000); // 如果是毫秒则不乘
+      const Y = date.getFullYear();
+      const M = String(date.getMonth() + 1).padStart(2, '0');
+      const D = String(date.getDate()).padStart(2, '0');
+      const h = String(date.getHours()).padStart(2, '0');
+      const m = String(date.getMinutes()).padStart(2, '0');
+      return `${Y}/${M}/${D} ${h}:${m}`;
+ }
+
   function renderTable(data) {
     var html = '';
     const colorClasses = [
@@ -106,9 +121,10 @@ layui.use(['laypage', 'jquery'], function() {
       const randomClass = colorClasses[Math.floor(Math.random() * colorClasses.length)];
       html += `<tr class="align-middle" id="del_twitter_${item.id}">
                           <td>${item.num}.</td>
-                          <td><a href="{{ url_for('category.twitter') }}/${item.cid}" class="alert-link" target="_blank"><span class="layui-badge ${randomClass} ">${item.title}</span></a></td>
-                          <td>${item.remark}</td>
+                          <td><span class="layui-badge ${randomClass} ">${item.title}</span></td>
                           <td>${item.total}</td>
+                          <td>${item.remark}</td>
+                          <td>${formatTimestamp(item.created)}</td>
                           <td>
                           <div class="layui-btn-container">
                           <span   lay-on="edit-confirm"  data-id="${item.id}" data-title="${item.title}" data-remark="${item.remark}" ><button type="button" class="layui-btn layui-bg-blue  layui-btn-sm">修改</button></span>

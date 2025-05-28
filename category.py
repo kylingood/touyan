@@ -33,6 +33,69 @@ def list():
 
 
 
+@category.route("/category/page_discord", methods=['GET', 'POST'])
+@require_user  # 使用装饰器来验证登录状态
+def page_discord():
+    uid = g.uid
+    if request.method == 'GET':
+
+        # 获取参数并设置默认值（如未传则为1或10）
+        page = request.args.get('page', default=1, type=int)
+        limit = request.args.get('limit', default=10, type=int)
+        is_type = request.args.get('is_type', default=1, type=int)
+
+
+        where = f"uid='{uid}' AND is_type='{is_type}' AND status=1"
+
+
+        order = "id DESC"
+
+        # 然后再计算偏移量
+        start_index = (page - 1) * limit + 1
+        sql = f'''
+            SELECT 
+                c.*,
+                c.id AS category_id,
+                c.title AS category_title,
+                COUNT(m.discord_id) AS twitter_count
+            FROM 
+                guzi_category AS c
+            LEFT JOIN 
+                guzi_discord_category_map AS m
+            ON 
+                c.id = m.cactegory_id
+            WHERE 
+                c.is_type = '{is_type}' AND c.uid='{uid}' 
+            GROUP BY 
+                c.id
+            ORDER BY 
+                 twitter_count  DESC;
+        '''
+        data_list = dbMysql.query(sql)
+        print(dbMysql.getLastSql())  # 打印由Model类拼接填充生成的SQL语句
+        #data_list = dbMysql.table('guzi_category').where(where).order(order).page(page, limit).select()
+        #print(dbMysql.getLastSql())  # 打印由Model类拼接填充生成的SQL语句
+        total =  dbMysql.table('guzi_category').where(where).count()
+
+        layui_result = {
+            "code": 0,
+            "count": total,
+            "data": [
+                {
+                    "num": i + start_index,
+                    "id": item["id"],
+                    "uid": item["uid"],
+                    "title": item["title"],
+                    "total": item["twitter_count"],
+                    "created": item["created"],
+                    "remark": item["remark"]
+                } for i, item in enumerate(data_list)
+            ]
+        }
+
+        return jsonify(layui_result)
+
+
 @category.route("/category/page", methods=['GET', 'POST'])
 @require_user  # 使用装饰器来验证登录状态
 def page():
@@ -52,8 +115,28 @@ def page():
 
         # 然后再计算偏移量
         start_index = (page - 1) * limit + 1
-
-        data_list = dbMysql.table('guzi_category').where(where).order(order).page(page, limit).select()
+        sql = f'''
+            SELECT 
+                c.*,
+                c.id AS category_id,
+                c.title AS category_title,
+                COUNT(m.twitter_id) AS twitter_count
+            FROM 
+                guzi_category AS c
+            LEFT JOIN 
+                guzi_twitter_category_map AS m
+            ON 
+                c.id = m.cactegory_id
+            WHERE 
+                c.is_type = '{is_type}' AND c.uid='{uid}' 
+            GROUP BY 
+                c.id
+            ORDER BY 
+                 twitter_count  DESC;
+        '''
+        data_list = dbMysql.query(sql)
+        print(dbMysql.getLastSql())  # 打印由Model类拼接填充生成的SQL语句
+        #data_list = dbMysql.table('guzi_category').where(where).order(order).page(page, limit).select()
         #print(dbMysql.getLastSql())  # 打印由Model类拼接填充生成的SQL语句
         total =  dbMysql.table('guzi_category').where(where).count()
 
@@ -66,7 +149,8 @@ def page():
                     "id": item["id"],
                     "uid": item["uid"],
                     "title": item["title"],
-                    "total": item["total"],
+                    "total": item["twitter_count"],
+                    "created": item["created"],
                     "remark": item["remark"]
                 } for i, item in enumerate(data_list)
             ]
@@ -118,16 +202,16 @@ async def add():
 
         ## 先查看此钱包有没有数据，没有就插入，有就更新数据状态
         data_one = dbMysql.table('guzi_category').where(
-            f"title='{title}' AND uid='{uid}'").find()
+            f"title='{title}' AND uid='{uid}' AND is_type='{is_type}'").find()
         dbdata = {}
         today_time = int(time.time())
 
         if data_one:
-            uid = data_one['uid']
+            id = data_one['id']
             dbdata['updated'] = today_time
             dbdata['remark'] = remark
             dbdata['title'] = title
-            result_db = dbMysql.table('guzi_category').where(f"uid = '{uid}'").save(dbdata)
+            result_db = dbMysql.table('guzi_category').where(f"id = '{id}'").save(dbdata)
         else:
             # 获取当前日期
             dbdata['title'] = title

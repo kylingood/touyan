@@ -265,4 +265,14 @@ def protected():
     return jsonify({"message": f"欢迎 {address} 登录成功！"})
 
 
+@web3_auth.route('/api/get_user_info', methods=['GET'])
+@require_user_async
+def get_user_info():
+    uid = g.uid
+    if uid!=10000:
+        return jsonify({"status":0,"message": f"对不起，你非管理员！"})
+
+    return jsonify({"status":1,"message": f"欢迎管理员登录成功！"})
+
+
 

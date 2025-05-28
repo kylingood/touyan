@@ -1,0 +1,368 @@
+{% extends "base.html" %}
+
+{% block content %}
+ <!--begin::App Content Header-->
+        <div class="app-content-header">
+          <!--begin::Container-->
+          <div class="container-fluid">
+            <!--begin::Row-->
+            <div class="row">
+              <div class="col-sm-6"><h4 class="mb-0">管理邀请码</h4></div>
+              <div class="col-sm-6">
+                <ol class="breadcrumb float-sm-end">
+                  <li class="breadcrumb-item"> <button type="button" class="layui-btn layui-bg-blue" lay-on="add-category-page-custom" >添加邀请码</button></li>
+                     <li class="breadcrumb-item active" aria-current="page">
+                        <a href="{{ url_for('member.index') }}" >
+                            <button type="button"  class="layui-btn">管理会员</button>
+                        </a>
+                    </li>
+                </ol>
+              </div>
+            </div>
+            <!--end::Row-->
+          </div>
+          <!--end::Container-->
+        </div>
+        <div class="app-content">
+          <!--begin::Container-->
+          <div class="container-fluid">
+
+               <div class="card mb-4">
+                  <div class="card-header">
+                    <h3 class="card-title">邀请码列表</h3>
+                  </div>
+                  <!-- /.card-header -->
+                  <div class="card-body p-0">
+
+                    <table class="table table-striped" style="text-align: center;">
+                      <thead>
+                        <tr>
+                          <th style="width: 80px">序号</th>
+                          <th>邀请码</th>
+                          <th>是否使用</th>
+                          <th>会员</th>
+                          <th>使用时间</th>
+                          <th>生成时间</th>
+                          <th style="width: 150px">操作</th>
+                        </tr>
+                      </thead>
+                      <tbody id="data-table">
+
+                      </tbody>
+                    </table>
+                    <div style="text-align: center;" id="demo-laypage-all"></div>
+                  </div>
+                  <!-- /.card-body -->
+                </div>
+                <!-- /.card -->
+
+
+          </div>
+          <!--end::Container-->
+        </div>
+        <!--end::App Content-->
+
+<script>
+
+layui.use(['laypage', 'jquery'], function() {
+  var laypage = layui.laypage;
+  var $ = layui.jquery;
+  const token = localStorage.getItem('token');
+
+  function fetchData(page, limit) {
+    $.ajax({
+      url: '{{ url_for('member.page_codes') }}',  // 替换为你的后端接口
+      type: 'GET',
+      headers: {
+        'Authorization': 'Bearer ' + token,
+        'Content-Type': 'application/json'
+      },
+      data: { page: page, limit: limit,is_type: 2 },
+      success: function(res) {
+        // 假设 res 格式：{ code: 0, count: 100, data: [...] }
+        if (res.code === 0) {
+          renderTable(res.data);  // 渲染表格
+          laypage.render({
+            elem: 'demo-laypage-all',
+            count: res.count,
+            limit: limit,
+            curr: page,
+            layout: ['count', 'prev', 'page', 'next', 'limit', 'skip'], // 功能布局
+            jump: function(obj, first) {
+              if (!first) {
+                fetchData(obj.curr, obj.limit);  // 重新获取数据
+              }
+            }
+          });
+        }
+      }
+    });
+  }
+
+  function formatTimestamp(unixTime) {
+      if (!unixTime || unixTime <= 0) {
+        return '-';
+      }
+      const date = new Date(unixTime * 1000); // 如果是毫秒则不乘
+      const Y = date.getFullYear();
+      const M = String(date.getMonth() + 1).padStart(2, '0');
+      const D = String(date.getDate()).padStart(2, '0');
+      const h = String(date.getHours()).padStart(2, '0');
+      const m = String(date.getMinutes()).padStart(2, '0');
+      return `${Y}/${M}/${D} ${h}:${m}`;
+ }
+
+   function renderUsedBadge(is_used) {
+      return is_used
+        ? '<span class="layui-badge layui-bg-orange">已使用</span>'
+        : '<span class="layui-badge " style="background-color:#16b777;">未使用</span>';
+    }
+
+  function renderTable(data) {
+    var html = '';
+    const colorClasses = [
+      'layui-bg-orange',
+      'layui-bg-green',
+      'layui-bg-blue',
+      'layui-bg-black'
+    ];
+
+    data.forEach(function(item) {
+      // 随机选择一个 class
+      const randomClass = colorClasses[Math.floor(Math.random() * colorClasses.length)];
+      html += `<tr class="align-middle" id="del_twitter_${item.id}">
+                          <td>${item.num}.</td>
+                          <td>${item.code}</td>
+                          <td>${renderUsedBadge(item.is_used)}</td>
+                          <td>${item.used_uid}</td>
+                          <td>${formatTimestamp(item.use_time)}</td>
+                          <td>${formatTimestamp(item.created)}</td>
+                          <td>
+                          <div class="layui-btn-container">
+                          ${item.is_used !== 1 ? `
+                          <span lay-on="del-confirm" data-id="${item.id}">
+                            <button type="button" class="layui-btn layui-bg-red layui-btn-sm">删除</button>
+                          </span>` : `-`}
+                          </div>
+                          </td>
+                        </tr>`;
+    });
+    $('#data-table').html(html);
+  }
+
+  fetchData(1, 10);  // 默认加载第1页，10条数据
+});
+
+layui.use(function(){
+  var $ = layui.$;
+  var layer = layui.layer;
+  var util = layui.util;
+  var form = layui.form;
+
+  const token = localStorage.getItem('token');
+
+  // 事件
+  util.on('lay-on', {
+    'del-confirm': function(){
+      const id = $(this).data('id');       // 获取 data-id 的值
+
+        layer.confirm('你确定删除此信息？', {
+        btn: ['确定', '取消'] //按钮
+      }, function(){
+        // 此处可执行 Ajax 等操作
+        $.ajax({
+                url:'{{ url_for('member.del_codes') }}',
+                data:{
+                    "id":id,
+                },
+                headers: {
+                    'Authorization': 'Bearer ' + token,
+                },
+                dataType:"json",
+                type:"post",
+                async:false,
+                success:function(result){
+                    if(result.status == 1){
+                        $('#del_twitter_'+id).remove();
+                        layer.msg(result.message);
+                        return true
+                    }else{
+                    	layer.msg(result.message);
+                    	return false
+                    }
+                }
+        })
+
+
+      }, function(){
+            return true
+
+      });
+    },
+
+    'edit-confirm': function(){
+
+      const id = $(this).data('id');       // 获取 data-id 的值
+      const title = $(this).data('title');       // 获取 data-title 的值
+      const remark = $(this).data('remark');       // 获取 data-remark 的值
+
+      layer.open({
+        type: 1,
+        area: '350px',
+        resize: false,
+        shadeClose: true,
+        title: '修改分组',
+        content: `
+          <div class="layui-form" lay-filter="filter-test-layer" style="margin: 16px;">
+            <div class="demo-login-container">
+              <div class="layui-form-item">
+                <div class="layui-input-wrap">
+                  <div class="layui-input-prefix">
+                    <i class="layui-icon layui-icon-username"></i>
+                  </div>
+
+                  <input type="text" name="username" value="${title}" lay-verify="required" placeholder="分组名称" lay-reqtext="请填写分组" autocomplete="off" class="layui-input" lay-affix="clear">
+                </div>
+              </div>
+
+              <div class="layui-form-item">
+                <div class="layui-input-wrap">
+                  <div class="layui-input-prefix">
+                    <i class="layui-icon layui-icon-password"></i>
+                  </div>
+                    <textarea placeholder="请输入此分组备注" name="remark" class="layui-textarea" lay-verify="required"  lay-reqtext="请填写分组备注"  >${remark}</textarea>
+                     <input type="hidden" name="id" value="${id}" lay-verify="required" placeholder="分组id"  autocomplete="off" >
+                 </div>
+              </div>
+
+              <div class="layui-form-item">
+                <button class="layui-btn layui-btn-fluid" id="add-button" lay-submit lay-filter="demo-login">确定修改</button>
+              </div>
+
+            </div>
+          </div>
+        `,
+        success: function(){
+          // 对弹层中的表单进行初始化渲染
+          form.render();
+
+          // 表单提交事件
+          form.on('submit(demo-login)', function(data){
+
+            $("#add-button").html("请稍等，正在提交数据...").attr("disabled","disabled");
+            // 此处可执行 Ajax 等操作
+            $.ajax({
+                url:'{{ url_for('category.edit') }}',
+                headers: {
+                    'Authorization': 'Bearer ' + token,
+                },
+                data:{
+                    "username":data.field.username,
+                    "id":data.field.id,
+                    "remark":data.field.remark
+                },
+                dataType:"json",
+                type:"post",
+                async:false,
+                success:function(result){
+                    if(result.status == 1){
+
+                        layer.confirm(result.message, {
+                          btn: ['确定', '关闭'] //按钮
+                        }, function(){
+                          window.location.href='{{ url_for('category.discord') }}';
+                        }, function(){
+                          window.location.href='{{ url_for('category.discord') }}';
+                        });
+
+                        return true
+
+                    }else{
+                    	$("#add-button").html("确定提交").removeAttr("disabled");
+                    	return layer.msg(result.message);
+                    }
+                }
+            })
+            return false; // 阻止默认 form 跳转
+          });
+        }
+      });
+    },
+    'add-category-page-custom': function(){
+      layer.open({
+        type: 1,
+        area: '350px',
+        resize: false,
+        shadeClose: true,
+        title: '新增邀请码',
+        content: `
+          <div class="layui-form" lay-filter="filter-test-layer" style="margin: 16px;">
+            <div class="demo-login-container">
+              <div class="layui-form-item">
+                <div class="layui-input-wrap">
+                  <div class="layui-input-prefix">
+                    <i class="layui-icon layui-icon-username"></i>
+                  </div>
+                  <input type="text" name="nums" value="" lay-verify="required"   placeholder="请填写邀请码数量,只能是数字" lay-reqtext="请填写邀请码数量,只能是数字" autocomplete="off" class="layui-input" lay-affix="clear">
+                </div>
+              </div>
+              <div class="layui-form-item">
+                <button class="layui-btn layui-btn-fluid" id="add-button" lay-submit lay-filter="demo-login">确定增加</button>
+              </div>
+
+            </div>
+          </div>
+        `,
+        success: function(){
+          // 对弹层中的表单进行初始化渲染
+          form.render();
+          // 表单提交事件
+          form.on('submit(demo-login)', function(data){
+
+            if (!/^[1-9]\d*$/.test(data.field.nums)) {
+
+                return layer.msg('请填写邀请码数量,要大于0的整数');
+            }
+
+            $("#add-button").html("请稍等，正在提交数据...").attr("disabled","disabled");
+            // 此处可执行 Ajax 等操作
+            $.ajax({
+                url:'{{ url_for('member.add_code') }}',
+                headers: {
+                    'Authorization': 'Bearer ' + token,
+                },
+                data:{
+                    "nums":data.field.nums
+                },
+                dataType:"json",
+                type:"post",
+                async:false,
+                success:function(result){
+                    if(result.status == 1){
+
+                        layer.confirm(result.message, {
+                          btn: ['确定', '关闭'] //按钮
+                        }, function(){
+                          window.location.href='{{ url_for('member.codes') }}';
+                        }, function(){
+                          window.location.href='{{ url_for('member.codes') }}';
+                        });
+
+                        return true
+
+                    }else{
+                    	$("#add-button").html("确定提交").removeAttr("disabled");
+                    	return layer.msg(result.message);
+                    }
+                }
+            })
+            return false; // 阻止默认 form 跳转
+          });
+        }
+      });
+    }
+  })
+});
+</script>
+
+{% endblock %}

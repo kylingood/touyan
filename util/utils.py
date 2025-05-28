@@ -6,6 +6,7 @@ import logging
 import multiprocessing
 from web3 import Web3
 import json
+import string
 import time
 import datetime
 import urllib3
@@ -306,6 +307,11 @@ def get_random_line_from_file(file_path):
     except Exception as e:
         return ''
 
+
+
+def generate_invite_codes(count=10, length=20):
+    chars = string.ascii_letters + string.digits  # 包含 a-zA-Z0-9
+    return [''.join(random.choices(chars, k=length)) for _ in range(count)]
 
 
 def get_countdown(sleep_time):

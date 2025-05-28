@@ -4,7 +4,31 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="52e72af2-67a7-4242-a6ba-fbef2c11875c" name="更改" comment="第四次提交，增加推特信息流" />
+    <list default="true" id="52e72af2-67a7-4242-a6ba-fbef2c11875c" name="更改" comment="第四次提交，增加推特信息流">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app.py" beforeDir="false" afterPath="$PROJECT_DIR$/app.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/auth.py" beforeDir="false" afterPath="$PROJECT_DIR$/auth.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/category.py" beforeDir="false" afterPath="$PROJECT_DIR$/category.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/discord.py" beforeDir="false" afterPath="$PROJECT_DIR$/discord.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pythonMySQL/pythonMySQL.py" beforeDir="false" afterPath="$PROJECT_DIR$/pythonMySQL/pythonMySQL.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/rapidapi.py" beforeDir="false" afterPath="$PROJECT_DIR$/rapidapi.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/static/dist/css/layui.css" beforeDir="false" afterPath="$PROJECT_DIR$/static/dist/css/layui.css" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/static/dist/css/layui.css.map" beforeDir="false" afterPath="$PROJECT_DIR$/static/dist/css/layui.css.map" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/templates/category/discord.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/category/discord.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/templates/category/twitter.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/category/twitter.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/templates/components/footer.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/components/footer.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/templates/components/sidebar.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/components/sidebar.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/templates/discord/guild.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/discord/guild.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/templates/discord/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/discord/index.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/templates/discord/message.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/discord/message.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/templates/twitter/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/twitter/index.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/templates/twitter/message.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/twitter/message.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/templates/twitter/summary.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/twitter/summary.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/twitter.py" beforeDir="false" afterPath="$PROJECT_DIR$/twitter.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/twitter.sql" beforeDir="false" afterPath="$PROJECT_DIR$/twitter.sql" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/util/utils.py" beforeDir="false" afterPath="$PROJECT_DIR$/util/utils.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/web3_auth.py" beforeDir="false" afterPath="$PROJECT_DIR$/web3_auth.py" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -19,12 +43,12 @@
     &quot;assignee&quot;: &quot;kylingood&quot;
   }
 }</component>
-  <component name="GithubPullRequestsUISettings">{
-  &quot;selectedUrlAndAccountId&quot;: {
-    &quot;url&quot;: &quot;git@github.com:kylingood/touyan.git&quot;,
-    &quot;accountId&quot;: &quot;7447ec2e-227e-41c6-afaa-f248be2f8309&quot;
+  <component name="GithubPullRequestsUISettings"><![CDATA[{
+  "selectedUrlAndAccountId": {
+    "url": "https://github.com/kylingood/touyan.git",
+    "accountId": "7447ec2e-227e-41c6-afaa-f248be2f8309"
   }
-}</component>
+}]]></component>
   <component name="ProjectColorInfo">{
   &quot;associatedIndex&quot;: 7
 }</component>
@@ -34,18 +58,19 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent">{
-  &quot;keyToString&quot;: {
-    &quot;Python.app.executor&quot;: &quot;Run&quot;,
-    &quot;Python.main.executor&quot;: &quot;Run&quot;,
-    &quot;Python.test.executor&quot;: &quot;Run&quot;,
-    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;SHARE_PROJECT_CONFIGURATION_FILES&quot;: &quot;true&quot;,
-    &quot;git-widget-placeholder&quot;: &quot;master&quot;,
-    &quot;ignore.virus.scanning.warn.message&quot;: &quot;true&quot;
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "Python.app.executor": "Run",
+    "Python.main.executor": "Run",
+    "Python.test.executor": "Run",
+    "Python.twitter.executor": "Run",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "SHARE_PROJECT_CONFIGURATION_FILES": "true",
+    "git-widget-placeholder": "master",
+    "ignore.virus.scanning.warn.message": "true"
   }
-}</component>
-  <component name="RunManager" selected="Python.test">
+}]]></component>
+  <component name="RunManager" selected="Python.twitter">
     <configuration name="app" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="twitter" />
       <option name="ENV_FILES" value="" />
@@ -112,9 +137,32 @@
       <option name="INPUT_FILE" value="" />
       <method v="2" />
     </configuration>
+    <configuration name="twitter" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+      <module name="twitter" />
+      <option name="ENV_FILES" value="" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/crontab" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/crontab/twitter.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
     <recent_temporary>
       <list>
         <item itemvalue="Python.app" />
+        <item itemvalue="Python.twitter" />
         <item itemvalue="Python.test" />
       </list>
     </recent_temporary>
@@ -191,7 +239,23 @@
       <option name="project" value="LOCAL" />
       <updated>1748175715702</updated>
     </task>
-    <option name="localTasksCounter" value="8" />
+    <task id="LOCAL-00008" summary="第四次提交，增加推特信息流">
+      <option name="closed" value="true" />
+      <created>1748175982317</created>
+      <option name="number" value="00008" />
+      <option name="presentableId" value="LOCAL-00008" />
+      <option name="project" value="LOCAL" />
+      <updated>1748175982317</updated>
+    </task>
+    <task id="LOCAL-00009" summary="第四次提交，增加推特信息流">
+      <option name="closed" value="true" />
+      <created>1748176285278</created>
+      <option name="number" value="00009" />
+      <option name="presentableId" value="LOCAL-00009" />
+      <option name="project" value="LOCAL" />
+      <updated>1748176285278</updated>
+    </task>
+    <option name="localTasksCounter" value="10" />
     <servers />
   </component>
   <component name="VcsManagerConfiguration">

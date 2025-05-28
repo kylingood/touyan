@@ -289,11 +289,18 @@ class pythonMySQL(object):
             for index, item in enumerate(columns_list):
                 columns_dict[str(index)] = item
             explode_array = []
+            # if isinstance(field, str):
+            #     explode_array = re.split('\s{0,},\s{0,}', field.strip())
+            # else:
+            #     for single_field in field:
+            #         explode_array.append(single_field.strip())
+
             if isinstance(field, str):
-                explode_array = re.split('\s{0,},\s{0,}', field.strip())
+                explode_array = re.split(r'\s{0,},\s{0,}', field.strip())
             else:
                 for single_field in field:
                     explode_array.append(single_field.strip())
+
             for index, item in list(columns_dict.items()):
                 if item in explode_array:
                     columns_dict.pop(index)
@@ -340,13 +347,32 @@ class pythonMySQL(object):
             self.throw_exception("order子句的参数只支持字符串和字典")
         return self
 
+    # def limit(self, *limit):
+    #     param_number = len(limit)
+    #     if param_number == 1:
+    #         if not isinstance(limit[0], (int, str)):
+    #             self.throw_exception("limit子句的参数非法")
+    #         if isinstance(limit[0], str):
+    #             if not re.match('^\d+\s{0,},\s{0,}\d+$', limit[0].strip()) and not re.match('^\d+$', limit[0].strip()):
+    #                 self.throw_exception("limit子句的参数非法")
+    #         self.limitString = ' LIMIT ' + str(limit[0])
+    #     elif param_number == 2:
+    #         for i in range(2):
+    #             if not is_numeric(limit[i]):
+    #                 self.throw_exception("limit子句的参数非法")
+    #         self.limitString = ' LIMIT ' + str(limit[0]) + ',' + str(limit[1])
+    #     else:
+    #         self.throw_exception("limit子句的参数数量必须为一或两个")
+    #     return self
+
     def limit(self, *limit):
         param_number = len(limit)
         if param_number == 1:
             if not isinstance(limit[0], (int, str)):
                 self.throw_exception("limit子句的参数非法")
             if isinstance(limit[0], str):
-                if not re.match('^\d+\s{0,},\s{0,}\d+$', limit[0].strip()) and not re.match('^\d+$', limit[0].strip()):
+                if not re.match(r'^\d+\s{0,},\s{0,}\d+$', limit[0].strip()) and not re.match(r'^\d+$',
+                                                                                             limit[0].strip()):
                     self.throw_exception("limit子句的参数非法")
             self.limitString = ' LIMIT ' + str(limit[0])
         elif param_number == 2:
@@ -357,6 +383,7 @@ class pythonMySQL(object):
         else:
             self.throw_exception("limit子句的参数数量必须为一或两个")
         return self
+
 
     def page(self, page_number, amount):
         if not is_numeric(page_number) or not is_numeric(amount):
@@ -1070,25 +1097,50 @@ class pythonMySQL(object):
         value = value.strip()
         if value.find(' as ') != -1:
             # 字符串中有" as "
-            value = re.sub('\s+', ' ', value)
+            value = re.sub(r'\s+', ' ', value)
             # 匹配出as后的字符串
-            MatchObject = re.search('(?<=\s{1}as\s{1})\w+$', value, re.I)
-            if MatchObject == None:
+            MatchObject = re.search(r'(?<=\s{1}as\s{1})\w+$', value, re.I)
+            if MatchObject is None:
                 self.throw_exception('"' + value + '"匹配错误，请合法输入')
             else:
                 table_alias = MatchObject.group(0)
-            value = re.sub('(?<=\s{1}as\s{1})\w+$', '`' + table_alias + '`', value, 0, re.I)
+            value = re.sub(r'(?<=\s{1}as\s{1})\w+$', '`' + table_alias + '`', value, 0, re.I)
             # 匹配出as前的字符串
-            table_name = re.search('^.*(?=\s{1}as\s{1}`)', value, re.I).group(0)
-            if re.match('^\w+$', table_name):
-                value = re.sub('^\w+(?=\s{1}as\s{1}`)', '`' + table_name + '`', value, 0, re.I)
-        elif re.match('^\w+\.\w+$', value):
+            table_name = re.search(r'^.*(?=\s{1}as\s{1}`)', value, re.I).group(0)
+            if re.match(r'^\w+$', table_name):
+                value = re.sub(r'^\w+(?=\s{1}as\s{1}`)', '`' + table_name + '`', value, 0, re.I)
+        elif re.match(r'^\w+\.\w+$', value):
             pass
         else:
             # 其他
-            if not re.search('\W+', value):
+            if not re.search(r'\W+', value):
                 value = '`' + value + '`'
         return value
+
+
+    # def _addSpecialChar(self, value):
+    #     value = value.strip()
+    #     if value.find(' as ') != -1:
+    #         # 字符串中有" as "
+    #         value = re.sub('\s+', ' ', value)
+    #         # 匹配出as后的字符串
+    #         MatchObject = re.search('(?<=\s{1}as\s{1})\w+$', value, re.I)
+    #         if MatchObject == None:
+    #             self.throw_exception('"' + value + '"匹配错误，请合法输入')
+    #         else:
+    #             table_alias = MatchObject.group(0)
+    #         value = re.sub('(?<=\s{1}as\s{1})\w+$', '`' + table_alias + '`', value, 0, re.I)
+    #         # 匹配出as前的字符串
+    #         table_name = re.search('^.*(?=\s{1}as\s{1}`)', value, re.I).group(0)
+    #         if re.match('^\w+$', table_name):
+    #             value = re.sub('^\w+(?=\s{1}as\s{1}`)', '`' + table_name + '`', value, 0, re.I)
+    #     elif re.match('^\w+\.\w+$', value):
+    #         pass
+    #     else:
+    #         # 其他
+    #         if not re.search('\W+', value):
+    #             value = '`' + value + '`'
+    #     return value
 
     def _replaceSpecialChar(self, pattern, replacement, subject):
         for val in replacement:
@@ -1196,9 +1248,20 @@ def is_numeric(var):
 
 
 # 仿PHP的PDO::quote，当前仅对单双引号进行转义，并在字符串左右加上单引号
-def pdo_quote(string):
-    return "'" + re.sub(r'(?<=[^\\])([\'\"])', r'\\\1', str(string)) + "'"
+# def pdo_quote(string):
+#     return "'" + re.sub(r'(?<=[^\\])([\'\"])', r'\\\1', str(string)) + "'"
 
+def pdo_quote(string):
+    if not isinstance(string, str):
+        string = str(string)
+    # 先替换 \ 为 \\
+    string = string.replace("\\", "\\\\")
+    # 替换 ' 为 \'
+    string = string.replace("'", "\\'")
+    # 替换 " 为 \"
+    string = string.replace('"', '\\"')
+    # 最后包裹单引号
+    return f"'{string}'"
 
 # M函数
 def M(dbtable, ConfigID=0, dbConfig=None):

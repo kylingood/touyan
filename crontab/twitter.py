@@ -1,0 +1,94 @@
+import requests
+import time
+import random
+from datetime import datetime
+import json
+from rapidapi import *
+from util.utils import get_countdown
+from concurrent.futures import ThreadPoolExecutor, as_completed
+
+
+### 先查到所有推特账号
+sql = """
+SELECT
+  map.*,
+  t.id AS twitter_id,
+  t.uid AS twitter_uid,
+  t.tid AS twitter_tid,
+  t.username AS twitter_username,
+  t.show_name AS twitter_show_name,
+  t.url AS twitter_url,
+  t.remark AS twitter_remark,
+  t.description AS twitter_description,
+  t.avatar AS twitter_avatar,
+  t.followers AS twitter_followers,
+  t.fans AS twitter_fans,
+  t.status AS twitter_status,
+  t.created AS twitter_created,
+  t.updated AS twitter_updated
+FROM guzi_member_twitter_map  AS map
+INNER JOIN guzi_twitter AS t ON map.twitter_id = t.id
+WHERE map.status = 1
+ORDER BY map.id DESC
+LIMIT 10020 OFFSET 0;
+
+"""
+data_list =  dbMysql.query(sql)
+#print(dbMysql.getLastSql())  # 打印由Model类拼接填充生成的SQL语句
+#print(data_list)
+
+
+# 单个用户的处理逻辑
+def process_member(member,sum_user=None):
+    twitter_username = member['twitter_username']
+    twitter_id = member['twitter_tid']
+
+    try:
+        print(f"开始处理账号：{twitter_username} ")
+
+        # # 1. 抓取该账号的推文
+        getTweetByUserID(twitter_id)
+
+        # 2. 抓取关注列表
+        records = getFollowingsByUserID(twitter_id,sum_user)
+        print(f"\n共获取账号：{twitter_username} 的 {len(records)} 个关注用户\n")
+
+        # 3. 入库
+        insertUserDataToDB(records, twitter_id=twitter_id)
+
+        # 4. 随机等待 1~3 秒，防止 Twitter 限流
+        sleep_time = random.uniform(1, 3)
+        print(f"账号 {twitter_username} 处理完毕，休息 {sleep_time:.2f} 秒防止限流...\n")
+        time.sleep(sleep_time)
+
+        return f"{twitter_username} ✅ 处理成功"
+
+    except Exception as e:
+        return f"{twitter_username} ❌ 处理失败：{e}"
+
+
+# 多线程处理所有用户
+def process_all(data_list, max_threads=5, sum_user = None):
+    results = []
+    with ThreadPoolExecutor(max_workers=max_threads) as executor:
+
+        futures = [executor.submit(process_member, member,sum_user) for member in data_list]
+        for future in as_completed(futures):
+            result = future.result()
+            print(result)
+            results.append(result)
+
+    return results
+
+
+
+
+while True:
+    results = process_all(data_list, max_threads=1, sum_user=20)
+    print("执行完一次，等待 20 分钟...")
+    get_countdown(40 * 60)  # 20 分钟
+
+
+
+exit()
+

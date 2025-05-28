@@ -46,18 +46,24 @@ async def summary(gid=0):
 
 
 @twitter.route('/twitter/listuser', methods=['GET', 'POST'])
-@require_user
-def listuser():
+@require_user_async
+async def listuser():
     uid = g.uid
-    data = dbMysql.table('guzi_twitter').where(f"uid='{uid}'  AND  status=1").field('tid,show_name').select()
-    #print(dbMysql.getLastSql())  # 打印由Model类拼接填充生成的SQL语句
+
+    sql = f'''SELECT t.tid, t.show_name
+        FROM guzi_member_twitter_map AS m
+        INNER JOIN guzi_twitter AS t ON m.twitter_id = t.tid
+        WHERE m.status = 1 AND m.uid='{uid}';
+        '''
+    data = dbMysql.query(sql)
+    print(dbMysql.getLastSql())  # 打印由Model类拼接填充生成的SQL语句
     return jsonify({'status': 1, 'data': data})
 
 
 
 @twitter.route("/twitter/page_followings", methods=['GET', 'POST'])
-@require_user  # 使用装饰器来验证登录状态
-def page_followings():
+@require_user_async  # 使用装饰器来验证登录状态
+async def page_followings():
     uid = g.uid
     if request.method == 'GET':
 
@@ -76,21 +82,24 @@ def page_followings():
             where_clauses.append(f"twitter_id='{user_id}'")
 
 
+
+        #where_clauses.append(f"t2.uid='{uid}'")
+
         # ## 先取到所有关注频道信息
-        # channel_list = dbMysql.table('guzi_twitter').where(f"uid='{uid}' AND status='1' ").select()
-        # twitter_data = {}
-        #
-        # if channel_list:
-        #     channel_ids = []  # ✅ 正确：初始化为空列表
-        #     for row in channel_list:
-        #         twitter_data[row['tid']] = row
-        #         channel_ids.append(f"'{row['tid']}'")  # 正确使用 append
-        #
-        #     channel_in_sql = f"user_id IN ({', '.join(channel_ids)})"
-        #     where_clauses.append(channel_in_sql)
-        #
-        # where = ' AND '.join(where_clauses)
+        channel_list = dbMysql.table('guzi_member_twitter_map').where(f"uid='{uid}' AND status='1' ").select()
+        twitter_data = {}
+
+        if channel_list:
+            channel_ids = []  # ✅ 正确：初始化为空列表
+            for row in channel_list:
+                twitter_data[row['twitter_id']] = row
+                channel_ids.append(f"'{row['twitter_id']}'")  # 正确使用 append
+
+            channel_in_sql = f"twitter_id IN ({', '.join(channel_ids)})"
+            where_clauses.append(channel_in_sql)
+
         where = ' AND '.join(where_clauses)
+
 
         # 然后再计算偏移量
         offset = (page - 1) * limit
@@ -140,9 +149,11 @@ def page_followings():
         INNER JOIN guzi_twitter AS t2 ON fmap.following_id = t2.tid
         '''
         data_list = dbMysql.query(sql)
+        print(dbMysql.getLastSql())  # 打印由Model类拼接填充生成的SQL语句
+
 
         total_page =  dbMysql.table('guzi_twitter_followings_map').where(where).count()
-        #print(dbMysql.getLastSql())  # 打印由Model类拼接填充生成的SQL语句
+        print(dbMysql.getLastSql())  # 打印由Model类拼接填充生成的SQL语句
         #total_page = 10
 
 
@@ -157,8 +168,8 @@ def page_followings():
 
 
 @twitter.route("/twitter/page_messages", methods=['GET', 'POST'])
-@require_user  # 使用装饰器来验证登录状态
-def page_messages():
+@require_user_async  # 使用装饰器来验证登录状态
+async def page_messages():
     uid = g.uid
     if request.method == 'GET':
 
@@ -174,11 +185,16 @@ def page_messages():
         order = "tweet_id DESC,created DESC"
         # 可选条件
         if user_id:
-            where_clauses.append(f"user_id='{user_id}'")
+            where_clauses.append(f"twitter_id='{user_id}'")
 
-
-        ## 先取到所有关注频道信息
-        channel_list = dbMysql.table('guzi_twitter').where(f"uid='{uid}' AND status='1' ").select()
+        # ## 先取到所有关注频道信息
+        sql = f'''SELECT t.*
+                FROM guzi_member_twitter_map AS m
+                INNER JOIN guzi_twitter AS t ON m.twitter_id = t.tid
+                WHERE m.status = 1 AND m.uid='{uid}';
+                '''
+        channel_list = dbMysql.query(sql)
+        print(dbMysql.getLastSql())  # 打印由Model类拼接填充生成的SQL语句
         twitter_data = {}
 
         if channel_list:
@@ -187,11 +203,11 @@ def page_messages():
                 twitter_data[row['tid']] = row
                 channel_ids.append(f"'{row['tid']}'")  # 正确使用 append
 
-            channel_in_sql = f"user_id IN ({', '.join(channel_ids)})"
+            channel_in_sql = f"twitter_id IN ({', '.join(channel_ids)})"
             where_clauses.append(channel_in_sql)
 
         where = ' AND '.join(where_clauses)
-
+        print(twitter_data)
         # 然后再计算偏移量
         start_index = (page - 1) * limit + 1
 
@@ -201,7 +217,7 @@ def page_messages():
         total_page =  dbMysql.table('guzi_tweets').where(where).count()
         #print(dbMysql.getLastSql())  # 打印由Model类拼接填充生成的SQL语句
         #total_page = 10
-
+        print(data_list)
         original_tweet_ids = set()
         original_user_ids = set()
 
@@ -237,7 +253,7 @@ def page_messages():
                     "num": i + start_index,
                     "id": item["id"],
                     "tweet_id": item["tweet_id"],
-                    "user_id": item["user_id"],
+                    "user_id": item["twitter_id"],
                     "is_type": item["is_type"],
                     "likes":item["likes"],
                     "retweets": item["retweets"],
@@ -248,10 +264,10 @@ def page_messages():
                     "data_original_tweets": data_original_tweets.get(item["original_tweet_id"], None),
                     "data_original_user": data_original_user.get(item["original_tweet_user_id"], None),
                     "created_at":datetime.fromtimestamp(int(item["created_at"])).strftime("%Y/%m/%d %H:%M"),
-                    "avatar": twitter_data[item["user_id"]]['avatar'],
-                    "username": twitter_data[item["user_id"]]['username'],
-                    "show_name": twitter_data[item["user_id"]]['show_name'],
-                    "description": twitter_data[item["user_id"]]['description'],
+                    "avatar": twitter_data.get(str(item["twitter_id"]), {}).get("avatar") ,
+                    "username": twitter_data.get(str(item["twitter_id"]), {}).get("username"),
+                    "show_name": twitter_data.get(str(item["twitter_id"]), {}).get("show_name"),
+                    "description": twitter_data.get(str(item["twitter_id"]), {}).get("description"),
 
                 } for i, item in enumerate(data_list)
             ]
@@ -260,8 +276,8 @@ def page_messages():
         return jsonify(layui_result)
 
 @twitter.route("/twitter/page", methods=['GET', 'POST'])
-@require_user  # 使用装饰器来验证登录状态
-def page():
+@require_user_async  # 使用装饰器来验证登录状态
+async def page():
     uid = g.uid
     if request.method == 'GET':
 
@@ -279,13 +295,13 @@ def page():
         start_index = (page - 1) * limit + 1
 
         #print(dbMysql.getLastSql())  # 打印由Model类拼接填充生成的SQL语句
-        total =  dbMysql.table('guzi_membber_twitter_map').where(where).count()
-        member_list = dbMysql.table('guzi_membber_twitter_map').where(where).order(order).page(page, limit).field('twitter_id').select()
+        total =  dbMysql.table('guzi_member_twitter_map ').where(where).count()
+        member_list = dbMysql.table('guzi_member_twitter_map ').where(where).order(order).page(page, limit).field('twitter_id').select()
         # 提取 twitter_id 列（防止重复）
         twitter_ids = [row['twitter_id'] for row in member_list if row['twitter_id'] is not None]
         # 转成逗号分隔的字符串
         twitter_ids_str = ', '.join(str(tid) for tid in twitter_ids)
-        new_where = f"id IN ({twitter_ids_str})"
+        new_where = f"tid IN ({twitter_ids_str})"
 
 
         data_list = dbMysql.table('guzi_twitter').where(new_where).order(order).page(page, limit).select()
@@ -333,7 +349,7 @@ async def edit():
         remark = form.get('remark')
         id = form.get('id')
         cid = form.get('cid')
-        tid = form.get('tid')
+        twitter_id = form.get('tid')
         show_name = form.get('show_name')
         url = form.get('url')
         avatar = form.get('avatar')
@@ -342,8 +358,8 @@ async def edit():
         description = form.get('description')
 
         ## 先查看此钱包有没有数据，没有就插入，有就更新数据状态
-        data_one = dbMysql.table('guzi_membber_twitter_map').where(
-            f"uid='{uid}' AND twitter_id='{id}'").find()
+        data_one = dbMysql.table('guzi_member_twitter_map ').where(
+            f"uid='{uid}' AND twitter_id='{twitter_id}'").find()
         dbdata = {}
         today_time = int(time.time())
 
@@ -353,7 +369,7 @@ async def edit():
             dbdata['updated'] = today_time
             dbdata['uid'] = uid
             dbdata['cid'] = cid
-            dbdata['tid'] = tid
+            dbdata['tid'] = twitter_id
             dbdata['username'] = username
             dbdata['show_name'] = show_name
             dbdata['description'] = description
@@ -362,11 +378,12 @@ async def edit():
             dbdata['avatar'] = avatar
             dbdata['followers'] = followers
             dbdata['fans'] = fans
-            result_id = dbMysql.table('guzi_twitter').where(f"id = '{twitter_id}'").save(dbdata)
+            result_id = dbMysql.table('guzi_twitter').where(f"id = '{id}'").save(dbdata)
 
             if twitter_id:
-                #asyncio.create_task(getTweetByUserID(tid))  # 不等待，直接继续
-                fire_and_forget(getTweetByUserID(tid))  # 不等待，直接继续
+                #asyncio.create_task(getTweetByUserID(tid))
+                ###异步抓取推文
+                fire_and_forget(getTweetByUserID(twitter_id))
                 ###插入关联表
                 ## 先查看此钱包有没有数据，没有就插入，有就更新数据状态
                 data_one = dbMysql.table('guzi_twitter_category_map').where(
@@ -389,7 +406,7 @@ async def edit():
 
                 ###插入会员与推特账号关联表
                 ## 先查看此钱包有没有数据，没有就插入，有就更新数据状态
-                data_one = dbMysql.table('guzi_membber_twitter_map').where(
+                data_one = dbMysql.table('guzi_member_twitter_map ').where(
                     f"twitter_id='{twitter_id}' AND uid='{uid}' ").find()
                 dbdata = {}
                 today_time = int(time.time())
@@ -399,7 +416,7 @@ async def edit():
                     dbdata['updated'] = today_time
                     dbdata['uid'] = uid
                     dbdata['cactegory_id'] = cid
-                    result_id = dbMysql.table('guzi_membber_twitter_map').where(f"id = '{id}'").save(dbdata)
+                    result_id = dbMysql.table('guzi_member_twitter_map ').where(f"id = '{id}'").save(dbdata)
                 else:
                     # 获取当前日期
                     dbdata['twitter_id'] = twitter_id
@@ -407,7 +424,7 @@ async def edit():
                     dbdata['cactegory_id'] = cid
                     dbdata['created'] = today_time
                     dbdata['status'] = 1
-                    result_id = dbMysql.table('guzi_membber_twitter_map').add(dbdata)
+                    result_id = dbMysql.table('guzi_member_twitter_map ').add(dbdata)
 
                 time.sleep(1)
 
@@ -434,7 +451,7 @@ async def add():
         username = form.get('username')
         remark = form.get('remark')
         cid = form.get('cid')
-        tid = form.get('tid')
+        twitter_id = form.get('tid')
         show_name = form.get('show_name')
         url = form.get('url')
         avatar = form.get('avatar')
@@ -443,13 +460,12 @@ async def add():
         description = form.get('description')
 
         ## 先查看此钱包有没有数据，没有就插入，有就更新数据状态
-        data_one = dbMysql.table('guzi_twitter').where(
-            f"username='{username}' AND tid='{tid}'").find()
+        data_one = dbMysql.table('guzi_twitter').where(f"username='{username}' AND tid='{twitter_id}'").find()
         dbdata = {}
         today_time = int(time.time())
         dbdata['uid'] = uid
         dbdata['cid'] = cid
-        dbdata['tid'] = tid
+        dbdata['tid'] = twitter_id
         dbdata['username'] = username
         dbdata['show_name'] = show_name
         dbdata['url'] = url
@@ -460,13 +476,13 @@ async def add():
         dbdata['fans'] = fans
 
         if data_one:
-            twitter_id = data_one['id']
+            id = data_one['id']
             dbdata['updated'] = today_time
-            result_id = dbMysql.table('guzi_twitter').where(f"id = '{twitter_id}'").save(dbdata)
+            result_id = dbMysql.table('guzi_twitter').where(f"id = '{id}'").save(dbdata)
         else:
             dbdata['status'] = 1
             dbdata['created'] = today_time
-            twitter_id = dbMysql.table('guzi_twitter').add(dbdata)
+            id = dbMysql.table('guzi_twitter').add(dbdata)
             #print(dbMysql.getLastSql())  # 打印由Model类拼接填充生成的SQL语句
 
 
@@ -497,7 +513,7 @@ async def add():
 
             ###插入会员与推特账号关联表
             ## 先查看此钱包有没有数据，没有就插入，有就更新数据状态
-            data_one = dbMysql.table('guzi_membber_twitter_map').where(
+            data_one = dbMysql.table('guzi_member_twitter_map ').where(
                 f"twitter_id='{twitter_id}' AND uid='{uid}' ").find()
             dbdata = {}
             today_time = int(time.time())
@@ -507,7 +523,7 @@ async def add():
                 dbdata['updated'] = today_time
                 dbdata['uid'] = uid
                 dbdata['cactegory_id'] = cid
-                result_id = dbMysql.table('guzi_membber_twitter_map').where(f"id = '{id}'").save(dbdata)
+                result_id = dbMysql.table('guzi_member_twitter_map ').where(f"id = '{id}'").save(dbdata)
             else:
                 # 获取当前日期
                 dbdata['twitter_id'] = twitter_id
@@ -515,7 +531,7 @@ async def add():
                 dbdata['cactegory_id'] = cid
                 dbdata['created'] = today_time
                 dbdata['status'] = 1
-                result_id = dbMysql.table('guzi_membber_twitter_map').add(dbdata)
+                result_id = dbMysql.table('guzi_member_twitter_map ').add(dbdata)
 
 
             return jsonify({
@@ -540,20 +556,18 @@ async def add():
 async def delete():  # 因为 require_login 会解码 token
     if request.method == 'POST':
         form = await request.form  # 注意必须 await
-        id = form.get('id')
+        twitter_id = form.get('id')
         uid = g.uid
-        where = f"id='{id}' AND uid='{uid}'"
-        result = dbMysql.table('guzi_twitter').where(where).delete()  # 返回删除的行数
+
+        ###删除分类关联数据
+        where = f"twitter_id='{twitter_id}' AND uid='{uid}'"
+        result = dbMysql.table('guzi_twitter_category_map').where(where).delete()  # 返回删除的行数
+
+        ###删除推特关联数据
+        where = f"twitter_id='{twitter_id}' AND uid='{uid}'"
+        result = dbMysql.table('guzi_member_twitter_map ').where(where).delete()  # 返回删除的行数
 
         if result:
-            ###删除分类关联数据
-            where = f"twitter_id='{id}' AND uid='{uid}'"
-            result = dbMysql.table('guzi_twitter_category_map').where(where).delete()  # 返回删除的行数
-
-            ###删除推特关联数据
-            where = f"twitter_id='{id}' AND uid='{uid}'"
-            result = dbMysql.table('guzi_membber_twitter_map').where(where).delete()  # 返回删除的行数
-
 
             return jsonify({
                 'status': 1,

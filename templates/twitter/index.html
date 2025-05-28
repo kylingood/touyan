@@ -15,7 +15,7 @@
                       <button type="button" lay-on="add-category-page-custom"  class="layui-btn btn-success">添加分组</button></li>
 
                       <li class="breadcrumb-item active" aria-current="page">
-                          <a href="{{ url_for('category.twitter') }}" class="alert-link" target="_blank">
+                          <a href="{{ url_for('category.twitter') }}" class="alert-link" >
                           <button type="button" class="layui-btn " style="background-color: #16b777" >管理分组</button>
                             </a>
                       </li>
@@ -44,11 +44,11 @@
                   <!-- /.card-header -->
                   <div class="card-body p-0">
 
-                    <table class="table table-striped">
+                    <table class="table table-striped" style="text-align: center;">
                       <thead>
                         <tr>
                           <th style="width: 80px">序号</th>
-                          <th style="text-align:center;">推特账号</th>
+                          <th >推特账号</th>
                           <th>所属分组</th>
                           <th>关注人数</th>
                           <th>粉丝量</th>
@@ -217,6 +217,19 @@ layui.use(['laypage', 'jquery'], function() {
     });
   }
 
+function formatTimestamp(unixTime) {
+      if (!unixTime || unixTime <= 0) {
+        return '-';
+      }
+      const date = new Date(unixTime * 1000); // 如果是毫秒则不乘
+      const Y = date.getFullYear();
+      const M = String(date.getMonth() + 1).padStart(2, '0');
+      const D = String(date.getDate()).padStart(2, '0');
+      const h = String(date.getHours()).padStart(2, '0');
+      const m = String(date.getMinutes()).padStart(2, '0');
+      return `${Y}/${M}/${D} ${h}:${m}`;
+ }
+
   function renderTable(data) {
     var html = '';
     const colorClasses = [
@@ -230,7 +243,7 @@ layui.use(['laypage', 'jquery'], function() {
     data.forEach(function(item) {
       // 随机选择一个 class
       const randomClass = colorClasses[Math.floor(Math.random() * colorClasses.length)];
-      html += `<tr class="align-middle" id="del_twitter_${item.id}">
+      html += `<tr class="align-middle" id="del_twitter_${item.tid}">
                           <td>${item.num}.</td>
                           <td >
                            <a href="https://x.com/${item.username}" class="alert-link" target="_blank">
@@ -250,7 +263,7 @@ layui.use(['laypage', 'jquery'], function() {
                           <td  style="max-width:150px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${item.remark}</td>
                           <td>
                           <span   lay-on="edit-confirm"  data-id="${item.id}" data-cid="${item.cid}" data-tid="${item.tid}" data-description="${item.description}"    data-username="${item.username}" data-show_name="${item.show_name}" data-url="${item.url}" data-avatar="${item.avatar}" data-followers="${item.followers}" data-fans="${item.fans}"  data-remark="${item.remark}" ><button type="button" class="layui-btn layui-bg-blue  layui-btn-sm">修改</button></span>
-                           <span   lay-on="del-twitter-confirm"  data-id="${item.id}" ><button type="button" class="layui-btn layui-bg-red  layui-btn-sm">删除</button></span>
+                           <span   lay-on="del-twitter-confirm"  data-id="${item.tid}" ><button type="button" class="layui-btn layui-bg-red  layui-btn-sm">删除</button></span>
                            </td>
                         </tr>`;
     });

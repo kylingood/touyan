@@ -6,6 +6,8 @@ import time
 import jwt
 import datetime
 from util.db import *
+import asyncio
+
 
 # 如果你已经在其他地方创建了 Flask 应用实例，就不要再重复创建
 # app = Flask(__name__)  # 已存在，不要重复创建
@@ -75,14 +77,40 @@ def require_user(f):
         return f(*args, **kwargs)
     return wrapper
 
+# def require_user_async(f):
+#     @wraps(f)
+#     async def wrapper(*args, **kwargs):  # wrapper也要是async
+#         if not extract_user_from_token():
+#             return jsonify({'error': 'async 未登录或Token无效'}), 401
+#         return await f(*args, **kwargs)  # 一定要 await f(...)
+#     return wrapper
+
+
+
 def require_user_async(f):
     @wraps(f)
-    async def wrapper(*args, **kwargs):  # wrapper也要是async
+    async def wrapper(*args, **kwargs):
         if not extract_user_from_token():
             return jsonify({'error': 'async 未登录或Token无效'}), 401
-        return await f(*args, **kwargs)  # 一定要 await f(...)
+
+        result = f(*args, **kwargs)
+        if asyncio.iscoroutine(result):
+            return await result
+        return result
+
     return wrapper
 
 
+### 检测账号是不是管理员
+def require_admin(uid_whitelist=None):
+    if uid_whitelist is None:
+        uid_whitelist = [10000]  # 默认只有 10001 是管理员
 
-
+    def decorator(func):
+        @wraps(func)
+        async def wrapper(*args, **kwargs):
+            if getattr(g, 'uid', None) not in uid_whitelist:
+                return jsonify({'status': 0, 'message': '对不起，此账号没有权限！@_@'})
+            return await func(*args, **kwargs)
+        return wrapper
+    return decorator

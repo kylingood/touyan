@@ -258,7 +258,7 @@ layui.use(['laypage', 'jquery'], function() {
                            >
                           <button type="button" class="layui-btn layui-bg-blue  layui-btn-sm">修改</button>
                           </span>
-                           <span   lay-on="del-discord-confirm"  data-id="${item.id}" ><button type="button" class="layui-btn layui-bg-red  layui-btn-sm">删除</button></span>
+                           <span   lay-on="del-discord-confirm"  data-id="${item.id}" ><button type="button" class="layui-btn layui-bg-red  layui-btn-sm">移除监控</button></span>
                            </td>
                         </tr>`;
     });
@@ -328,7 +328,7 @@ layui.use(function(){
     'del-discord-confirm': function(){
       const id = $(this).data('id');       // 获取 data-id 的值
 
-        layer.confirm('你确定删除此信息？', {
+        layer.confirm('你确定移除此信息？', {
         btn: ['确定', '取消'] //按钮
       }, function(){
         // 此处可执行 Ajax 等操作

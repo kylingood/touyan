@@ -11,14 +11,14 @@
               <div class="col-sm-6">
                 <ol class="breadcrumb float-sm-end">
 
-                    <li class="breadcrumb-item"> <button type="button" class="layui-btn layui-bg-blue"  lay-on="add-discord-page-custom">添加账号</button></li>
+                    <li class="breadcrumb-item"> <button type="button" class="layui-btn layui-bg-blue"  lay-on="add-discord-page-custom">添加Discord账号</button></li>
 
                     <li class="breadcrumb-item active" aria-current="page">
                         <a href="{{ url_for('category.discord') }}" >
-                            <button type="button"  class="layui-btn">管理分组</button>
+                            <button type="button"  class="layui-btn">管理Discord分组</button>
                         </a>
                     </li>
-                     <li class="breadcrumb-item active" aria-current="page"><button type="button" lay-on="add-category-page-custom"  class="layui-btn" style="background-color: #16b777">添加分组</button></li>
+                     <li class="breadcrumb-item active" aria-current="page"><button type="button" lay-on="add-category-page-custom"  class="layui-btn" style="background-color: #16b777">添加Discord分组</button></li>
 
 
                 </ol>
@@ -79,6 +79,13 @@ layui.use(['laypage', 'jquery'], function() {
   var $ = layui.jquery;
   const token = localStorage.getItem('token');
   let  cid = 0;
+  //脱敏字符串
+  function maskString(str, front = 5, end = 5) {
+      if (!str || str.length <= front + end) return str;
+      //const maskedLength = str.length - front - end;
+      const maskedLength = 10
+      return str.slice(0, front) + '*'.repeat(maskedLength) + str.slice(-end);
+   }
 
   // 监听分类按钮点击
   $('#category_html').on('click', '.layui-btn', function() {
@@ -163,7 +170,9 @@ layui.use(['laypage', 'jquery'], function() {
       console.log("Guild ID:", guild_id);
       console.log("Channel ID:", channel_id);
     } else {
-       layer.msg('链接格式不正确,参考例子：https://discord.com/channels/1141419161893998702/1260130052956360724');
+       layer.msg('Discord链接URL格式不正确,参考例子：<br/>https://discord.com/<span style="color:#ff5722;">channels</span>/<span style="color:#ffb800;">1141419161893998702</span>/<span style="color:#1e9fff;">1260130052956360724</span>', {
+          time: 3000 // 3 秒后自动关闭
+        });
        return
     }
   });
@@ -244,14 +253,14 @@ layui.use(['laypage', 'jquery'], function() {
                           <td>${item.num}.</td>
                           <td><a href="https://discord.com" class="alert-link" target="_blank">${item.global_name}</a></td>
                           <td><span class="layui-badge ${randomClass}">${item.cate_name}</span></td>
-                          <td>${item.token}</td>
+                          <td style="filter: blur(0px);">${maskString(item.token)}</td>
                           <td>${item.remark}</td>
                           <td>${item.email}</td>
                           <td>
                           <span   lay-on="add-channel-confirm"  data-id="${item.id}"  data-global-name="${item.global_name}" data-username="${item.username}" data-discord-token="${item.token}"  ><button type="button" class="layui-btn  layui-btn-sm">增加监控</button></span>
                           <span><a href="/discord/guild/did/${item.id}" class="alert-link" ><button type="button" class="layui-btn   layui-btn-sm" style="background-color: #16b777">查看列表</button></a></span>
 
-                          <span   lay-on="edit-confirm"  data-id="${item.id}" data-email="${item.email}" data-discord-token="${item.token}"  data-cid="${item.cid}"  data-title="${item.username}" data-remark="${item.remark}" ><button type="button" class="layui-btn layui-bg-blue  layui-btn-sm">修改</button></span>
+                          <span   lay-on="edit-confirm"  data-id="${item.id}" data-email="${item.email}" data-discord-token="${item.token}"  data-cid="${item.cid}"  data-title="${item.username}" data-global-name="${item.global_name}"  data-remark="${item.remark}" ><button type="button" class="layui-btn layui-bg-blue  layui-btn-sm">修改</button></span>
                            <span   lay-on="del-discord-confirm"  data-id="${item.id}" ><button type="button" class="layui-btn layui-bg-red  layui-btn-sm">删除</button></span>
                            </td>
                         </tr>`;
@@ -308,6 +317,7 @@ layui.use(function(){
   const token = localStorage.getItem('token');
 
 
+
   // 事件
   util.on('lay-on', {
     'del-discord-confirm': function(){
@@ -351,13 +361,14 @@ layui.use(function(){
       const id = $(this).data('id');       // 获取 data-id 的值
       const discord_token = $(this).data('discord-token');       // 获取 data-discord_token 的值
       const title = $(this).data('title');       // 获取 data-title 的值
+      const global_name = $(this).data('global-name');
 
       layer.open({
         type: 1,
         area: '350px',
         resize: false,
         shadeClose: true,
-        title: '增加'+title+'频道监控',
+        title: '增加'+global_name+'频道监控',
         content: `
           <div class="layui-form" lay-filter="filter-test-layer" style="margin: 16px;">
             <div class="demo-login-container">
@@ -368,7 +379,7 @@ layui.use(function(){
                     <i class="layui-icon layui-icon-link"></i>
                   </div>
                   <input type="text" name="discord_url" id="edit-discord-input" value="" lay-verify="required" placeholder="复制Discord URL到这里会自动取信息 " lay-reqtext="请填写Discord的链接URL" autocomplete="off" class="layui-input" lay-affix="clear">
-                </div>
+                  </div>
               </div>
 
               <div class="layui-form-item">
@@ -479,7 +490,7 @@ layui.use(function(){
       const id = $(this).data('id');
       const cid = $(this).data('cid');
       const global_name = $(this).data('global-name');
-      const username = $(this).data('username');
+      const username = $(this).data('title');
       const remark = $(this).data('remark');
       const email = $(this).data('email');
       const discord_token = $(this).data('discord-token');

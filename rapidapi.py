@@ -51,7 +51,7 @@ def extract_media_html(legacy):
 
 
 ## 通过推特用户名取到账号详细数据
-def getFollowingsByUserID(user_id, sleep_time=1, max_repeat_cursor=3, max_repeat_user=5):
+def getFollowingsByUserID(user_id,sum_user=None,sleep_time=1, max_repeat_cursor=3, max_repeat_user=5):
     url = "https://twitter241.p.rapidapi.com/followings"
     all_users = []
     seen_ids = set()
@@ -126,6 +126,10 @@ def getFollowingsByUserID(user_id, sleep_time=1, max_repeat_cursor=3, max_repeat
 
             # 监测用户数是否有变化
             current_user_count = len(all_users)
+            if sum_user:
+                if current_user_count >= sum_user:
+                    print(f"抓取的用户总数量超过 {sum_user} 限制，终止抓取")
+                    break
             if current_user_count == last_user_count:
                 repeat_user_count += 1
                 print(f"用户数未增加，连续第 {repeat_user_count} 次，当前数量：{current_user_count}")
@@ -149,6 +153,8 @@ def getFollowingsByUserID(user_id, sleep_time=1, max_repeat_cursor=3, max_repeat
             print(f"请求失败或接口异常：{e}")
             break
 
+    # 按倒序排列（即最后抓取的用户排在最前）
+    all_users.reverse()
     return all_users
 
 
@@ -178,7 +184,7 @@ def getDataByUsername(username):
     return data['result']['data']['user']['result']
 
 
-## 通过推特id号取到账号详细数据
+## 通过推特账号id号取到账号详细数据
 def getDataByUserID(user_id):
     url = "https://twitter241.p.rapidapi.com/get-users"
     querystring = {"users": str(user_id)}
@@ -238,7 +244,7 @@ def getTweetByID(tweet_id):
 
     querystring = {"pid": tweet_id}
 
-    retries = 3
+    retries = 1
     sleep_time = 1
 
     for attempt in range(retries):
@@ -292,7 +298,7 @@ def getTweetByID(tweet_id):
     # === 组装 record ===
     record = {
         "tweet_id": tweet_id,
-        "user_id": user_id,
+        "twitter_id": user_id,
         "is_type": is_type,
         "likes": likes,
         "retweets": retweets,
@@ -309,7 +315,7 @@ def getTweetByID(tweet_id):
     return record
 
 
-## 通过用户id取到此账号下的推文数据
+## 通过推特账号id取到此账号下的推文数据
 def getTweetByUserID(user_id):
 
     url = "https://twitter241.p.rapidapi.com/user-tweets"
@@ -352,15 +358,15 @@ def getTweetByUserID(user_id):
                 content = text + "\n" + media_html if media_html else text
 
                 is_type = 1
-                original_id = None
-                original_user_id = None
+                original_tweet_id = None
+                original_tweet_user_id = None
 
                 # ✅ 转发处理
                 if 'retweeted_status_result' in legacy:
                     is_type = 3
                     retweeted = legacy['retweeted_status_result']['result']
-                    original_id = retweeted.get('rest_id')
-                    original_user_id = extract_user_id(retweeted)
+                    original_tweet_id = retweeted.get('rest_id')
+                    original_tweet_user_id = extract_user_id(retweeted)
                     r_legacy = retweeted.get('legacy', {})
                     r_text = r_legacy.get('full_text', '')
                     r_media_html = extract_media_html(r_legacy)
@@ -368,8 +374,8 @@ def getTweetByUserID(user_id):
                     r_created_at_ts = to_unix_timestamp(r_legacy.get('created_at', ''))
 
                     records.append({
-                        "tweet_id": original_id,
-                        "user_id": original_user_id,
+                        "tweet_id": original_tweet_id,
+                        "twitter_id": original_tweet_user_id,
                         "is_type": 1,
                         "likes": r_legacy.get('favorite_count', 0),
                         "retweets": r_legacy.get('retweet_count', 0),
@@ -387,8 +393,8 @@ def getTweetByUserID(user_id):
                 elif legacy.get('is_quote_status') and 'quoted_status_result' in tweet:
                     is_type = 3
                     quoted = tweet['quoted_status_result']['result']
-                    original_id = quoted.get('rest_id')
-                    original_user_id = extract_user_id(quoted)
+                    original_tweet_id = quoted.get('rest_id')
+                    original_tweet_user_id = extract_user_id(quoted)
                     q_legacy = quoted.get('legacy', {})
                     q_text = q_legacy.get('full_text', '')
                     q_media_html = extract_media_html(q_legacy)
@@ -396,8 +402,8 @@ def getTweetByUserID(user_id):
                     q_created_at_ts = to_unix_timestamp(q_legacy.get('created_at', ''))
 
                     records.append({
-                        "tweet_id": original_id,
-                        "user_id": original_user_id,
+                        "tweet_id": original_tweet_id,
+                        "twitter_id": original_tweet_user_id,
                         "is_type": 1,
                         "likes": q_legacy.get('favorite_count', 0),
                         "retweets": q_legacy.get('retweet_count', 0),
@@ -414,39 +420,38 @@ def getTweetByUserID(user_id):
                 # ✅ 当前推文入库
                 records.append({
                     "tweet_id": tweet_id,
-                    "user_id": user_id,
+                    "twitter_id": user_id,
                     "is_type": is_type,
                     "likes": likes,
                     "retweets": retweets,
                     "replies": replies,
                     "content": content,
-                    "original_tweet_id": original_id,
-                    "original_tweet_user_id": original_user_id,
+                    "original_tweet_id": original_tweet_id,
+                    "original_tweet_user_id": original_tweet_user_id,
                     "created_at": created_at_ts,
                     "status": 1,
                     "created": now_ts,
                     "updated": now_ts
                 })
 
-                ## 推特原作者也需要入库
-                if original_user_id and original_user_id!=user_id:
-                    original_record_id = insertUserToDB(original_user_id)
-                    print(original_user_id)
+                # ## 推特原作者也需要入库
+                # if original_tweet_user_id and original_tweet_user_id!=user_id:
+                #     record_id = insertUserToDB(original_tweet_user_id)
+                #     print(record_id)
+                #
+                #
+                if original_tweet_id:
+                    print(f"original_tweet_id:{original_tweet_id} tweet_id:{tweet_id}")
+                    original_record = getTweetByID(original_tweet_id)
 
-
-                if original_id:
-                    original_record = getTweetByID(original_id)
-                    print(original_record)
                     if original_record:
                         records.append(original_record)
-
-
-
 
             except Exception as e:
                 print("❌ 跳过异常:", e)
 
     records.sort(key=lambda r: r['created_at'])  # 旧推文在前
+    ### 插入数据库
     insertTeeetToDB(records)
     return records
 
@@ -484,6 +489,7 @@ def insertUserToDB(user_id):
         dbdata['status'] = 1
         dbdata['created'] = today_time
         user_id = dbMysql.table('guzi_twitter').add(dbdata)
+        time.sleep(0.5)
         print(dbMysql.getLastSql())  # 打印由Model类拼接填充生成的SQL语句
 
     return user_id
@@ -495,16 +501,16 @@ def insertUserDataToDB(records,twitter_id=None):
         for user in records:
 
             ## 推特用户如果没有，操作直接入数据库
-            tid = user.get('rest_id', '')
+            following_id = user.get('rest_id', '')
             uid = user.get('uid', 1)
             cid = user.get('cid', 1)
-            ## 先查看此钱包有没有数据，没有就插入，有就更新数据状态
-            data_one = dbMysql.table('guzi_twitter').where(f"tid='{tid}'").find()
+            ## 先查看此推特有没有入库，没有就插入
+            data_one = dbMysql.table('guzi_twitter').where(f"tid='{following_id}'").find()
             today_time = int(time.time())
             dbdata = {
                 'uid': uid,
                 'cid': cid,
-                'tid': user.get('rest_id', ''),
+                'tid': following_id,
                 'username': user.get('username', ''),
                 'show_name': user.get('show_name', ''),
                 'url': user.get('url', ''),
@@ -519,11 +525,16 @@ def insertUserDataToDB(records,twitter_id=None):
             # print(data_one)
 
             if not data_one:
-                db_id = dbMysql.table('guzi_twitter').add(dbdata)
+                id = dbMysql.table('guzi_twitter').add(dbdata)
                 print(dbMysql.getLastSql())  # 打印由Model类拼接填充生成的SQL语句
-                ## 如果俩个id都存在，则插入关联表中
-                if twitter_id and db_id:
-                    insertTwitterFollowingsToDB(twitter_id, tid)
+
+
+            ## 先查看此推特和用户数据有没有入库，没有就插入
+            map_one = dbMysql.table('guzi_twitter_followings_map').where(f"twitter_id='{twitter_id}' AND  following_id = '{following_id}'").find()
+            ## 如果俩个id都存在，则插入关联表中
+            if not map_one:
+                insertTwitterFollowingsToDB(twitter_id, following_id)
+
 
         return following_id
 
@@ -549,20 +560,15 @@ def insertTeeetToDB(records):
         for dbdata in records:
             tweet_id = dbdata['tweet_id']
             ## 推特用户如果没有，操作直接入数据库
-            user_id = dbdata['user_id']
-            record_id = insertUserToDB(user_id)
+            twitter_id = dbdata['twitter_id']
+            #record_id = insertUserToDB(user_id)
 
+            original_tweet_user_id = dbdata['original_tweet_user_id']
+            original_tweet_id = dbdata['original_tweet_id']
 
-
-            # original_tweet_id = dbdata['original_tweet_id']
-            # if original_tweet_id:
-            #     print(original_tweet_id)
-            #     original_record = getTweetByID(original_tweet_id)
-            #
-            #     print(original_record)
-            #     if original_record:
-            #         insertTeeetToDB([original_record])  # 修复递归：只处理原推
-
+            ## 推特原作者也需要入库
+            if original_tweet_user_id and original_tweet_user_id != twitter_id:
+                insertUserToDB(original_tweet_user_id)
 
 
             data_one = dbMysql.table('guzi_tweets').where(f"tweet_id='{tweet_id}'").find()

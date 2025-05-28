@@ -24,11 +24,11 @@
   padding: 16px;
 }
 
-/* 推文主布局 */
+/* 推文主布局  border-bottom: 1px solid #e6ecf0; */
 .tweet {
   display: flex;
   gap: 12px;
-  border-bottom: 1px solid #e6ecf0;
+
   padding-bottom: 12px;
 }
 
@@ -331,8 +331,8 @@
               <div class="col-sm-6">
                 <ol class="breadcrumb float-sm-end">
                   <li class="breadcrumb-item active" aria-current="page">
-                      <a href="{{ url_for('discord.guild') }}" >
-                        <button type="button" class="layui-btn">查看全部监控频道</button>
+                      <a href="{{ url_for('twitter.index') }}" >
+                        <button type="button" class="layui-btn">查看全部推特</button>
                       </a>
                   </li>
                 </ol>
@@ -441,6 +441,24 @@ layui.use(['flow', 'jquery'], function(){
   localStorage.setItem('message_guild', guild_id);
 
 
+  function showBig(src) {
+      layer.open({
+        type: 1,
+        title: false,
+        area: ['auto', 'auto'],
+        shadeClose: true,
+        content: '<img src="' + src + '" style="max-width:100%; max-height:100%;" />'
+      });
+  }
+
+$(document).on('click', '.text_content img', function () {
+  showBig(this.src);
+});
+
+
+
+
+
 
   function fetchFollowings(page, limit, user_id,guild_id){
 
@@ -486,7 +504,7 @@ layui.use(['flow', 'jquery'], function(){
                         <div class="sub-info">
 
                           <span class="sub-name"><a href="https://x.com/${item.t1_username}" target="_blank" >${item.t1_show_name}</a></span>
-                          <span class="sub-handle"><a  href="https://x.com/${item.t1_username}" target="_blank" >@${item.t1_username}</a></span>
+                          <span class="sub-handle"><a  href="https://x.com/${item.t1_username}" target="_blank" class="handle" >@${item.t1_username}</a></span>
 
                         </div>
 
@@ -502,7 +520,7 @@ layui.use(['flow', 'jquery'], function(){
                         <div class="main-info">
                           <div class="main-header">
                           <span class="name">${item.t2_show_name}</span>
-                          <span class="timestamp">· ${formatTimestamp(item.t2_created)}</span>
+                          <span class="timestamp"> &nbsp;</span>
                         </div>
                         </a>
                         <span class="handle">@${item.t2_username}</span>
@@ -577,12 +595,16 @@ layui.use(['flow', 'jquery'], function(){
                     <!-- 主推文 -->
                     <section class="tweet">
                       <!-- 用户信息栏 -->
-                      <img class="avatar" src="${item.avatar}" alt="Avatar">
+                      <a class="view-link" href="https://x.com/${item.username}" target="_blank" >
+                      <img class="avatar" src="${item.avatar}" alt="${item.username} Avatar">
+                      </a>
                       <div class="content">
                         <div class="header">
                           <div class="user-info">
+                            <a class="view-link" href="https://x.com/${item.username}" target="_blank" >
                             <span class="name">${item.show_name}</span>
                             <span class="handle">@${item.username}</span>
+                            </a>
                             <span class="timestamp">· ${item.created_at}</span>
                           </div>
                           <a class="view-link" href="https://x.com/${item.username}/status/${item.tweet_id}" target="_blank" >
@@ -662,7 +684,7 @@ layui.use(['flow', 'jquery'], function(){
         //加载最新关注数据
         setTimeout(() => {
              fetchFollowings(1,10,user_id,0)
-        }, 200);
+        }, 400);
 
   });
 
@@ -743,11 +765,10 @@ layui.use(['flow', 'jquery'], function(){
 
   //加载数据
   fetchMessage(1,10,0,0)
-
   //加载最新关注数据
   setTimeout(() => {
      fetchFollowings(1,10,0,0)
-  }, 200);
+  }, 250);
   //主动更新信息
   setTimeout(updateMessage, 800);
 

@@ -62,7 +62,49 @@
     <!--end::OverlayScrollbars Configure-->
     <!-- OPTIONAL SCRIPTS -->
 
-    <script>
+<script>
+var laypage = layui.laypage;
+var $ = layui.jquery;
+
+$(document).ready(function() {
+    const token = localStorage.getItem('token');
+
+     $.ajax({
+      url: '/api/get_user_info',
+      method: 'GET',
+      headers: {
+            'Authorization': 'Bearer ' + token
+      },
+      success: function(res) {
+        if (res.status === 1) {
+          // 判断是否管理员
+            $('.sidebar-menu').append(`
+              <li class="nav-item">
+                 <a href="{{ url_for('member.index') }}" class="nav-link {% if request.path.startswith('/member/index') %}active{% endif %}">
+                  <i class="nav-icon layui-icon layui-icon-group"></i>
+                  <p>会员管理</p>
+                </a>
+              </li>
+
+              <li class="nav-item">
+                 <a href="{{ url_for('member.codes') }}" class="nav-link {% if request.path.startswith('/member/codes') %}active{% endif %}">
+                  <i class="nav-icon layui-icon layui-icon-tabs"></i>
+                  <p>邀请码管理</p>
+                </a>
+              </li>
+            `);
+
+        } else {
+          console.log('未登录或权限不足');
+        }
+      },
+      error: function() {
+        console.log('接口请求失败');
+      }
+    });
+
+   });
+
 
 async function loginWithWallet() {
   if (typeof window.ethereum === 'undefined') {
@@ -112,62 +154,62 @@ async function loginWithWallet() {
 
 
 
-    async function checkLoginStatus() {
-          const token = localStorage.getItem('token');
-          const loginContainer = document.getElementById('login_html');
+async function checkLoginStatus() {
+      const token = localStorage.getItem('token');
+      const loginContainer = document.getElementById('login_html');
 
-          if (!loginContainer) return; // 防止页面没有这个元素时报错
+      if (!loginContainer) return; // 防止页面没有这个元素时报错
 
-          if (!token) {
-            // 未登录：显示登录按钮
-            loginContainer.innerHTML = `
-              <span class="d-none d-md-inline">
-                <button type="button" class="btn btn-primary btn-sm" onclick="loginWithWallet()">🔐 使用钱包登录</button>
-              </span>
-            `;
-            return;
+      if (!token) {
+        // 未登录：显示登录按钮
+        loginContainer.innerHTML = `
+          <span class="d-none d-md-inline">
+            <button type="button" class="btn btn-primary btn-sm" onclick="loginWithWallet()">🔐 使用钱包登录</button>
+          </span>
+        `;
+        return;
+      }
+
+      try {
+        const res = await fetch('/api/protected', {
+          headers: {
+            'Authorization': 'Bearer ' + token
           }
+        });
 
-          try {
-            const res = await fetch('/api/protected', {
-              headers: {
-                'Authorization': 'Bearer ' + token
-              }
-            });
+        if (res.ok) {
+          const data = await res.json();
+          // 登录成功：显示用户头像
+          loginContainer.innerHTML = `
+            <img
+              src="/static/dist/assets/img/avatar5.png"
+              class="user-image rounded-circle shadow"
+              alt="User Image"
+            />
+            <ul class="dropdown-menu dropdown-menu-end">
+            <!--begin::Menu Footer-->
+            <li class="user-footer">
+              <a href="#" class="btn btn-default btn-flat">个人资料</a>
+              <a href="#" class="btn btn-default btn-flat float-end" onclick="logout()">退出</a>
+            </li>
+            <!--end::Menu Footer-->
+            </ul>
 
-            if (res.ok) {
-              const data = await res.json();
-              // 登录成功：显示用户头像
-              loginContainer.innerHTML = `
-                <img
-                  src="/static/dist/assets/img/avatar5.png"
-                  class="user-image rounded-circle shadow"
-                  alt="User Image"
-                />
-                <ul class="dropdown-menu dropdown-menu-end">
-                <!--begin::Menu Footer-->
-                <li class="user-footer">
-                  <a href="#" class="btn btn-default btn-flat">个人资料</a>
-                  <a href="#" class="btn btn-default btn-flat float-end" onclick="logout()">退出</a>
-                </li>
-                <!--end::Menu Footer-->
-                </ul>
-
-              `;
-            } else {
-              throw new Error('无效 token');
-            }
-          } catch (error) {
-            console.log('Token 无效或已过期');
-            localStorage.removeItem('token');
-            // 显示登录按钮
-            loginContainer.innerHTML = `
-              <span class="d-none d-md-inline">
-                <button type="button" class="btn btn-primary btn-sm" onclick="loginWithWallet()">🔐 使用钱包登录</button>
-              </span>
-            `;
-          }
+          `;
+        } else {
+          throw new Error('无效 token');
         }
+      } catch (error) {
+        console.log('Token 无效或已过期');
+        localStorage.removeItem('token');
+        // 显示登录按钮
+        loginContainer.innerHTML = `
+          <span class="d-none d-md-inline">
+            <button type="button" class="btn btn-primary btn-sm" onclick="loginWithWallet()">🔐 使用钱包登录</button>
+          </span>
+        `;
+      }
+    }
 
     // 页面加载完成后执行
     window.addEventListener('DOMContentLoaded', checkLoginStatus);
@@ -182,9 +224,6 @@ async function loginWithWallet() {
 
     }
 
-    </script>
-    <!--end::Script-->
-<script>
 layui.use(['form'], function() {
   const form = layui.form;
 
