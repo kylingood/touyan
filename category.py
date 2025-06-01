@@ -63,7 +63,7 @@ def page_discord():
             LEFT JOIN 
                 guzi_discord_category_map AS m
             ON 
-                c.id = m.cactegory_id
+                c.id = m.category_id
             WHERE 
                 c.is_type = '{is_type}' AND c.uid='{uid}' 
             GROUP BY 
@@ -131,9 +131,9 @@ def page():
             FROM 
                 guzi_category AS c
             LEFT JOIN 
-                guzi_twitter_category_map AS m
+                guzi_member_twitter_map AS m
             ON 
-                c.id = m.cactegory_id
+                c.id = m.category_id
             WHERE 
                 c.is_type = '{is_type}' AND c.uid='{uid}' 
             GROUP BY 
@@ -186,7 +186,7 @@ async def del_cate():  # 因为 require_login 会解码 token
         result = dbMysql.table('guzi_category').where(where).delete()  # 返回删除的行数
 
         if result:
-            where = f"cactegory_id='{id}' AND uid='{uid}'"
+            where = f"category_id='{id}' AND uid='{uid}'"
             result = dbMysql.table('guzi_twitter_category_map').where(where).delete()  # 返回删除的行数
 
             return jsonify({
@@ -218,6 +218,7 @@ async def add():
         ## 先查看此钱包有没有数据，没有就插入，有就更新数据状态
         data_one = dbMysql.table('guzi_category').where(
             f"title='{title}' AND uid='{uid}' AND is_type='{is_type}'").find()
+        print(dbMysql.getLastSql())
         dbdata = {}
         today_time = int(time.time())
 
@@ -227,6 +228,7 @@ async def add():
             dbdata['remark'] = remark
             dbdata['title'] = title
             result_db = dbMysql.table('guzi_category').where(f"id = '{id}'").save(dbdata)
+            print(dbMysql.getLastSql())
         else:
             # 获取当前日期
             dbdata['title'] = title
@@ -236,7 +238,8 @@ async def add():
             dbdata['status'] = 1
             dbdata['created'] = today_time
             result_db = dbMysql.table('guzi_category').add(dbdata)
-            #print(dbMysql.getLastSql())  # 打印由Model类拼接填充生成的SQL语句
+            print(dbMysql.getLastSql())  # 打印由Model类拼接填充生成的SQL语句
+
         if result_db:
             return jsonify({
                 'status': 1,

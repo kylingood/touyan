@@ -7,7 +7,7 @@
           <div class="container-fluid">
             <!--begin::Row-->
             <div class="row">
-              <div class="col-sm-6"><h4 class="mb-0">我的推特列表</h4></div>
+              <div class="col-sm-6"><h4 class="mb-0">管理推特</h4></div>
               <div class="col-sm-6">
                 <ol class="breadcrumb float-sm-end">
                   <li class="breadcrumb-item"> <button type="button" class="layui-btn layui-bg-blue"  lay-on="add-twitter-page-custom">添加新推特</button></li>
@@ -250,8 +250,8 @@ function formatTimestamp(unixTime) {
                            <div style="display: flex; align-items: center; gap: 10px;">
                               <img src="${item.avatar}" class="user-image rounded-circle shadow"  style="width:40px; height:40px;" alt="User Image">
                               <div style="display: flex; flex-direction: column;">
-                                <div style="font-weight: bold;">@${item.username}</div>
-                                <div style="font-size: 0.9em; color: #666;">${item.show_name}</div>
+                                <div style="font-weight: bold;">${item.show_name}</div>
+                                <div style="font-size: 0.9em; color: #666;">@${item.username}</div>
                               </div>
                             </div>
                          </a>
@@ -296,13 +296,13 @@ function formatTimestamp(unixTime) {
           }
         },
         error: function() {
-          layer.msg('请求出错');
+          //layer.msg('请求出错');
         }
       });
   }
 
   fetchData(1, 10,0);  // 默认加载第1页，10条数据
-  setTimeout(getCategory, 500);
+  setTimeout(getCategory, 300);
 });
 
 
@@ -386,7 +386,7 @@ layui.use(function(){
                   <div class="layui-input-prefix">
                     <i class="layui-icon layui-icon-link"></i>
                   </div>
-                  <input type="text" id="edit-twitter-input" name="twitter_url" value="${url}" lay-verify="required" placeholder="复制推特链接，程序会自动取信息" lay-reqtext="请填写复制推特链接" autocomplete="off" class="layui-input" lay-affix="clear">
+                  <input type="text" id="edit-twitter-input"  disabled name="twitter_url" value="${url}" lay-verify="required" placeholder="复制推特链接，程序会自动取信息" lay-reqtext="请填写复制推特链接" autocomplete="off" class="layui-input" lay-affix="clear">
                 </div>
               </div>
 
@@ -497,7 +497,7 @@ layui.use(function(){
               }
             },
             error: function() {
-              layer.msg('请求出错');
+              //layer.msg('请求出错');
             }
           });
           // 表单提交事件
@@ -632,11 +632,11 @@ layui.use(function(){
                   <div class="layui-input-prefix">
                     <i class="layui-icon layui-icon-password"></i>
                   </div>
-                    <input type="hidden" name="avatar" id="add_avatar"  disabled autocomplete="off" class="layui-input">
-                    <input type="hidden" name="url" id="add_url"  disabled autocomplete="off" class="layui-input">
-                    <input type="hidden" name="tid" id="add_tid"  disabled autocomplete="off" class="layui-input">
-                     <input type="hidden" name="description" id="add_description"  value="" lay-verify="required"  autocomplete="off" >
-                    <textarea placeholder="请输入此推特备注" name="remark" id="add_remark"  class="layui-textarea" lay-verify="required"  lay-reqtext="请填写推特备注"  ></textarea>
+                    <input type="hidden" name="avatar" id="add_avatar"   autocomplete="off" class="layui-input">
+                    <input type="hidden" name="url" id="add_url"   autocomplete="off" class="layui-input">
+                    <input type="hidden" name="tid" id="add_tid"   autocomplete="off" class="layui-input">
+                     <input type="hidden" name="description" id="add_description"  value=""   autocomplete="off" >
+                    <textarea placeholder="请输入此推特备注" name="remark" id="add_remark"  class="layui-textarea"   lay-reqtext="请填写推特备注"  ></textarea>
                  </div>
               </div>
 
@@ -672,7 +672,7 @@ layui.use(function(){
               }
             },
             error: function() {
-              layer.msg('请求出错');
+              //layer.msg('请求出错');
             }
           });
           // 表单提交事件
@@ -773,6 +773,7 @@ layui.use(function(){
                 },
                 data:{
                     "username":data.field.username,
+                    "is_type":1,
                     "remark":data.field.remark
                 },
                 dataType:"json",

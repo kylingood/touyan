@@ -117,18 +117,18 @@ async def edit():
             ###插入关联表
             ## 先查看此钱包有没有数据，没有就插入，有就更新数据状态
             data_one = dbMysql.table('guzi_discord_category_map').where(
-                f"discord_id='{discord_id}' AND uid='{uid}' AND cactegory_id='{cid}'").find()
+                f"discord_id='{discord_id}' AND uid='{uid}' AND category_id='{cid}'").find()
             dbdata = {}
             if data_one:
                 id = data_one['id']
                 dbdata['discord_id'] = discord_id
-                dbdata['cactegory_id'] = cid
+                dbdata['category_id'] = cid
                 dbdata['uid'] = uid
                 result_id = dbMysql.table('guzi_discord_category_map').where(f"id = '{id}'").save(dbdata)
             else:
                 # 获取当前日期
                 dbdata['discord_id'] = discord_id
-                dbdata['cactegory_id'] = cid
+                dbdata['category_id'] = cid
                 dbdata['uid'] = uid
                 dbdata['status'] = 1
                 result_id = dbMysql.table('guzi_discord_category_map').add(dbdata)
@@ -196,18 +196,18 @@ async def add():
             ###插入关联表
             ## 先查看此钱包有没有数据，没有就插入，有就更新数据状态
             data_one = dbMysql.table('guzi_discord_category_map').where(
-                f"discord_id='{discord_id}' AND uid='{uid}' AND cactegory_id='{cid}'").find()
+                f"discord_id='{discord_id}' AND uid='{uid}' AND category_id='{cid}'").find()
             dbdata = {}
             if data_one:
                 id = data_one['id']
                 dbdata['discord_id'] = discord_id
-                dbdata['cactegory_id'] = cid
+                dbdata['category_id'] = cid
                 dbdata['uid'] = uid
                 result_id = dbMysql.table('guzi_discord_category_map').where(f"id = '{id}'").save(dbdata)
             else:
                 # 获取当前日期
                 dbdata['discord_id'] = discord_id
-                dbdata['cactegory_id'] = cid
+                dbdata['category_id'] = cid
                 dbdata['uid'] = uid
                 dbdata['status'] = 1
                 result_id = dbMysql.table('guzi_discord_category_map').add(dbdata)

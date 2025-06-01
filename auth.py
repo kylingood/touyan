@@ -30,6 +30,7 @@ def get_logged_in_address():
         decoded = jwt.decode(token, SECRET_KEY, algorithms=['HS256'])
         # 设置为全局可访问
         g.address = decoded.get('address')
+        g.username = decoded.get('username')
         g.uid = decoded.get('uid')
 
         return decoded['address']  # 返回地址
@@ -50,6 +51,7 @@ def extract_user_from_token():
 
         # 设置为全局可访问
         g.address = decoded.get('address')
+        g.username = decoded.get('username')
         g.uid = decoded.get('uid')
         return True
     except (jwt.ExpiredSignatureError, jwt.InvalidTokenError, IndexError):

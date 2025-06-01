@@ -13,13 +13,12 @@
 
                     <li class="breadcrumb-item"> <button type="button" class="layui-btn layui-bg-blue"  lay-on="add-discord-page-custom">添加Discord账号</button></li>
 
+                    <li class="breadcrumb-item active" aria-current="page"><button type="button" lay-on="add-category-page-custom"  class="layui-btn" style="background-color: #16b777">添加Discord分组</button></li>
                     <li class="breadcrumb-item active" aria-current="page">
                         <a href="{{ url_for('category.discord') }}" >
                             <button type="button"  class="layui-btn">管理Discord分组</button>
                         </a>
                     </li>
-                     <li class="breadcrumb-item active" aria-current="page"><button type="button" lay-on="add-category-page-custom"  class="layui-btn" style="background-color: #16b777">添加Discord分组</button></li>
-
 
                 </ol>
               </div>
@@ -257,8 +256,9 @@ layui.use(['laypage', 'jquery'], function() {
                           <td>${item.remark}</td>
                           <td>${item.email}</td>
                           <td>
-                          <span   lay-on="add-channel-confirm"  data-id="${item.id}"  data-global-name="${item.global_name}" data-username="${item.username}" data-discord-token="${item.token}"  ><button type="button" class="layui-btn  layui-btn-sm">增加监控</button></span>
                           <span><a href="/discord/guild/did/${item.id}" class="alert-link" ><button type="button" class="layui-btn   layui-btn-sm" style="background-color: #16b777">查看列表</button></a></span>
+
+                          <span   lay-on="add-channel-confirm"  data-id="${item.id}"  data-global-name="${item.global_name}" data-username="${item.username}" data-discord-token="${item.token}"  ><button type="button" class="layui-btn  layui-btn-sm">增加监控</button></span>
 
                           <span   lay-on="edit-confirm"  data-id="${item.id}" data-email="${item.email}" data-discord-token="${item.token}"  data-cid="${item.cid}"  data-title="${item.username}" data-global-name="${item.global_name}"  data-remark="${item.remark}" ><button type="button" class="layui-btn layui-bg-blue  layui-btn-sm">修改</button></span>
                            <span   lay-on="del-discord-confirm"  data-id="${item.id}" ><button type="button" class="layui-btn layui-bg-red  layui-btn-sm">删除</button></span>
@@ -295,7 +295,7 @@ layui.use(['laypage', 'jquery'], function() {
           }
         },
         error: function() {
-          layer.msg('请求出错');
+          //layer.msg('请求出错');
         }
       });
   }
@@ -582,7 +582,7 @@ layui.use(function(){
               }
             },
             error: function() {
-              layer.msg('请求出错');
+              //layer.msg('请求出错');
             }
           });
           // 表单提交事件
@@ -715,7 +715,7 @@ layui.use(function(){
               }
             },
             error: function() {
-              layer.msg('请求出错');
+               //layer.msg('请求出错');
             }
           });
           // 表单提交事件

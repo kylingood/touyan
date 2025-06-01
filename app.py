@@ -1,13 +1,10 @@
-#from flask import Flask, render_template, request, g,jsonify
 from quart import Quart, render_template, request,  g, Blueprint
 from web3_auth import web3_auth  # 导入我们刚才创建的 web3_auth Blueprint
 from category import category
 from twitter import twitter
 from discord import discord
 from member import member
-from util.db import *
-from web3_auth import require_login  # 导入 require_login 装饰器
-from auth import require_user
+from website import website
 # Flask:
 #app = Flask(__name__)
 # Quart:
@@ -26,6 +23,9 @@ app.register_blueprint(discord)
 
 # 注册 member Blueprint
 app.register_blueprint(member)
+
+# 注册 member Blueprint
+app.register_blueprint(website)
 
 @app.route("/")
 async  def index():

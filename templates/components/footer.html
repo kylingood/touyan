@@ -1,33 +1,49 @@
+
+<style>
+  .footer-container {
+    display: flex;
+    justify-content: space-between; /* 左右分布，可选 */
+    align-items: center;            /* 垂直居中，可选 */
+    flex-wrap: wrap;                /* 让它在小屏下自动换行 */
+    gap: 10px;                      /* 控制两个 div 间的间距 */
+  }
+</style>
+
 <!--begin::Footer-->
       <footer class="app-footer">
         <!--begin::To the end-->
-        <div class="float-end d-none d-sm-inline">Anything you want</div>
+       <div class="footer-container">
+
+         <div class="layui-form ws-header-theme" lay-filter="header-theme" >
+          <input type="checkbox" name="theme-mode" id="ID-header-theme-mode" lay-filter="header-theme-mode" lay-skin="switch">
+          <div lay-checkbox>
+            <i class="layui-icon layui-icon-moon"></i> |
+            <i class="layui-icon layui-icon-light"></i>
+          </div>
+         </div>
+
+
+        <div class="float-end d-none d-sm-inline">
+        <span>TouYan.me 只是一个 Web3 信息聚合工具。请您谨记：投资有风险，入市需谨慎。</span>
+        </div>
         <!--end::To the end-->
         <!--begin::Copyright-->
+
+        <div>
         <strong>
           Copyright &copy; 2024-2025&nbsp;
           <a href="https://x.com/guzibiji" class="text-decoration-none">Guzi</a>.
         </strong>
         All rights reserved.
         <!--end::Copyright-->
+        </div>
+            </div>
       </footer>
       <!--end::Footer-->
     </div>
     <!--end::App Wrapper-->
     <!--begin::Script-->
-    <!--begin::Third Party Plugin(OverlayScrollbars)-->
-    <script
-      src="https://cdn.jsdelivr.net/npm/overlayscrollbars@2.10.1/browser/overlayscrollbars.browser.es6.min.js"
-      integrity="sha256-dghWARbRe2eLlIJ56wNB+b760ywulqK3DzZYEpsg2fQ="
-      crossorigin="anonymous"
-    ></script>
-    <!--end::Third Party Plugin(OverlayScrollbars)--><!--begin::Required Plugin(popperjs for Bootstrap 5)-->
-    <script
-      src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js"
-      integrity="sha384-I7E8VVD/ismYTF4hNIPjVp/Zjvgyol6VFvRkX/vR+Vc4jQkC+hVqc2pM8ODewa9r"
-      crossorigin="anonymous"
-    ></script>
-    <!--end::Required Plugin(popperjs for Bootstrap 5)--><!--begin::Required Plugin(Bootstrap 5)-->
+
     <script
       src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.min.js"
       integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqruptLy"
@@ -39,32 +55,15 @@
 
     <script src="https://cdn.jsdelivr.net/npm/web3@1.10.0/dist/web3.min.js"></script>
 
-    <script>
-      const SELECTOR_SIDEBAR_WRAPPER = '.sidebar-wrapper';
-      const Default = {
-        scrollbarTheme: 'os-theme-light',
-        scrollbarAutoHide: 'leave',
-        scrollbarClickScroll: true,
-      };
-      document.addEventListener('DOMContentLoaded', function () {
-        const sidebarWrapper = document.querySelector(SELECTOR_SIDEBAR_WRAPPER);
-        if (sidebarWrapper && typeof OverlayScrollbarsGlobal?.OverlayScrollbars !== 'undefined') {
-          OverlayScrollbarsGlobal.OverlayScrollbars(sidebarWrapper, {
-            scrollbars: {
-              theme: Default.scrollbarTheme,
-              autoHide: Default.scrollbarAutoHide,
-              clickScroll: Default.scrollbarClickScroll,
-            },
-          });
-        }
-      });
-    </script>
+
     <!--end::OverlayScrollbars Configure-->
     <!-- OPTIONAL SCRIPTS -->
 
 <script>
 var laypage = layui.laypage;
 var $ = layui.jquery;
+
+
 
 $(document).ready(function() {
     const token = localStorage.getItem('token');
@@ -103,7 +102,7 @@ $(document).ready(function() {
       }
     });
 
-   });
+});
 
 
 async function loginWithWallet() {
@@ -120,27 +119,62 @@ async function loginWithWallet() {
 
     // 1. 获取后端签名消息
     const msgRes = await fetch(`/api/auth/message?address=${address}`);
-    const { message } = await msgRes.json();
+    const { message, exists } = await msgRes.json(); // 假设后端返回是否已注册 exists
 
     // 2. 用户签名消息
     const signature = await web3.eth.personal.sign(message, address, '');
 
-    // 3. 发送签名和地址到后端验证
+    // 3. 判断是否已注册，如果没有注册则提示填写邀请码
+    let inviteCode = null;
+    if (!exists) {
+      await new Promise((resolve, reject) => {
+      layer.prompt({
+        title: '请输入邀请码再进行注册',
+        formType: 0,
+        btn: ['确定', '取消']
+      }, function (value, index) {
+        inviteCode = value;
+        if (!inviteCode) {
+          layer.msg("必须输入邀请码才能注册");
+          return reject(new Error("未输入邀请码"));
+        }
+
+        // 异步检查邀请码
+        fetch(`/api/auth/check_invite?code=${encodeURIComponent(inviteCode)}`)
+          .then(res => res.json())
+          .then(data => {
+            if (data.valid) {
+              layer.close(index);
+              resolve(); // 验证通过，继续流程
+            } else {
+              layer.msg(data.message);
+              return;
+            }
+          })
+          .catch(err => {
+            layer.msg("验证失败，请稍后再试");
+            return;
+          });
+      });
+    });
+
+    }
+
+    // 4. 验证签名并登录（带邀请码）
     const verifyRes = await fetch('/api/auth/verify', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ address, message, signature })
+      body: JSON.stringify({ address, message, signature, inviteCode })
     });
 
     const verifyData = await verifyRes.json();
 
     if (verifyRes.ok && verifyData.token) {
-      // ✅ 保存 token 到 localStorage
       localStorage.setItem('token', verifyData.token);
       layer.msg('登录成功！');
-      checkLoginStatus(); // 刷新登录状态 UI
-      location.reload(); // ✅ 登录成功后刷新当前页面
-
+      setTimeout(() => {
+        location.reload();
+      }, 500);
     } else {
       layer.msg('登录失败: ' + (verifyData.error || '未知错误'));
     }
@@ -163,9 +197,7 @@ async function checkLoginStatus() {
       if (!token) {
         // 未登录：显示登录按钮
         loginContainer.innerHTML = `
-          <span class="d-none d-md-inline">
-            <button type="button" class="btn btn-primary btn-sm" onclick="loginWithWallet()">🔐 使用钱包登录</button>
-          </span>
+           <button type="button" class="layui-btn layui-btn-sm layui-btn-normal" onclick="loginWithWallet()">🔐 使用钱包登录</button>
         `;
         return;
       }
@@ -181,21 +213,8 @@ async function checkLoginStatus() {
           const data = await res.json();
           // 登录成功：显示用户头像
           loginContainer.innerHTML = `
-            <img
-              src="/static/dist/assets/img/avatar5.png"
-              class="user-image rounded-circle shadow"
-              alt="User Image"
-            />
-            <ul class="dropdown-menu dropdown-menu-end">
-            <!--begin::Menu Footer-->
-            <li class="user-footer">
-              <a href="#" class="btn btn-default btn-flat">个人资料</a>
-              <a href="#" class="btn btn-default btn-flat float-end" onclick="logout()">退出</a>
-            </li>
-            <!--end::Menu Footer-->
-            </ul>
-
-          `;
+            <button type="button" class="layui-btn layui-btn-sm layui-btn-normal" onclick="logout()">欢迎：${data.username}   🔓点击退出</button>
+           `;
         } else {
           throw new Error('无效 token');
         }
@@ -214,14 +233,17 @@ async function checkLoginStatus() {
     // 页面加载完成后执行
     window.addEventListener('DOMContentLoaded', checkLoginStatus);
 
-    // 退出登录
-    function logout() {
-      localStorage.removeItem('token');
-      checkLoginStatus(); // 刷新登录状态 UI
-      layer.msg('退出成功！', { time: 1000 }, function() {
-        location.reload(); // ✅ 退出成功后刷新当前页面
-      });
 
+   // 退出登录（带确认提示）
+    function logout() {
+      layer.confirm('确定要退出登录吗？', { icon: 3, title: '提示' }, function(index) {
+        localStorage.removeItem('token');
+        checkLoginStatus(); // 刷新登录状态 UI
+        layer.msg('退出成功！', { time: 1000 }, function() {
+          location.reload(); // ✅ 退出成功后刷新当前页面
+        });
+        layer.close(index);
+      });
     }
 
 layui.use(['form'], function() {

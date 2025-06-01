@@ -51,8 +51,8 @@ INNER JOIN guzi_twitter AS t1 ON fmap.twitter_id = t1.tid
 INNER JOIN guzi_twitter AS t2 ON fmap.following_id = t2.tid
 '''
 total_page =  dbMysql.query(sql)
-print(dbMysql.getLastSql())  # 打印由Model类拼接填充生成的SQL语句
-print(total_page)
+#print(dbMysql.getLastSql())  # 打印由Model类拼接填充生成的SQL语句
+#print(total_page)
 
 exit()
 

@@ -97,6 +97,13 @@ async def page_followings():
 
             channel_in_sql = f"twitter_id IN ({', '.join(channel_ids)})"
             where_clauses.append(channel_in_sql)
+        else:
+            layui_result = {
+                "code": 0,
+                "count": 0,
+                "data": []
+            }
+            return jsonify(layui_result)
 
         where = ' AND '.join(where_clauses)
 
@@ -210,6 +217,13 @@ async def page_messages():
 
             channel_in_sql = f"twitter_id IN ({', '.join(channel_ids)})"
             where_clauses.append(channel_in_sql)
+        else:
+            layui_result = {
+                "code": 0,
+                "count": 0,
+                "data": []
+            }
+            return jsonify(layui_result)
 
         where = ' AND '.join(where_clauses)
         print(twitter_data)
@@ -302,27 +316,38 @@ async def page():
         where = f"uid='{uid}' AND status=1"
         order = "id DESC"
         if cid:
-            where = f"uid='{uid}' AND status=1 AND cactegory_id='{cid}' "
+            where = f"uid='{uid}' AND status=1 AND category_id='{cid}' "
 
         # 然后再计算偏移量
         start_index = (page - 1) * limit + 1
 
-        #print(dbMysql.getLastSql())  # 打印由Model类拼接填充生成的SQL语句
+
         total =  dbMysql.table('guzi_member_twitter_map ').where(where).count()
-        member_list = dbMysql.table('guzi_member_twitter_map ').where(where).order(order).page(page, limit).field('twitter_id').select()
+        member_list = dbMysql.table('guzi_member_twitter_map ').where(where).order(order).page(page, limit).field('twitter_id,category_id').select()
+        print(dbMysql.getLastSql())  # 打印由Model类拼接填充生成的SQL语句
         # 提取 twitter_id 列（防止重复）
         twitter_ids = [row['twitter_id'] for row in member_list if row['twitter_id'] is not None]
+
+        member_data = {}
+        for member in member_list:
+            member_data[member['twitter_id']] = member['category_id']
+
+        print(member_data)
+
         # 转成逗号分隔的字符串
         twitter_ids_str = ', '.join(str(tid) for tid in twitter_ids)
         new_where = f"tid IN ({twitter_ids_str})"
 
 
         data_list = dbMysql.table('guzi_twitter').where(new_where).order(order).page(page, limit).select()
+        print(dbMysql.getLastSql())  # 打印由Model类拼接填充生成的SQL语句
+
         rows = dbMysql.table('guzi_category').where(f"uid='{uid}' AND status=1").field('id,title').select()
+        print(dbMysql.getLastSql())  # 打印由Model类拼接填充生成的SQL语句
         cate_data = {}
         for row in rows:
             cate_data[row['id']] = row['title']
-
+        print(cate_data)
         if total>0:
             layui_result = {
                 "code": 0,
@@ -332,9 +357,9 @@ async def page():
                         "num": i + start_index,
                         "id": item["id"],
                         "uid": item["uid"],
-                        "cid": item["cid"],
+                        "cid": member_data[item["tid"]],
                         "tid": item["tid"],
-                        "cate_name": cate_data.get(item["cid"], "未知分类"),
+                        "cate_name": cate_data.get(member_data[item["tid"]], "未知分类"),
                         "username": item["username"],
                         "url": item["url"],
                         "show_name": item["show_name"],
@@ -403,22 +428,22 @@ async def edit():
             if twitter_id:
                 #asyncio.create_task(getTweetByUserID(tid))
                 ###异步抓取推文
-                fire_and_forget(getTweetByUserID(twitter_id))
+                # fire_and_forget(getTweetByUserID(twitter_id))
                 ###插入关联表
                 ## 先查看此钱包有没有数据，没有就插入，有就更新数据状态
                 data_one = dbMysql.table('guzi_twitter_category_map').where(
-                    f"twitter_id='{twitter_id}' AND uid='{uid}' AND cactegory_id='{cid}'").find()
+                    f"twitter_id='{twitter_id}' AND uid='{uid}' AND category_id='{cid}'").find()
                 dbdata = {}
                 if data_one:
                     id = data_one['id']
                     dbdata['twitter_id'] = twitter_id
-                    dbdata['cactegory_id'] = cid
+                    dbdata['category_id'] = cid
                     dbdata['uid'] = uid
                     result_id = dbMysql.table('guzi_twitter_category_map').where(f"id = '{id}'").save(dbdata)
                 else:
                     # 获取当前日期
                     dbdata['twitter_id'] = twitter_id
-                    dbdata['cactegory_id'] = cid
+                    dbdata['category_id'] = cid
                     dbdata['uid'] = uid
                     dbdata['status'] = 1
                     result_id = dbMysql.table('guzi_twitter_category_map').add(dbdata)
@@ -435,13 +460,13 @@ async def edit():
                     dbdata['twitter_id'] = twitter_id
                     dbdata['updated'] = today_time
                     dbdata['uid'] = uid
-                    dbdata['cactegory_id'] = cid
+                    dbdata['category_id'] = cid
                     result_id = dbMysql.table('guzi_member_twitter_map ').where(f"id = '{id}'").save(dbdata)
                 else:
                     # 获取当前日期
                     dbdata['twitter_id'] = twitter_id
                     dbdata['uid'] = uid
-                    dbdata['cactegory_id'] = cid
+                    dbdata['category_id'] = cid
                     dbdata['created'] = today_time
                     dbdata['status'] = 1
                     result_id = dbMysql.table('guzi_member_twitter_map ').add(dbdata)
@@ -511,20 +536,20 @@ async def add():
             ###插入分类关联表
             ## 先查看此钱包有没有数据，没有就插入，有就更新数据状态
             data_one = dbMysql.table('guzi_twitter_category_map').where(
-                f"twitter_id='{twitter_id}' AND uid='{uid}' AND cactegory_id='{cid}'").find()
+                f"twitter_id='{twitter_id}' AND uid='{uid}' AND category_id='{cid}'").find()
             dbdata = {}
             today_time = int(time.time())
             if data_one:
                 id = data_one['id']
                 dbdata['twitter_id'] = twitter_id
-                dbdata['cactegory_id'] = cid
+                dbdata['category_id'] = cid
                 dbdata['updated'] = today_time
                 dbdata['uid'] = uid
                 result_id = dbMysql.table('guzi_twitter_category_map').where(f"id = '{id}'").save(dbdata)
             else:
                 # 获取当前日期
                 dbdata['twitter_id'] = twitter_id
-                dbdata['cactegory_id'] = cid
+                dbdata['category_id'] = cid
                 dbdata['uid'] = uid
                 dbdata['created'] = today_time
                 dbdata['status'] = 1
@@ -542,13 +567,13 @@ async def add():
                 dbdata['twitter_id'] = twitter_id
                 dbdata['updated'] = today_time
                 dbdata['uid'] = uid
-                dbdata['cactegory_id'] = cid
+                dbdata['category_id'] = cid
                 result_id = dbMysql.table('guzi_member_twitter_map ').where(f"id = '{id}'").save(dbdata)
             else:
                 # 获取当前日期
                 dbdata['twitter_id'] = twitter_id
                 dbdata['uid'] = uid
-                dbdata['cactegory_id'] = cid
+                dbdata['category_id'] = cid
                 dbdata['created'] = today_time
                 dbdata['status'] = 1
                 result_id = dbMysql.table('guzi_member_twitter_map ').add(dbdata)

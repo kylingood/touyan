@@ -8,7 +8,7 @@
             <img src="{{ url_for('static', filename='dist/assets/img/logo.png') }}" alt="Logo" class="brand-image opacity-75 shadow">
             <!--end::Brand Image-->
             <!--begin::Brand Text-->
-            <span class="brand-text fw-light">投研工具</span>
+            <span class="brand-text fw-light">TouYan.me</span>
             <!--end::Brand Text-->
           </a>
           <!--end::Brand Link-->
@@ -35,7 +35,7 @@
               <li class="nav-item">
                 <a href="{{ url_for('twitter.index') }}" class="nav-link {% if request.path.startswith('/twitter/index') %}active{% endif %} {% if request.path.startswith('/category/twitter') %}active{% endif %} ">
                   <i class="nav-icon layui-icon layui-icon-template-1"></i>
-                  <p>推特列表</p>
+                  <p>推特账号</p>
                 </a>
               </li>
 
@@ -49,7 +49,7 @@
               <li class="nav-item">
                 <a href="{{ url_for('discord.index') }}" class="nav-link {% if request.path.startswith('/discord/index') %}active{% endif %}  {% if request.path.startswith('/category/discord') %}active{% endif %}  {% if request.path.startswith('/discord/guild') %}active{% endif %}   ">
                   <i class="nav-icon layui-icon layui-icon-app "></i>
-                  <p>Discord列表</p>
+                  <p>Discord账号</p>
                 </a>
               </li>
 

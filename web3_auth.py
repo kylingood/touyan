@@ -4,6 +4,7 @@ from eth_account import Account
 from functools import wraps
 import time
 import jwt
+
 from util.db import *
 from auth import require_user,require_login,require_user_async
 from curl_cffi.requests import AsyncSession
@@ -146,14 +147,14 @@ async def insert_message_db(item):
                 id = dbMysql.table('guzi_discord_message').add(dbdata)
 
             # print(dbMysql.getLastSql())  # 打印由Model类拼接填充生成的SQL语句
-    return id
+    return did
 
 
 @web3_auth.route('/api/auth/update_message')
 @require_user_async
 async def update_message():
     uid = g.uid
-    data = dbMysql.table('guzi_discord_channel').where(f"uid='{uid}' AND status=1").order("id DESC").limit(5).select()
+    data = dbMysql.table('guzi_discord_channel').where(f"uid='{uid}' AND status=1").order("id DESC").limit(50).select()
     # 判断 data 是否为非空列表
     if not data:
         return  jsonify({'status': 0, 'data': [], 'msg': '暂无数据'})
@@ -161,6 +162,7 @@ async def update_message():
     # 循环打印日志（或处理你想要的字段）
     for item in data:
         #print(f"id: {item['id']}, 用户名: {item['username']}")
+        print(print)
         id = await insert_message_db(item)
 
     if id:
@@ -170,10 +172,39 @@ async def update_message():
         return jsonify({'status': 0, 'message': '无效或被封禁的token'})
 
 
+
+# 检测邀请码（带时间戳/nonce）
+@web3_auth.route('/api/auth/check_invite')
+def check_invite():
+    code = request.args.get("code")
+
+    if not code:
+        return jsonify({"error": "Missing code"}), 400
+
+
+    # 检查这个邀请码是否已使用
+    data_one = dbMysql.table('guzi_invite_codes').where( f"code='{code}'").find()
+    if data_one:
+        is_used = data_one['is_used']
+        if is_used == 1:
+            valid = 0
+            message = '对不起，邀请码已被使用！'
+        else:
+            valid = 1
+            message = '恭喜，邀请码有效，可注册'
+
+    else:
+        valid = 0
+        message = '对不起，非法邀请码，不可使用'
+
+    return  jsonify({"message": message,"valid": valid})
+
+
 # 获取签名消息（带时间戳/nonce）
 @web3_auth.route('/api/auth/message')
 def get_message():
-    address = request.args.get("address")
+    address = request.args.get("address").lower()
+
     if not address:
         return jsonify({"error": "Missing address"}), 400
 
@@ -181,13 +212,56 @@ def get_message():
     timestamp = int(time.time())
     message = f"Login request for {address} at {timestamp}"
 
+    # 检查这个地址是否已注册
+    data_one = dbMysql.table('guzi_member').where( f"wallet='{address}'").find()
+    exists = 1 if data_one else 0
+
+
     # 保存消息和时间戳
     NONCE_STORE[address.lower()] = {
         "message": message,
         "timestamp": timestamp
     }
 
-    return  jsonify({"message": message})
+    return  jsonify({"message": message,"exists": exists})
+
+
+##给新用户初始化数据
+def member_data(uid):
+
+    # alldata 现在是一个列表，包含多个字典
+    alldata = [
+        {'title': '主要DC号', 'is_type': '2'},
+        {'title': '重点项目', 'is_type': '1'},
+        {'title': '投研KOL', 'is_type': '1'}
+    ]
+
+    ### 处理推特和DC的默认分组
+    dbdata = {}
+    today_time = int(time.time())
+    category_id = 0
+    for item in alldata:
+        # 获取当前日期
+        dbdata['title'] = item['title']
+        dbdata['remark'] = item['title']
+        dbdata['is_type'] = item['is_type']
+        dbdata['uid'] = uid
+        dbdata['status'] = 1
+        dbdata['created'] = today_time
+        category_id = dbMysql.table('guzi_category').add(dbdata)
+        print(dbMysql.getLastSql())  # 打印由Model类拼接填充生成的SQL语句
+
+    ### 处理默认关注的人默认分组
+    # 获取当前日期
+    dbmapdata = {}
+    twitter_id = 44196397
+    dbmapdata['twitter_id'] = twitter_id
+    dbmapdata['uid'] = uid
+    dbmapdata['category_id'] = category_id
+    dbmapdata['created'] = today_time
+    dbmapdata['status'] = 1
+    result_id = dbMysql.table('guzi_member_twitter_map ').add(dbmapdata)
+    print(dbMysql.getLastSql())  # 打印由Model类拼接填充生成的SQL语句
 
 # 验证签名并生成 JWT
 @web3_auth.route('/api/auth/verify', methods=['POST'])
@@ -196,6 +270,19 @@ async def verify():
     address = data.get('address', '').lower()
     message = data.get('message')
     signature = data.get('signature')
+    inviteCode = data.get('inviteCode')
+
+    if inviteCode:
+        # 检查这个邀请码是否已使用
+        data_code_one = dbMysql.table('guzi_invite_codes').where( f"code='{inviteCode}'").find()
+        if data_code_one:
+            is_used = data_code_one['is_used']
+            if is_used == 1:
+                return jsonify({"error": "对不起，邀请码已被使用！"}), 400
+        else:
+            return jsonify({"error": "对不起，非法邀请码，不可使用"}), 400
+
+
 
     entry = NONCE_STORE.get(address)
     if not entry or entry['message'] != message:
@@ -214,30 +301,53 @@ async def verify():
 
             # 把账号写入数据库
             ## 先查看此钱包有没有数据，没有就插入，有就更新数据状态
-            data_one = dbMysql.table('guzi_member').where(
-                f"wallet='{address}'").find()
+            data_one = dbMysql.table('guzi_member').where(f"wallet='{address}'").find()
             dbdata = {}
             today_time = int(time.time())
 
             if data_one:
                 uid = data_one['uid']
+                username = data_one['username']
                 dbdata['updated'] = today_time
                 result_db = dbMysql.table('guzi_member').where(f"uid = '{uid}'").save(dbdata)
                 print(result_db)
             else:
-                # 获取当前日期
-                username = address[:6] + '**' + address[-4:]
-                dbdata['wallet'] = address
-                dbdata['username'] = username
-                dbdata['status'] = 1
-                dbdata['created'] = today_time
-                uid = dbMysql.table('guzi_member').add(dbdata)
+
+                if inviteCode:
+
+
+
+                    # 获取当前日期
+                    username = address[:6] + '**' + address[-4:]
+                    dbdata['wallet'] = address
+                    dbdata['username'] = username
+                    dbdata['code'] = inviteCode
+                    dbdata['status'] = 1
+                    dbdata['created'] = today_time
+                    uid = dbMysql.table('guzi_member').add(dbdata)
+
+                    if uid:
+                        ### 处理邀请码逻辑
+                        id = data_code_one['id']
+                        dbcodedata = {}
+                        dbcodedata['is_used'] = 1
+                        dbcodedata['uid'] = uid
+                        dbcodedata['use_time'] = today_time
+                        dbMysql.table('guzi_invite_codes').where(f"id='{id}'").save(dbcodedata)
+
+                        #### 给新用户初始化数据
+                        member_data(uid)
+
+
+                else:
+                    return jsonify({"error": "无效邀请码，新用户不能注册"}), 400
                 #print(dbMysql.getLastSql())  # 打印由Model类拼接填充生成的SQL语句
 
             # 登录成功，生成 JWT Token
             payload = {
                 'address': address,
                 'uid':uid,
+                'username':username,
                 'exp': datetime.utcnow() + timedelta(days=30) # 设置过期时间
             }
             token = jwt.encode(payload, SECRET_KEY, algorithm='HS256')
@@ -258,11 +368,12 @@ async def verify():
 def protected():
     uid = g.uid
     address = g.address
+    username = g.username
 
     if not address:
         return jsonify({"error": "protected 未登录或Token无效"}), 403
 
-    return jsonify({"message": f"欢迎 {address} 登录成功！"})
+    return jsonify({"username":username,"message": f"欢迎 {address} 登录成功！"})
 
 
 @web3_auth.route('/api/get_user_info', methods=['GET'])
@@ -275,4 +386,42 @@ def get_user_info():
     return jsonify({"status":1,"message": f"欢迎管理员登录成功！"})
 
 
+@web3_auth.route('/api/get_total_info', methods=['GET'])
+@require_user_async
+def get_total_info():
+    uid = g.uid
+    sql = f'''
+        SELECT COUNT(*) AS twitter_count
+        FROM guzi_member_twitter_map
+        WHERE uid = '{uid}' AND status = 1;
+    '''
+    twitter_data = dbMysql.query(sql)
+    print(dbMysql.getLastSql())  # 打印由Model类拼接填充生成的SQL语句
+    print(twitter_data)
+    twitter_count = twitter_data[0].get('twitter_count', 0)
 
+    sql = f'''
+            SELECT COUNT(*) AS discord_count
+            FROM guzi_discord_category_map
+            WHERE uid = '{uid}' AND status = 1;
+        '''
+    discord_data = dbMysql.query(sql)
+    print(dbMysql.getLastSql())  # 打印由Model类拼接填充生成的SQL语句
+    print(discord_data)
+    discord_count = discord_data[0].get('discord_count', 0)
+    sql = f'''
+           SELECT is_type, COUNT(*) AS group_count
+            FROM guzi_category
+            WHERE uid = '{uid}' AND status = 1
+            GROUP BY is_type;
+        '''
+    category_data = dbMysql.query(sql)
+    print(dbMysql.getLastSql())  # 打印由Model类拼接填充生成的SQL语句
+    print(category_data)
+
+    twitter_category_count = next((item['group_count'] for item in category_data if item['is_type'] == 1), 0)
+    discord_category_count = next((item['group_count'] for item in category_data if item['is_type'] == 2), 0)
+
+    show_data = {'twitter_count': twitter_count, 'discord_count': discord_count, 'twitter_category_count': twitter_category_count, 'discord_category_count': discord_category_count}
+
+    return jsonify({"status":1,"data": show_data})

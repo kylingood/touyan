@@ -7,36 +7,36 @@ from rapidapi import *
 from util.utils import get_countdown
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
-
-### 先查到所有推特账号
-sql = """
-SELECT
-  map.*,
-  t.id AS twitter_id,
-  t.uid AS twitter_uid,
-  t.tid AS twitter_tid,
-  t.username AS twitter_username,
-  t.show_name AS twitter_show_name,
-  t.url AS twitter_url,
-  t.remark AS twitter_remark,
-  t.description AS twitter_description,
-  t.avatar AS twitter_avatar,
-  t.followers AS twitter_followers,
-  t.fans AS twitter_fans,
-  t.status AS twitter_status,
-  t.created AS twitter_created,
-  t.updated AS twitter_updated
-FROM guzi_member_twitter_map  AS map
-INNER JOIN guzi_twitter AS t ON map.twitter_id = t.id
-WHERE map.status = 1
-ORDER BY map.id DESC
-LIMIT 10020 OFFSET 0;
-
-"""
-data_list =  dbMysql.query(sql)
-#print(dbMysql.getLastSql())  # 打印由Model类拼接填充生成的SQL语句
-#print(data_list)
-
+def get_data():
+    ### 先查到所有推特账号
+    sql = """
+    SELECT
+      map.*,
+      t.id AS twitter_id,
+      t.uid AS twitter_uid,
+      t.tid AS twitter_tid,
+      t.username AS twitter_username,
+      t.show_name AS twitter_show_name,
+      t.url AS twitter_url,
+      t.remark AS twitter_remark,
+      t.description AS twitter_description,
+      t.avatar AS twitter_avatar,
+      t.followers AS twitter_followers,
+      t.fans AS twitter_fans,
+      t.status AS twitter_status,
+      t.created AS twitter_created,
+      t.updated AS twitter_updated
+    FROM guzi_member_twitter_map  AS map
+    INNER JOIN guzi_twitter AS t ON map.twitter_id = t.tid
+    WHERE map.status = 1
+    ORDER BY map.id DESC
+    LIMIT 10020 OFFSET 0;
+    
+    """
+    data_list =  dbMysql.query(sql)
+    #print(dbMysql.getLastSql())  # 打印由Model类拼接填充生成的SQL语句
+    #print(data_list)
+    return data_list
 
 # 单个用户的处理逻辑
 def process_member(member,sum_user=None):
@@ -82,11 +82,18 @@ def process_all(data_list, max_threads=5, sum_user = None):
 
 
 
+# data_list = get_data()
+# print(data_list)
+# ###只跑一次
+# results = process_all(data_list, max_threads=1, sum_user=20)
 
+
+###循环执行
 while True:
+    data_list = get_data()
     results = process_all(data_list, max_threads=1, sum_user=20)
     print("执行完一次，等待 20 分钟...")
-    get_countdown(40 * 60)  # 20 分钟
+    get_countdown(30 * 60)  # 20 分钟
 
 
 
