@@ -40,7 +40,8 @@
                           <th style="width: 80px">序号</th>
                           <th>邀请码</th>
                           <th>是否使用</th>
-                          <th>会员</th>
+                          <th>用户名</th>
+                          <th>会员钱包</th>
                           <th>使用时间</th>
                           <th>生成时间</th>
                           <th style="width: 150px">操作</th>
@@ -68,6 +69,7 @@ layui.use(['laypage', 'jquery'], function() {
   var laypage = layui.laypage;
   var $ = layui.jquery;
   const token = localStorage.getItem('token');
+
 
   function fetchData(page, limit) {
     $.ajax({
@@ -132,8 +134,9 @@ layui.use(['laypage', 'jquery'], function() {
       const randomClass = colorClasses[Math.floor(Math.random() * colorClasses.length)];
       html += `<tr class="align-middle" id="del_twitter_${item.id}">
                           <td>${item.num}.</td>
-                          <td>${item.code}</td>
+                          <td><span id="getcode_${item.id}">${item.code}</span> <i onclick="copyFromElement('getcode_${item.id}')" class="nav-icon layui-icon layui-icon-template-1" style="cursor: pointer;"></i> </td>
                           <td>${renderUsedBadge(item.is_used)}</td>
+                          <td>${item.username}</td>
                           <td>${item.wallet}</td>
                           <td>${formatTimestamp(item.use_time)}</td>
                           <td>${formatTimestamp(item.created)}</td>
@@ -152,6 +155,17 @@ layui.use(['laypage', 'jquery'], function() {
 
   fetchData(1, 10);  // 默认加载第1页，10条数据
 });
+
+
+  function copyFromElement(id) {
+      const text = document.getElementById(id).innerText;
+      navigator.clipboard.writeText(text).then(() => {
+        layer.msg("复制成功！");
+      }).catch(err => {
+        console.error("复制失败:", err);
+        layer.msg("复制失败");
+      });
+  }
 
 layui.use(function(){
   var $ = layui.$;

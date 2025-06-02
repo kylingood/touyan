@@ -58,7 +58,7 @@ async def page_codes():
         offset = (page - 1) * limit
         # 然后再计算偏移量
         start_index = (page - 1) * limit + 1
-        sql = f"SELECT a.*, b.wallet FROM guzi_invite_codes a LEFT JOIN guzi_member b ON a.uid = b.uid WHERE {where_sql} ORDER BY {order_sql}   LIMIT  {limit} OFFSET {offset}"
+        sql = f"SELECT a.*, b.wallet,b.username FROM guzi_invite_codes a LEFT JOIN guzi_member b ON a.uid = b.uid WHERE {where_sql} ORDER BY {order_sql}   LIMIT  {limit} OFFSET {offset}"
         data_list = dbMysql.query(sql)
         #data_list = dbMysql.table('guzi_invite_codes').where(where).order(order).page(page, limit).select()
         #print(dbMysql.getLastSql())  # 打印由Model类拼接填充生成的SQL语句
@@ -73,6 +73,7 @@ async def page_codes():
                         "num": i + start_index,
                         "id": item["id"],
                         "code": item["code"],
+                        "username": item["username"] if item["username"] else '-' ,
                         "is_used": item["is_used"],
                         "wallet": item["wallet"] if item["wallet"] else '-' ,
                         "created": item["created"],

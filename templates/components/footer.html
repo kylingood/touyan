@@ -136,7 +136,7 @@ async function loginWithWallet() {
         inviteCode = value;
         if (!inviteCode) {
           layer.msg("必须输入邀请码才能注册");
-          return reject(new Error("未输入邀请码"));
+          return;
         }
 
         // 异步检查邀请码
@@ -197,7 +197,7 @@ async function checkLoginStatus() {
       if (!token) {
         // 未登录：显示登录按钮
         loginContainer.innerHTML = `
-           <button type="button" class="layui-btn layui-btn-sm layui-btn-normal" onclick="loginWithWallet()">🔐 使用钱包登录</button>
+           <button type="button" class="layui-btn layui-btn-sm layui-btn-normal" onclick="loginWithWallet()">🔐 请用EVM钱包登录</button>
         `;
         return;
       }
@@ -237,12 +237,13 @@ async function checkLoginStatus() {
    // 退出登录（带确认提示）
     function logout() {
       layer.confirm('确定要退出登录吗？', { icon: 3, title: '提示' }, function(index) {
-        localStorage.removeItem('token');
-        checkLoginStatus(); // 刷新登录状态 UI
-        layer.msg('退出成功！', { time: 1000 }, function() {
-          location.reload(); // ✅ 退出成功后刷新当前页面
+          localStorage.removeItem('token');
+          checkLoginStatus(); // 刷新登录状态 UI
+          layer.msg('退出成功！', { time: 1000 }, function() {
+          //location.reload(); // ✅ 退出成功后刷新当前页面
+          window.location.href='/';
         });
-        layer.close(index);
+         layer.close(index);
       });
     }
 

@@ -129,6 +129,22 @@ layui.use(['laypage', 'jquery'], function() {
     }
   });
 
+
+ // 增加discord 委托给 body 或更合适的父容器
+  $('body').on('click', '.show-twitter-demo-base-text', function () {
+        // 在此处输入 layer 的任意代码
+        layer.open({
+          type: 1, // page 层类型
+
+          title: '怎么取Twitter链接的教程',
+          shadeClose: true, // 点击遮罩区域，关闭弹层
+          maxmin: true, // 允许全屏最小化
+          anim: 0, // 0-6 的动画形式，-1 不开启
+          content: '<div style="padding: 32px;"><img src="/static/dist/img/twitter_url.png?1331" style="width:1210px;height:760px;" alt="Logo" ></div>'
+        });
+  });
+
+
   // 修改推特时，实时取粉丝量 委托给 body 或更合适的父容器
   $('body').on('blur', '#edit-twitter-input', function () {
 
@@ -387,6 +403,12 @@ layui.use(function(){
                     <i class="layui-icon layui-icon-link"></i>
                   </div>
                   <input type="text" id="edit-twitter-input"  disabled name="twitter_url" value="${url}" lay-verify="required" placeholder="复制推特链接，程序会自动取信息" lay-reqtext="请填写复制推特链接" autocomplete="off" class="layui-input" lay-affix="clear">
+                  <div class="layui-inline layui-word-aux layui-font-gray show-twitter-demo-base-text" style="font-size:12px;margin-bottom:5px;"  >
+                  什么？不知道是推特哪个链接？
+                  <a href="javascript:;" class="layui-font-blue">
+                    点击查看教程
+                  </a>
+                </div>
                 </div>
               </div>
 
@@ -568,6 +590,13 @@ layui.use(function(){
                     <i class="layui-icon layui-icon-link"></i>
                   </div>
                   <input type="text" id="add-twitter-input" name="twitter_url" value="" lay-verify="required" placeholder="复制推特链接，程序会自动取信息" lay-reqtext="请填写复制推特链接" autocomplete="off" class="layui-input" lay-affix="clear">
+                 <div class="layui-inline layui-word-aux layui-font-gray show-twitter-demo-base-text" style="font-size:12px;margin-bottom:5px;"  >
+                  什么？不知道是推特哪个链接？
+                  <a href="javascript:;" class="layui-font-blue">
+                    点击查看教程
+                  </a>
+                </div>
+
                 </div>
               </div>
 

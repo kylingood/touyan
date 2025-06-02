@@ -231,7 +231,7 @@ def member_data(uid):
 
     # alldata 现在是一个列表，包含多个字典
     alldata = [
-        {'title': '主要DC号', 'is_type': '2'},
+        {'title': 'Discord主号', 'is_type': '2'},
         {'title': '重点项目', 'is_type': '1'},
         {'title': '投研KOL', 'is_type': '1'}
     ]

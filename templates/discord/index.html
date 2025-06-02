@@ -127,6 +127,38 @@ layui.use(['laypage', 'jquery'], function() {
 
 
 
+  // 增加discord 委托给 body 或更合适的父容器
+  $('body').on('click', '#show-token-demo-base-text', function () {
+        // 在此处输入 layer 的任意代码
+        layer.open({
+          type: 1, // page 层类型
+
+          title: '怎么取Discord的Token值的教程',
+          shadeClose: true, // 点击遮罩区域，关闭弹层
+          maxmin: true, // 允许全屏最小化
+          anim: 0, // 0-6 的动画形式，-1 不开启
+          content: '<div style="padding: 32px;"><img src="/static/dist/img/discord_token.png?1331" style="width:1210px;height:760px;" alt="Logo" ></div>'
+        });
+  });
+
+  // 增加discord 委托给 body 或更合适的父容器
+  $('body').on('click', '#show-channel-demo-base-text', function () {
+        // 在此处输入 layer 的任意代码
+        layer.open({
+          type: 1, // page 层类型
+
+          title: '怎么取Discord的频道链接的教程',
+          shadeClose: true, // 点击遮罩区域，关闭弹层
+          maxmin: true, // 允许全屏最小化
+          anim: 0, // 0-6 的动画形式，-1 不开启
+          content: '<div style="padding: 32px;"><img src="/static/dist/img/discord_channel.png?1331" style="width:1210px;height:760px;" alt="Logo" ></div>'
+        });
+  });
+
+
+
+
+
   // 自动取discord的guild_id和channel_id
   $('body').on('blur', '#edit-discord-input', function () {
     const discord_url = $(this).val().trim();
@@ -256,9 +288,9 @@ layui.use(['laypage', 'jquery'], function() {
                           <td>${item.remark}</td>
                           <td>${item.email}</td>
                           <td>
-                          <span><a href="/discord/guild/did/${item.id}" class="alert-link" ><button type="button" class="layui-btn   layui-btn-sm" style="background-color: #16b777">查看列表</button></a></span>
+                          <span><a href="/discord/guild/did/${item.id}" class="alert-link" ><button type="button" class="layui-btn   layui-btn-sm" style="background-color: #16b777">监控频道列表</button></a></span>
 
-                          <span   lay-on="add-channel-confirm"  data-id="${item.id}"  data-global-name="${item.global_name}" data-username="${item.username}" data-discord-token="${item.token}"  ><button type="button" class="layui-btn  layui-btn-sm">增加监控</button></span>
+                          <span   lay-on="add-channel-confirm"  data-id="${item.id}"  data-global-name="${item.global_name}" data-username="${item.username}" data-discord-token="${item.token}"  ><button type="button" class="layui-btn  layui-btn-sm">增加监控频道</button></span>
 
                           <span   lay-on="edit-confirm"  data-id="${item.id}" data-email="${item.email}" data-discord-token="${item.token}"  data-cid="${item.cid}"  data-title="${item.username}" data-global-name="${item.global_name}"  data-remark="${item.remark}" ><button type="button" class="layui-btn layui-bg-blue  layui-btn-sm">修改</button></span>
                            <span   lay-on="del-discord-confirm"  data-id="${item.id}" ><button type="button" class="layui-btn layui-bg-red  layui-btn-sm">删除</button></span>
@@ -320,6 +352,7 @@ layui.use(function(){
 
   // 事件
   util.on('lay-on', {
+
     'del-discord-confirm': function(){
       const id = $(this).data('id');       // 获取 data-id 的值
 
@@ -380,6 +413,12 @@ layui.use(function(){
                   </div>
                   <input type="text" name="discord_url" id="edit-discord-input" value="" lay-verify="required" placeholder="复制Discord URL到这里会自动取信息 " lay-reqtext="请填写Discord的链接URL" autocomplete="off" class="layui-input" lay-affix="clear">
                   </div>
+                 <div class="layui-inline layui-word-aux layui-font-gray" style="font-size:12px;margin-bottom:5px;"   id="show-channel-demo-base-text">
+                  什么？不知道Discord URL是哪个链接？
+                  <a href="javascript:;" class="layui-font-blue">
+                    点击查看教程
+                  </a>
+                </div>
               </div>
 
               <div class="layui-form-item">
@@ -387,7 +426,7 @@ layui.use(function(){
                   <div class="layui-input-prefix">
                     <i class="layui-icon layui-icon-menu-fill"></i>
                   </div>
-                  <input type="text" name="username" id="edit-username"   value="" lay-verify="required" placeholder="Discord频道名称" lay-reqtext="请填写频道名称" autocomplete="off" class="layui-input" lay-affix="clear">
+                  <input type="text" name="username" id="edit-username"  disabled value="" lay-verify="required" placeholder="Discord频道名称" lay-reqtext="请填写频道名称" autocomplete="off" class="layui-input" lay-affix="clear">
                 </div>
               </div>
 
@@ -396,7 +435,7 @@ layui.use(function(){
                   <div class="layui-input-prefix">
                     <i class="layui-icon layui-icon-group"></i>
                   </div>
-                  <input type="text" name="guild_id" id="edit-guild"   value="" lay-verify="required" placeholder="Discord服务器ID" lay-reqtext="请填写Discord服务器ID" autocomplete="off" class="layui-input" lay-affix="clear">
+                  <input type="text" name="guild_id" id="edit-guild"   value="" disabled lay-verify="required" placeholder="Discord服务器ID" lay-reqtext="请填写Discord服务器ID" autocomplete="off" class="layui-input" lay-affix="clear">
                 </div>
               </div>
 
@@ -405,7 +444,7 @@ layui.use(function(){
                   <div class="layui-input-prefix">
                     <i class="layui-icon layui-icon-reply-fill"></i>
                   </div>
-                  <input type="text" name="channel_id" id="edit-channel"   value="" lay-verify="required" placeholder="Discord频道ID" lay-reqtext="请填写Discord频道ID" autocomplete="off" class="layui-input" lay-affix="clear">
+                  <input type="text" name="channel_id" id="edit-channel"   disabled value="" lay-verify="required" placeholder="Discord频道ID" lay-reqtext="请填写Discord频道ID" autocomplete="off" class="layui-input" lay-affix="clear">
                 </div>
               </div>
 
@@ -510,7 +549,7 @@ layui.use(function(){
                   <div class="layui-input-prefix">
                     <i class="layui-icon layui-icon-menu-fill"></i>
                   </div>
-                  <input type="text" name="discord_token" id="edit-token-input" value="${discord_token}" lay-verify="required" placeholder="Discord Token值会自动取信息 " lay-reqtext="请填写Discord的Token值" autocomplete="off" class="layui-input" lay-affix="clear">
+                  <input type="text" name="discord_token" id="edit-token-input" value="${discord_token}" lay-verify="required" placeholder="此处填入Discord Token值会自动取信息 " lay-reqtext="请填写Discord的Token值" autocomplete="off" class="layui-input" lay-affix="clear">
                 </div>
               </div>
 
@@ -647,7 +686,14 @@ layui.use(function(){
                   <div class="layui-input-prefix">
                     <i class="layui-icon layui-icon-menu-fill"></i>
                   </div>
-                  <input type="text" name="discord_token" id="add-token-input" value="" lay-verify="required" placeholder="Discord Token值会自动取信息 " lay-reqtext="请填写Discord的Token值" autocomplete="off" class="layui-input" lay-affix="clear">
+                  <input type="text" name="discord_token" id="add-token-input" value="" lay-verify="required" placeholder="此处填入Discord Token值会自动取信息 " lay-reqtext="请填写Discord的Token值" autocomplete="off" class="layui-input" lay-affix="clear">
+                </div>
+
+                 <div class="layui-inline layui-word-aux layui-font-gray" style="font-size:12px;margin-bottom:5px;"   id="show-token-demo-base-text">
+                  什么？你不会取Discord的Token？
+                  <a href="javascript:;" class="layui-font-blue">
+                    点击查看教程
+                  </a>
                 </div>
               </div>
 
@@ -656,7 +702,7 @@ layui.use(function(){
                   <div class="layui-input-prefix">
                     <i class="layui-icon layui-icon-username"></i>
                   </div>
-                  <input type="text" name="global_name" id="add-global-name"   value="" lay-verify="required" placeholder="@Discord用户名" lay-reqtext="请填写Discord用户名" autocomplete="off" class="layui-input" lay-affix="clear">
+                  <input type="text" name="global_name" id="add-global-name"   value="" disabled lay-verify="required" placeholder="@Discord用户名" lay-reqtext="请填写Discord用户名" autocomplete="off" class="layui-input" lay-affix="clear">
                 </div>
               </div>
 
@@ -812,6 +858,7 @@ layui.use(function(){
                 },
                 data:{
                     "username":data.field.username,
+                    "is_type":2,
                     "remark":data.field.remark
                 },
                 dataType:"json",

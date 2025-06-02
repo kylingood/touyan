@@ -164,7 +164,10 @@ layui.use(['laypage', 'jquery'], function() {
       console.log("Guild ID:", guild_id);
       console.log("Channel ID:", channel_id);
     } else {
-       layer.msg('链接格式不正确,参考例子：https://discord.com/channels/1141419161893998702/1260130052956360724');
+
+       layer.msg('Discord链接URL格式不正确,参考例子：<br/>https://discord.com/<span style="color:#ff5722;">channels</span>/<span style="color:#ffb800;">1141419161893998702</span>/<span style="color:#1e9fff;">1260130052956360724</span>', {
+          time: 3000 // 3 秒后自动关闭
+        });
        return
     }
   });

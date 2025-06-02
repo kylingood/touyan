@@ -4,29 +4,14 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="52e72af2-67a7-4242-a6ba-fbef2c11875c" name="更改" comment="第五次提交，增加推特信息流">
-      <change beforePath="$PROJECT_DIR$/.idea/.name" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.name" afterDir="false" />
+    <list default="true" id="52e72af2-67a7-4242-a6ba-fbef2c11875c" name="更改" comment="第六次提交，增加推特信息流">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app.py" beforeDir="false" afterPath="$PROJECT_DIR$/app.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/auth.py" beforeDir="false" afterPath="$PROJECT_DIR$/auth.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/category.py" beforeDir="false" afterPath="$PROJECT_DIR$/category.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/crontab/twitter.py" beforeDir="false" afterPath="$PROJECT_DIR$/crontab/twitter.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/discord.py" beforeDir="false" afterPath="$PROJECT_DIR$/discord.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/member.py" beforeDir="false" afterPath="$PROJECT_DIR$/member.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/templates/category/twitter.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/category/twitter.html" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/templates/components/footer.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/components/footer.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/templates/components/header.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/components/header.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/templates/components/sidebar.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/components/sidebar.html" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/templates/discord/guild.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/discord/guild.html" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/templates/discord/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/discord/index.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/templates/discord/message.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/discord/message.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/templates/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/index.html" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/templates/member/codes.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/member/codes.html" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/templates/twitter/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/twitter/index.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/templates/twitter/message.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/twitter/message.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/test.py" beforeDir="false" afterPath="$PROJECT_DIR$/test.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/twitter.py" beforeDir="false" afterPath="$PROJECT_DIR$/twitter.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/twitter.sql" beforeDir="false" afterPath="$PROJECT_DIR$/twitter.sql" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/web3_auth.py" beforeDir="false" afterPath="$PROJECT_DIR$/web3_auth.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -70,7 +55,7 @@
     &quot;ignore.virus.scanning.warn.message&quot;: &quot;true&quot;
   }
 }</component>
-  <component name="RunManager" selected="Python.twitter">
+  <component name="RunManager" selected="Python.app">
     <configuration name="app" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="twitter" />
       <option name="ENV_FILES" value="" />
@@ -271,7 +256,15 @@
       <option name="project" value="LOCAL" />
       <updated>1748444538735</updated>
     </task>
-    <option name="localTasksCounter" value="12" />
+    <task id="LOCAL-00012" summary="第六次提交，增加推特信息流">
+      <option name="closed" value="true" />
+      <created>1748783618178</created>
+      <option name="number" value="00012" />
+      <option name="presentableId" value="LOCAL-00012" />
+      <option name="project" value="LOCAL" />
+      <updated>1748783618178</updated>
+    </task>
+    <option name="localTasksCounter" value="13" />
     <servers />
   </component>
   <component name="VcsManagerConfiguration">
@@ -280,6 +273,7 @@
     <MESSAGE value="第三次提交" />
     <MESSAGE value="第四次提交，增加推特信息流" />
     <MESSAGE value="第五次提交，增加推特信息流" />
-    <option name="LAST_COMMIT_MESSAGE" value="第五次提交，增加推特信息流" />
+    <MESSAGE value="第六次提交，增加推特信息流" />
+    <option name="LAST_COMMIT_MESSAGE" value="第六次提交，增加推特信息流" />
   </component>
 </project>
