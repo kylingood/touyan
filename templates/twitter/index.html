@@ -36,7 +36,23 @@
         <div class="app-content">
           <!--begin::Container-->
           <div class="container-fluid">
+                 <!--begin::Row-->
+                    <div  style="margin:20px 0px 10px 0px;text-align:center;">
 
+                    <div class="layui-form-item">
+                    <div class="layui-inline">
+                      <label class="layui-form-label">搜索：</label>
+                      <div class="layui-input-inline layui-input-wrap" style="width:500px;">
+                        <input type="input" name="keyword" id="search_keyword" lay-verify="required|phone" autocomplete="off" lay-reqtext="请填写手机号" lay-affix="clear" class="layui-input demo-phone">
+                      </div>
+                      <div class="layui-form-mid" style="padding: 0!important;">
+                        <button type="button" class="layui-btn layui-btn-primary" id="search_keyword_button" lay-on="get-vercode">开始搜索</button>
+                      </div>
+                    </div>
+                      </div>
+
+                    </div>
+                <!--end::Row-->
                <div class="card mb-4">
                   <div class="card-header">
                     <h3 class="card-title">推特监控列表</h3>
@@ -48,12 +64,12 @@
                       <thead>
                         <tr>
                           <th style="width: 80px">序号</th>
-                          <th >推特账号</th>
+                          <th style="text-align:left;" >推特账号</th>
                           <th>所属分组</th>
                           <th>关注人数</th>
                           <th>粉丝量</th>
-                          <th >简介</th>
                           <th>备注</th>
+                          <th >简介</th>
                           <th style="width: 150px">操作</th>
                         </tr>
                       </thead>
@@ -82,50 +98,53 @@ layui.use(['laypage', 'jquery'], function() {
   let  cid = 0;
 
    // 增加推特时，实时取粉丝量 委托给 body 或更合适的父容器
-  $('body').on('blur', '#add-twitter-input', function () {
+  $('body').on('blur keydown', '#add-twitter-input', function () {
 
-    const url = $(this).val().trim();
-    var twitter = ''
-    // 提取用户名
-    const match = url.match(/(?:https?:\/\/)?(?:x\.com|twitter\.com)\/([a-zA-Z0-9_]+)/);
-    if (match) {
-      twitter = match[1];
-      console.log("用户名:", twitter);
-    } else {
-      layer.msg('填写的推特链接无效，请参考：https://x.com/guzibiji');
-      return false;
-    }
-
-    if (twitter) {
-      $.ajax({
-        url: '/api/auth/get_twitter',  // 你需要创建这个后端路由
-        type: 'GET',
-        headers: {
-        'Authorization': 'Bearer ' + token,
-        },
-        contentType: 'application/json',
-        data: { username: twitter },
-        success: function (res) {
-          if (res.status) {
-            $("#add_username").val(res.data.username)
-            $("#add_remark").val(res.data.show_name)
-            $("#add_description").val(res.data.description)
-            $("#add_show_name").val(res.data.show_name)
-            $("#add_url").val(res.data.url)
-            $("#add_avatar").val(res.data.avatar)
-            $("#add_followers").val(res.data.followers)
-            $("#add_fans").val(res.data.fans)
-            $("#add_tid").val(res.data.rest_id)
-            $("#add_url").val(url)
-
-          } else {
-            layer.msg('获取失败：' + res.message);
-          }
-        },
-        error: function () {
-           layer.msg('服务器错误，请稍后重试');
+    if (event.type === 'blur' || (event.type === 'keydown' && event.key === 'Enter')) {
+        const url = $(this).val().trim();
+        var twitter = ''
+        // 提取用户名
+        const match = url.match(/(?:https?:\/\/)?(?:x\.com|twitter\.com)\/([a-zA-Z0-9_]+)/);
+        if (match) {
+          twitter = match[1];
+          console.log("用户名:", twitter);
+        } else {
+          layer.msg('填写的推特链接无效，请参考：https://x.com/guzibiji');
+          return false;
         }
-      });
+
+        if (twitter) {
+          $.ajax({
+            url: '/api/auth/get_twitter',  // 你需要创建这个后端路由
+            type: 'GET',
+            headers: {
+            'Authorization': 'Bearer ' + token,
+            },
+            contentType: 'application/json',
+            data: { username: twitter },
+            success: function (res) {
+              if (res.status) {
+                $("#add_username").val(res.data.username)
+                $("#add_remark").val(res.data.show_name)
+                $("#add_description").val(res.data.description)
+                $("#add_show_name").val(res.data.show_name)
+                $("#add_url").val(res.data.url)
+                $("#add_avatar").val(res.data.avatar)
+                $("#add_followers").val(res.data.followers)
+                $("#add_fans").val(res.data.fans)
+                $("#add_tid").val(res.data.rest_id)
+                $("#add_url").val(url)
+
+              } else {
+                layer.msg('获取失败：' + res.message);
+              }
+            },
+            error: function () {
+               layer.msg('服务器错误，请稍后重试');
+            }
+          });
+        }
+
     }
   });
 
@@ -203,7 +222,19 @@ layui.use(['laypage', 'jquery'], function() {
     fetchData(1, 10,cid); // 点击分类时重置为第一页
   });
 
-  function fetchData(page, limit, cid) {
+
+
+  // 增加搜索委托给 body 或更合适的父容器
+  $('body').on('click keydown', '#search_keyword_button, #search_keyword', function (e) {
+      if (e.type === 'click' || (e.type === 'keydown' && e.key === 'Enter')) {
+        const keyword = $("#search_keyword").val().trim();
+
+        fetchData(1, 10,0,keyword);  // 默认加载第1页，10条数据
+      }
+  });
+  let currentKeyword = ''; // 全局变量，记住 keyword
+  function fetchData(page, limit, cid, keyword) {
+    currentKeyword = keyword || '';  // 每次 fetch 更新当前 keyword
     $.ajax({
       url: '{{ url_for('twitter.page') }}',  // 替换为你的后端接口
       type: 'GET',
@@ -211,7 +242,7 @@ layui.use(['laypage', 'jquery'], function() {
         'Authorization': 'Bearer ' + token,
         'Content-Type': 'application/json'
       },
-      data: { page: page, limit: limit, cid: cid },
+      data: { page: page, limit: limit, cid: cid,keyword: currentKeyword },
       success: function(res) {
         // 假设 res 格式：{ code: 0, count: 100, data: [...] }
         if (res.code === 0) {
@@ -224,7 +255,7 @@ layui.use(['laypage', 'jquery'], function() {
             layout: ['count', 'prev', 'page', 'next', 'limit', 'skip'], // 功能布局
             jump: function(obj, first) {
               if (!first) {
-                fetchData(obj.curr, obj.limit, cid);  // 重新获取数据
+                fetchData(obj.curr, obj.limit, cid,currentKeyword);  // 重新获取数据
               }
             }
           });
@@ -273,10 +304,12 @@ function formatTimestamp(unixTime) {
                          </a>
                           </td>
                           <td><span class="layui-badge ${randomClass}">${item.cate_name}</span></td>
+
                           <td>${item.followers}</td>
                           <td>${item.fans}</td>
-                          <td style="max-width:180px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${item.description}</td>
                           <td  style="max-width:150px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${item.remark}</td>
+                          <td style="max-width:180px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${item.description}</td>
+
                           <td>
                           <span   lay-on="edit-confirm"  data-id="${item.id}" data-cid="${item.cid}" data-tid="${item.tid}" data-description="${item.description}"    data-username="${item.username}" data-show_name="${item.show_name}" data-url="${item.url}" data-avatar="${item.avatar}" data-followers="${item.followers}" data-fans="${item.fans}"  data-remark="${item.remark}" ><button type="button" class="layui-btn layui-bg-blue  layui-btn-sm">修改</button></span>
                            <span   lay-on="del-twitter-confirm"  data-id="${item.tid}" ><button type="button" class="layui-btn layui-bg-red  layui-btn-sm">删除</button></span>
@@ -397,22 +430,20 @@ layui.use(function(){
             <div class="demo-login-container">
 
 
-               <div class="layui-form-item">
+               <div class="layui-form-item" style="margin-bottom:0px;" >
                 <div class="layui-input-wrap">
                   <div class="layui-input-prefix">
                     <i class="layui-icon layui-icon-link"></i>
                   </div>
-                  <input type="text" id="edit-twitter-input"  disabled name="twitter_url" value="${url}" lay-verify="required" placeholder="复制推特链接，程序会自动取信息" lay-reqtext="请填写复制推特链接" autocomplete="off" class="layui-input" lay-affix="clear">
-                  <div class="layui-inline layui-word-aux layui-font-gray show-twitter-demo-base-text" style="font-size:12px;margin-bottom:5px;"  >
-                  什么？不知道是推特哪个链接？
+                  <input type="text" id="edit-twitter-input"  disabled name="twitter_url" value="${url}" lay-verify="required" placeholder="复制推特主页链接，程序会自动取信息" lay-reqtext="请填写推特链接" autocomplete="off" class="layui-input" lay-affix="clear">
+                  <div class="layui-inline layui-word-aux layui-font-gray show-twitter-demo-base-text" style="font-size:12px;margin-bottom:0px;"  >
+                  什么？不知道取推特哪个链接？
                   <a href="javascript:;" class="layui-font-blue">
                     点击查看教程
                   </a>
                 </div>
                 </div>
               </div>
-
-
 
                <div class="layui-form-item">
                 <div class="layui-input-wrap">
@@ -584,14 +615,14 @@ layui.use(function(){
           <div class="layui-form" lay-filter="filter-test-layer" style="margin: 16px;">
             <div class="demo-login-container">
 
-              <div class="layui-form-item">
+              <div class="layui-form-item" style="margin-bottom:0px;">
                 <div class="layui-input-wrap">
                   <div class="layui-input-prefix">
                     <i class="layui-icon layui-icon-link"></i>
                   </div>
-                  <input type="text" id="add-twitter-input" name="twitter_url" value="" lay-verify="required" placeholder="复制推特链接，程序会自动取信息" lay-reqtext="请填写复制推特链接" autocomplete="off" class="layui-input" lay-affix="clear">
-                 <div class="layui-inline layui-word-aux layui-font-gray show-twitter-demo-base-text" style="font-size:12px;margin-bottom:5px;"  >
-                  什么？不知道是推特哪个链接？
+                  <input type="text" id="add-twitter-input" name="twitter_url" value="" lay-verify="required" placeholder="复制推特主页链接，程序会自动取信息" lay-reqtext="请填写推特链接" autocomplete="off" class="layui-input" lay-affix="clear">
+                 <div class="layui-inline layui-word-aux layui-font-gray show-twitter-demo-base-text" style="font-size:12px;margin-bottom:0px;"  >
+                  什么？不知道取推特哪个链接？
                   <a href="javascript:;" class="layui-font-blue">
                     点击查看教程
                   </a>

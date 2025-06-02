@@ -5,8 +5,29 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="52e72af2-67a7-4242-a6ba-fbef2c11875c" name="更改" comment="第七次提交，增加Discrod，推特取链接相关教程">
-      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/.name" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.name" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/auth.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/category.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/crontab/twitter.py" beforeDir="false" afterPath="$PROJECT_DIR$/crontab/twitter.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/discord.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/member.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/rapidapi.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/templates/category/twitter.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/category/twitter.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/templates/components/footer.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/components/footer.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/templates/components/sidebar.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/components/sidebar.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/templates/discord/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/discord/index.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/templates/discord/message.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/discord/message.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/templates/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/index.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/templates/member/codes.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/member/codes.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/templates/member/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/member/index.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/templates/twitter/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/twitter/index.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/twitter.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/twitter.sql" beforeDir="false" afterPath="$PROJECT_DIR$/twitter.sql" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/web3_auth.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/website.py" beforeDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -49,7 +70,7 @@
     &quot;ignore.virus.scanning.warn.message&quot;: &quot;true&quot;
   }
 }</component>
-  <component name="RunManager" selected="Python.app">
+  <component name="RunManager" selected="Python.main">
     <configuration name="app" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="twitter" />
       <option name="ENV_FILES" value="" />
@@ -140,8 +161,8 @@
     </configuration>
     <recent_temporary>
       <list>
-        <item itemvalue="Python.app" />
         <item itemvalue="Python.twitter" />
+        <item itemvalue="Python.app" />
         <item itemvalue="Python.test" />
       </list>
     </recent_temporary>
@@ -266,7 +287,15 @@
       <option name="project" value="LOCAL" />
       <updated>1748823672800</updated>
     </task>
-    <option name="localTasksCounter" value="14" />
+    <task id="LOCAL-00014" summary="第七次提交，增加Discrod，推特取链接相关教程">
+      <option name="closed" value="true" />
+      <created>1748823793071</created>
+      <option name="number" value="00014" />
+      <option name="presentableId" value="LOCAL-00014" />
+      <option name="project" value="LOCAL" />
+      <updated>1748823793071</updated>
+    </task>
+    <option name="localTasksCounter" value="15" />
     <servers />
   </component>
   <component name="VcsManagerConfiguration">

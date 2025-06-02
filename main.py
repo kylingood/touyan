@@ -1,16 +1,46 @@
-# 这是一个示例 Python 脚本。
+from quart import Quart, render_template, request,  g, Blueprint
+from src.web3_auth import web3_auth  # 导入我们刚才创建的 web3_auth Blueprint
+from src.category import category
+from src.twitter import twitter
+from src.discord import discord
+from src.member import member
+from src.website import website
+# Flask:
+#app = Flask(__name__)
+# Quart:
+app = Quart(__name__)
 
-# 按 Shift+F10 执行或将其替换为您的代码。
-# 按 双击 Shift 在所有地方搜索类、文件、工具窗口、操作和设置。
+# 注册 web3_auth Blueprint
+app.register_blueprint(web3_auth)
+# 注册 category Blueprint
+app.register_blueprint(category)
 
+# 注册 twitter Blueprint
+app.register_blueprint(twitter)
 
-def print_hi(name):
-    # 在下面的代码行中使用断点来调试脚本。
-    print(f'Hi, {name}')  # 按 Ctrl+F8 切换断点。
+# 注册 discord Blueprint
+app.register_blueprint(discord)
 
+# 注册 member Blueprint
+app.register_blueprint(member)
 
-# 按装订区域中的绿色按钮以运行脚本。
-if __name__ == '__main__':
-    print_hi('PyCharm')
+# 注册 member Blueprint
+app.register_blueprint(website)
 
-# 访问 https://www.jetbrains.com/help/pycharm/ 获取 PyCharm 帮助
+@app.route("/")
+async  def index():
+
+    return await  render_template("index.html")
+
+@app.route('/error')
+async  def error():
+
+    return await  render_template("error.html")
+
+# if __name__ == "__main__":
+#     app.run(debug=True)
+
+import asyncio
+
+if __name__ == "__main__":
+    asyncio.run(app.run_task(debug=True))

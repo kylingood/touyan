@@ -3,7 +3,7 @@ import time
 import random
 from datetime import datetime
 import json
-from rapidapi import *
+from src.rapidapi import *
 from util.utils import get_countdown
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
@@ -11,26 +11,32 @@ def get_data():
     ### 先查到所有推特账号
     sql = """
     SELECT
-      map.*,
-      t.id AS twitter_id,
-      t.uid AS twitter_uid,
-      t.tid AS twitter_tid,
-      t.username AS twitter_username,
-      t.show_name AS twitter_show_name,
-      t.url AS twitter_url,
-      t.remark AS twitter_remark,
-      t.description AS twitter_description,
-      t.avatar AS twitter_avatar,
-      t.followers AS twitter_followers,
-      t.fans AS twitter_fans,
-      t.status AS twitter_status,
-      t.created AS twitter_created,
-      t.updated AS twitter_updated
-    FROM guzi_member_twitter_map  AS map
-    INNER JOIN guzi_twitter AS t ON map.twitter_id = t.tid
-    WHERE map.status = 1
-    ORDER BY map.id DESC
-    LIMIT 10020 OFFSET 0;
+    map.*,
+    t.id AS twitter_id,
+    t.uid AS twitter_uid,
+    t.tid AS twitter_tid,
+    t.username AS twitter_username,
+    t.show_name AS twitter_show_name,
+    t.url AS twitter_url,
+    t.remark AS twitter_remark,
+    t.description AS twitter_description,
+    t.avatar AS twitter_avatar,
+    t.followers AS twitter_followers,
+    t.fans AS twitter_fans,
+    t.status AS twitter_status,
+    t.created AS twitter_created,
+    t.updated AS twitter_updated
+FROM guzi_member_twitter_map map
+JOIN (
+    SELECT twitter_id, MAX(id) AS max_id
+    FROM guzi_member_twitter_map
+    WHERE status = 1
+    GROUP BY twitter_id
+) latest_map ON map.id = latest_map.max_id
+JOIN guzi_twitter t ON map.twitter_id = t.tid
+ORDER BY map.id DESC
+LIMIT 10020 OFFSET 0;
+
     
     """
     data_list =  dbMysql.query(sql)
@@ -44,7 +50,7 @@ def process_member(member,sum_user=None):
     twitter_id = member['twitter_tid']
 
     try:
-        print(f"开始处理账号：{twitter_username} ")
+        print(f"开始处理账号：{twitter_username}\n ")
 
         # # 1. 抓取该账号的推文
         getTweetByUserID(twitter_id)

@@ -1,0 +1,554 @@
+{% extends "base.html" %}
+
+{% block content %}
+ <!--begin::App Content Header-->
+        <div class="app-content-header">
+          <!--begin::Container-->
+          <div class="container-fluid">
+            <!--begin::Row-->
+            <div class="row">
+              <div class="col-sm-6"><h4 class="mb-0">站点管理</h4></div>
+              <div class="col-sm-6">
+                <ol class="breadcrumb float-sm-end">
+                     <li class="breadcrumb-item"> <button type="button" class="layui-btn layui-bg-blue" lay-on="add-category-page-custom" >新增网站</button></li>
+
+                </ol>
+              </div>
+            </div>
+            <!--end::Row-->
+          </div>
+          <!--end::Container-->
+        </div>
+        <div class="app-content">
+          <!--begin::Container-->
+          <div class="container-fluid">
+            <!--begin::Row-->
+            <div  style="margin:20px 0px 10px 0px;text-align:center;">
+
+                <div class="layui-form-item">
+                <div class="layui-inline">
+                  <label class="layui-form-label">搜索：</label>
+                  <div class="layui-input-inline layui-input-wrap" style="width:500px;">
+                    <input type="input" name="keyword" id="search_keyword" lay-verify="required|phone" autocomplete="off" lay-reqtext="请填写手机号" lay-affix="clear" class="layui-input demo-phone">
+                  </div>
+                  <div class="layui-form-mid" style="padding: 0!important;">
+                    <button type="button" class="layui-btn layui-btn-primary" id="search_keyword_button" lay-on="get-vercode">开始搜索</button>
+                  </div>
+                </div>
+                  </div>
+
+            </div>
+            <!--end::Row-->
+               <div class="card mb-4">
+                  <div class="card-header">
+                    <h3 class="card-title">账号列表</h3>
+                  </div>
+                  <!-- /.card-header -->
+                  <div class="card-body p-0">
+
+                    <table class="table table-striped" style="text-align: center;">
+                      <thead>
+                        <tr>
+                          <th style="width: 80px">序号</th>
+                          <th>名称</th>
+                          <th>描述</th>
+                          <th>状态</th>
+                          <th>时间</th>
+                          <th style="width: 250px">操作</th>
+                        </tr>
+                      </thead>
+                      <tbody id="data-table">
+
+                      </tbody>
+                    </table>
+                    <div style="text-align: center;" id="demo-laypage-all"></div>
+                  </div>
+                  <!-- /.card-body -->
+                </div>
+                <!-- /.card -->
+
+
+          </div>
+          <!--end::Container-->
+        </div>
+        <!--end::App Content-->
+
+<script>
+
+layui.use(['laypage', 'jquery'], function() {
+  var laypage = layui.laypage;
+  var $ = layui.jquery;
+  const token = localStorage.getItem('token');
+
+  // 增加搜索委托给 body 或更合适的父容器
+  $('body').on('click keydown', '#search_keyword_button, #search_keyword', function (e) {
+      if (e.type === 'click' || (e.type === 'keydown' && e.key === 'Enter')) {
+        const keyword = $("#search_keyword").val().trim();
+
+        fetchData(1, 10, keyword);  // 默认加载第1页，10条数据
+      }
+  });
+
+
+  let currentKeyword = ''; // 全局变量，记住 keyword
+  function fetchData(page, limit, keyword) {
+    currentKeyword = keyword || '';  // 每次 fetch 更新当前 keyword
+    $.ajax({
+      url: '{{ url_for('website.page') }}',  // 替换为你的后端接口
+      type: 'GET',
+      headers: {
+        'Authorization': 'Bearer ' + token,
+        'Content-Type': 'application/json'
+      },
+      data: { page: page, limit: limit,is_type: 1,keyword: currentKeyword },
+      success: function(res) {
+        // 假设 res 格式：{ code: 0, count: 100, data: [...] }
+        if (res.code === 0) {
+          renderTable(res.data);  // 渲染表格
+          laypage.render({
+            elem: 'demo-laypage-all',
+            count: res.count,
+            limit: limit,
+            curr: page,
+            layout: ['count', 'prev', 'page', 'next', 'limit', 'skip'], // 功能布局
+            jump: function(obj, first) {
+              if (!first) {
+                fetchData(obj.curr, obj.limit,currentKeyword);  // 重新获取数据
+              }
+            }
+          });
+        }
+      }
+    });
+  }
+
+
+  function formatTimestamp(unixTime) {
+      // 判断是否为有效的数字类型（null、undefined、0、'0'、''等都能过滤）
+      if (!unixTime || Number(unixTime) <= 0 || isNaN(unixTime)) {
+        return '-';
+      }
+      const date = new Date(unixTime * 1000); // 如果是毫秒则不乘
+      const Y = date.getFullYear();
+      const M = String(date.getMonth() + 1).padStart(2, '0');
+      const D = String(date.getDate()).padStart(2, '0');
+      const h = String(date.getHours()).padStart(2, '0');
+      const m = String(date.getMinutes()).padStart(2, '0');
+      return `${Y}/${M}/${D} ${h}:${m}`;
+ }
+
+  function renderUsedStatus(status) {
+      return status==-1
+        ? '<span class="layui-badge layui-bg-orange">不显示</span>'
+        : '<span class="layui-badge " style="background-color:#16b777;">显示</span>';
+  }
+
+
+  function renderTable(data) {
+    var html = '';
+    const colorClasses = [
+      'layui-bg-orange',
+      'layui-bg-green',
+      'layui-bg-blue',
+      'layui-bg-black'
+    ];
+
+    data.forEach(function(item) {
+      // 随机选择一个 class
+      const randomClass = colorClasses[Math.floor(Math.random() * colorClasses.length)];
+      html += `<tr class="align-middle" id="del_website_${item.id}">
+                          <td>${item.num}.</td>
+                          <td style="text-align: left;">
+
+                         <a href="${item.url}" class="alert-link" target="_blank">
+                           <div style="display: flex; align-items: center; gap: 10px;">
+                              <img src="${item.logo}" class="user-image rounded-circle shadow"  style="width:40px; height:40px;" alt="User Image">
+                              <div style="display: flex; flex-direction: column;">
+                                <div style="font-weight: bold;">${item.title}</div>
+                                <div style="font-size: 0.9em; color: #666;">${item.url}</div>
+                              </div>
+                            </div>
+                         </a>
+                         </td>
+                          <td style="text-align: left;">${item.description}</td>
+                           <td>${renderUsedStatus(item.status)}</td>
+                          <td>${formatTimestamp(item.created)}</td>
+                          <td>
+                          <div class="layui-btn-container">
+                          <span   lay-on="edit-confirm"  data-id="${item.id}" data-title="${item.title}" data-description="${item.description}"   data-logo="${item.logo}"  data-sort="${item.sort}"  data-url="${item.url}" data-status="${item.status}"  ><button type="button" class="layui-btn layui-bg-blue  layui-btn-sm">修改</button></span>
+                          <span   lay-on="del-confirm"  data-id="${item.id}"  data-status="${item.status}"  ><button type="button" class="layui-btn layui-bg-green layui-btn-sm">显隐控制</button></span>
+                           <span   lay-on="del-discord-confirm"  data-id="${item.id}" ><button type="button" class="layui-btn layui-bg-red  layui-btn-sm">删除</button></span>
+                          </div>
+                          </td>
+                        </tr>`;
+    });
+    $('#data-table').html(html);
+  }
+
+  fetchData(1, 10);  // 默认加载第1页，10条数据
+});
+
+layui.use(function(){
+  var $ = layui.$;
+  var layer = layui.layer;
+  var util = layui.util;
+  var form = layui.form;
+
+  const token = localStorage.getItem('token');
+
+  // 事件
+  util.on('lay-on', {
+       'del-discord-confirm': function(){
+            const id = $(this).data('id');       // 获取 data-id 的值
+            layer.confirm('你确定删除此信息？', {
+            btn: ['确定', '取消'] //按钮
+          }, function(){
+            // 此处可执行 Ajax 等操作
+            $.ajax({
+                    url:'{{ url_for('website.delete') }}',
+                    data:{
+                        "id":id,
+                    },
+                    headers: {
+                        'Authorization': 'Bearer ' + token,
+                    },
+                    dataType:"json",
+                    type:"post",
+                    async:false,
+                    success:function(result){
+                        if(result.status == 1){
+                            $('#del_website_'+id).remove();
+                            layer.msg(result.message);
+                            return true
+                        }else{
+                            layer.msg(result.message);
+                            return false
+                        }
+                    }
+            })
+
+
+          }, function(){
+                return true
+
+          });
+    },
+    'del-confirm': function(){
+
+      const id = $(this).data('id');       // 获取 data-id 的值
+      const status = $(this).data('status');       // 获取 data-status 的值
+
+      layer.open({
+        type: 1,
+        area: '250px',
+        resize: false,
+        shadeClose: true,
+        title: '控制显隐',
+        content: `
+          <div class="layui-form" lay-filter="filter-test-layer" style="margin: 16px;">
+            <div class="demo-login-container">
+
+              <div class="layui-form-item">
+                <div class="layui-input-wrap" style="text-align:center;">
+                  <div class="layui-input-prefix">
+
+                  </div>
+                    <div class="layui-form">
+                      <input type="radio" name="status" value="1" title="显示" ${status == 1 ? 'checked' : ''}>
+                      <input type="radio" name="status" value="-1" title="不显示" ${status == -1 ? 'checked' : ''}>
+                    </div>
+                     <input type="hidden" name="id" value="${id}" lay-verify="required" placeholder="数据id"  autocomplete="off" >
+                 </div>
+              </div>
+
+              <div class="layui-form-item">
+                <button class="layui-btn layui-btn-fluid" id="add-button" lay-submit lay-filter="demo-login">确定修改</button>
+              </div>
+
+            </div>
+          </div>
+        `,
+        success: function(){
+          // 对弹层中的表单进行初始化渲染
+          form.render();
+
+          // 表单提交事件
+          form.on('submit(demo-login)', function(data){
+
+            $("#add-button").html("请稍等，正在提交数据...").attr("disabled","disabled");
+            // 此处可执行 Ajax 等操作
+            $.ajax({
+                url:'{{ url_for('website.edit') }}',
+                headers: {
+                    'Authorization': 'Bearer ' + token,
+                },
+                data:{
+                    "id":data.field.id,
+                    "status":data.field.status
+                },
+                dataType:"json",
+                type:"post",
+                async:false,
+                success:function(result){
+                    if(result.status == 1){
+
+                        layer.confirm(result.message, {
+                          btn: ['确定', '关闭'] //按钮
+                        }, function(){
+                          window.location.href='{{ url_for('website.index') }}';
+                        }, function(){
+                          window.location.href='{{ url_for('website.index') }}';
+                        });
+
+                        return true
+
+                    }else{
+                    	$("#add-button").html("确定提交").removeAttr("disabled");
+                    	return layer.msg(result.message);
+                    }
+                }
+            })
+            return false; // 阻止默认 form 跳转
+          });
+        }
+      });
+    },
+    'add-category-page-custom': function(){
+      layer.open({
+        type: 1,
+        area: '450px',
+        resize: false,
+        shadeClose: true,
+        title: '新增网站',
+        content: `
+          <div class="layui-form" lay-filter="filter-test-layer" style="margin: 16px;">
+            <div class="demo-login-container">
+
+                <div class="layui-form-item">
+                    <label class="layui-form-label">显隐:</label>
+                    <div class="layui-input-block">
+                      <input type="radio" name="status" value="1" title="显示" checked>
+                      <input type="radio" name="status" value="-1" title="不显示">
+                    </div>
+                </div>
+
+                <div class="layui-form-item">
+                    <label class="layui-form-label">名称:</label>
+                    <div class="layui-input-block">
+                      <input type="text" name="title"     id="edit_title" value=""  placeholder="网站名称"  lay-reqtext="请填写网站名称"   lay-verify="required" autocomplete="off" class="layui-input">
+                    </div>
+                  </div>
+
+                  <div class="layui-form-item">
+                    <label class="layui-form-label">URL:</label>
+                    <div class="layui-input-block">
+                      <input type="text" name="url"    id="edit_logo" value=""  placeholder="网站链接"  lay-reqtext="请填写网站链接" lay-verify="required" autocomplete="off" class="layui-input">
+
+                    </div>
+                  </div>
+
+
+                 <div class="layui-form-item">
+                    <label class="layui-form-label">Logo:</label>
+                    <div class="layui-input-block">
+                      <input type="text" name="logo"    id="edit_logo" value=""  placeholder="Logo"  lay-reqtext="请填写网站Logo" lay-verify="required" autocomplete="off" class="layui-input">
+
+                    </div>
+                  </div>
+
+
+                 <div class="layui-form-item">
+                    <label class="layui-form-label">排序:</label>
+                    <div class="layui-input-block">
+                      <input type="text" name="sort"   id="edit_sort" value="1" lay-verify="required"  placeholder="排序号"  lay-reqtext="请填写排序号"  autocomplete="off" class="layui-input">
+
+                    </div>
+                  </div>
+
+
+                 <div class="layui-form-item">
+                    <label class="layui-form-label" >描述:</label>
+                    <div class="layui-input-block">
+                      <textarea placeholder="请输入网站描述信息" name="description" class="layui-textarea" lay-verify="required"  lay-reqtext="请输入网站描述信息"  ></textarea>
+
+                    </div>
+                  </div>
+
+              <div class="layui-form-item">
+                <button class="layui-btn layui-btn-fluid" id="add-button" lay-submit lay-filter="demo-login">确定修改</button>
+              </div>
+
+            </div>
+          </div>
+        `,
+        success: function(){
+          // 对弹层中的表单进行初始化渲染
+          form.render();
+          // 表单提交事件
+          form.on('submit(demo-login)', function(data){
+
+            $("#add-button").html("请稍等，正在提交数据...").attr("disabled","disabled");
+            // 此处可执行 Ajax 等操作
+            $.ajax({
+                url:'{{ url_for('website.add') }}',
+                headers: {
+                    'Authorization': 'Bearer ' + token,
+                },
+                data:{
+                    "title":data.field.title,
+                    "description":data.field.description,
+                    "logo":data.field.logo,
+                    "sort":data.field.sort,
+                    "status":data.field.status,
+                    "url":data.field.url
+                },
+                dataType:"json",
+                type:"post",
+                async:false,
+                success:function(result){
+                    if(result.status == 1){
+
+                        layer.confirm(result.message, {
+                          btn: ['确定', '关闭'] //按钮
+                        }, function(){
+                          window.location.href='{{ url_for('website.index') }}';
+                        }, function(){
+                          window.location.href='{{ url_for('website.index') }}';
+                        });
+
+                        return true
+
+                    }else{
+                    	$("#add-button").html("确定提交").removeAttr("disabled");
+                    	return layer.msg(result.message);
+                    }
+                }
+            })
+            return false; // 阻止默认 form 跳转
+          });
+        }
+      });
+    },
+    'edit-confirm': function(){
+
+      const id = $(this).data('id');       // 获取 data-id 的值
+      const title = $(this).data('title');       // 获取 data-remark 的值
+      const logo = $(this).data('logo');
+      const description = $(this).data('description');
+      const sort = $(this).data('sort');
+      const status = $(this).data('status');
+      const url = $(this).data('url');
+
+      layer.open({
+        type: 1,
+        area: '450px',
+        resize: false,
+        shadeClose: true,
+        title: '管理 '+title+' 网站',
+        content: `
+          <div class="layui-form" lay-filter="filter-test-layer" style="margin: 16px;">
+            <div class="demo-login-container">
+
+                <div class="layui-form-item">
+                    <label class="layui-form-label">名称:</label>
+                    <div class="layui-input-block">
+                      <input type="text" name="title"     id="edit_title" value="${title}"  placeholder="网站名称"  lay-reqtext="请填写网站名称"   lay-verify="required" autocomplete="off" class="layui-input">
+                    </div>
+                  </div>
+
+                  <div class="layui-form-item">
+                    <label class="layui-form-label">URL:</label>
+                    <div class="layui-input-block">
+                      <input type="text" name="url"    id="edit_logo" value="${url}"  placeholder="网站链接"  lay-reqtext="请填写网站链接" lay-verify="required" autocomplete="off" class="layui-input">
+
+                    </div>
+                  </div>
+
+
+                 <div class="layui-form-item">
+                    <label class="layui-form-label">Logo:</label>
+                    <div class="layui-input-block">
+                      <input type="text" name="logo"    id="edit_logo" value="${logo}"  placeholder="Logo"  lay-reqtext="请填写网站Logo" lay-verify="required" autocomplete="off" class="layui-input">
+
+                    </div>
+                  </div>
+
+
+                 <div class="layui-form-item">
+                    <label class="layui-form-label">排序:</label>
+                    <div class="layui-input-block">
+                      <input type="text" name="sort"   id="edit_sort" value="${sort}" lay-verify="required"  placeholder="排序号"  lay-reqtext="请填写排序号"  autocomplete="off" class="layui-input">
+
+                    </div>
+                  </div>
+
+
+                 <div class="layui-form-item">
+                    <label class="layui-form-label" >描述:</label>
+                    <div class="layui-input-block">
+                      <textarea placeholder="请输入网站描述信息" name="description" class="layui-textarea" lay-verify="required"  lay-reqtext="请输入网站描述信息"  >${description}</textarea>
+                     <input type="hidden" name="id" value="${id}" lay-verify="required" placeholder="账号uid"  autocomplete="off" >
+                    </div>
+                  </div>
+
+              <div class="layui-form-item">
+                <button class="layui-btn layui-btn-fluid" id="add-button" lay-submit lay-filter="demo-login">确定修改</button>
+              </div>
+
+            </div>
+          </div>
+        `,
+        success: function(){
+          // 对弹层中的表单进行初始化渲染
+          form.render();
+
+          // 表单提交事件
+          form.on('submit(demo-login)', function(data){
+
+            $("#add-button").html("请稍等，正在提交数据...").attr("disabled","disabled");
+            // 此处可执行 Ajax 等操作
+            $.ajax({
+                url:'{{ url_for('website.edit') }}',
+                headers: {
+                    'Authorization': 'Bearer ' + token,
+                },
+                data:{
+                    "id":data.field.id,
+                    "title":data.field.title,
+                    "description":data.field.description,
+                    "logo":data.field.logo,
+                    "url":data.field.url,
+                    "sort":data.field.sort
+                },
+                dataType:"json",
+                type:"post",
+                async:false,
+                success:function(result){
+                    if(result.status == 1){
+
+                        layer.confirm(result.message, {
+                          btn: ['确定', '关闭'] //按钮
+                        }, function(){
+                          window.location.href='{{ url_for('website.index') }}';
+                        }, function(){
+                          window.location.href='{{ url_for('website.index') }}';
+                        });
+
+                        return true
+
+                    }else{
+                    	$("#add-button").html("确定提交").removeAttr("disabled");
+                    	return layer.msg(result.message);
+                    }
+                }
+            })
+            return false; // 阻止默认 form 跳转
+          });
+        }
+      });
+    }
+  })
+});
+</script>
+
+{% endblock %}

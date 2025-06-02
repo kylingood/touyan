@@ -24,8 +24,28 @@
           <!--end::Container-->
         </div>
         <div class="app-content">
+
+
+
           <!--begin::Container-->
           <div class="container-fluid">
+            <!--begin::Row-->
+            <div  style="margin:20px 0px 10px 0px;text-align:center;">
+
+                <div class="layui-form-item">
+                <div class="layui-inline">
+                  <label class="layui-form-label">搜索：</label>
+                  <div class="layui-input-inline layui-input-wrap" style="width:500px;">
+                    <input type="input" name="keyword" id="search_keyword" lay-verify="required|phone" autocomplete="off" lay-reqtext="请填写手机号" lay-affix="clear" class="layui-input demo-phone">
+                  </div>
+                  <div class="layui-form-mid" style="padding: 0!important;">
+                    <button type="button" class="layui-btn layui-btn-primary" id="search_keyword_button" lay-on="get-vercode">开始搜索</button>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+            <!--end::Row-->
 
                <div class="card mb-4">
                   <div class="card-header">
@@ -42,6 +62,9 @@
                           <th>钱包</th>
                           <th>状态</th>
                           <th>邀请码</th>
+                          <th>推特</th>
+                          <th>DC</th>
+                          <th>DC频道</th>
                           <th>注册时间</th>
                           <th>备注</th>
                           <th style="width: 200px">操作</th>
@@ -70,7 +93,19 @@ layui.use(['laypage', 'jquery'], function() {
   var $ = layui.jquery;
   const token = localStorage.getItem('token');
 
-  function fetchData(page, limit) {
+  // 增加搜索委托给 body 或更合适的父容器
+  $('body').on('click keydown', '#search_keyword_button, #search_keyword', function (e) {
+      if (e.type === 'click' || (e.type === 'keydown' && e.key === 'Enter')) {
+        const keyword = $("#search_keyword").val().trim();
+
+        fetchData(1, 10, keyword);  // 默认加载第1页，10条数据
+      }
+  });
+
+  let currentKeyword = ''; // 全局变量，记住 keyword
+
+  function fetchData(page, limit, keyword) {
+    currentKeyword = keyword || '';  // 每次 fetch 更新当前 keyword
     $.ajax({
       url: '{{ url_for('member.page') }}',  // 替换为你的后端接口
       type: 'GET',
@@ -78,7 +113,7 @@ layui.use(['laypage', 'jquery'], function() {
         'Authorization': 'Bearer ' + token,
         'Content-Type': 'application/json'
       },
-      data: { page: page, limit: limit,is_type: 2 },
+      data: { page: page, limit: limit,keyword: currentKeyword },
       success: function(res) {
         // 假设 res 格式：{ code: 0, count: 100, data: [...] }
         if (res.code === 0) {
@@ -91,7 +126,7 @@ layui.use(['laypage', 'jquery'], function() {
             layout: ['count', 'prev', 'page', 'next', 'limit', 'skip'], // 功能布局
             jump: function(obj, first) {
               if (!first) {
-                fetchData(obj.curr, obj.limit);  // 重新获取数据
+                fetchData(obj.curr, obj.limit,currentKeyword);  // 重新获取数据
               }
             }
           });
@@ -139,12 +174,16 @@ layui.use(['laypage', 'jquery'], function() {
                           <td>${item.wallet}</td>
                           <td>${renderUsedStatus(item.status)}</td>
                           <td>${item.code}</td>
+                          <td>${item.max_twitter}</td>
+                          <td>${item.max_discord}</td>
+                          <td>${item.max_discord_channel}</td>
                           <td>${formatTimestamp(item.created)}</td>
                           <td>${item.remark}</td>
                           <td>
                           <div class="layui-btn-container">
-                          <span   lay-on="edit-confirm"  data-id="${item.uid}" data-remark="${item.remark}" ><button type="button" class="layui-btn layui-bg-blue  layui-btn-sm">设置备注</button></span>
-                          <span   lay-on="del-confirm"  data-id="${item.uid}"  data-status="${item.status}"  ><button type="button" class="layui-btn layui-bg-red  layui-btn-sm">禁止账号</button></span>
+                          <span   lay-on="edit-confirm"  data-id="${item.uid}" data-username="${item.username}" data-remark="${item.remark}"   data-max-twitter="${item.max_twitter}"  data-max-discord="${item.max_discord}"  data-max-discord-channel="${item.max_discord_channel}"  ><button type="button" class="layui-btn layui-bg-blue  layui-btn-sm">设置</button></span>
+                          <span   lay-on="del-confirm"  data-id="${item.uid}"  data-status="${item.status}"  ><button type="button" class="layui-btn layui-bg-orange  layui-btn-sm">禁止账号</button></span>
+
                           </div>
                           </td>
                         </tr>`;
@@ -250,26 +289,55 @@ layui.use(function(){
 
       const id = $(this).data('id');       // 获取 data-id 的值
       const remark = $(this).data('remark');       // 获取 data-remark 的值
+      const max_twitter = $(this).data('max-twitter');
+      const max_discord = $(this).data('max-discord');
+      const max_discord_channel = $(this).data('max-discord-channel');
+      const username = $(this).data('username');
 
       layer.open({
         type: 1,
         area: '350px',
         resize: false,
         shadeClose: true,
-        title: '管理账号',
+        title: '管理 '+username+' 账号',
         content: `
           <div class="layui-form" lay-filter="filter-test-layer" style="margin: 16px;">
             <div class="demo-login-container">
 
-              <div class="layui-form-item">
-                <div class="layui-input-wrap">
-                  <div class="layui-input-prefix">
-                    <i class="layui-icon layui-icon-password"></i>
+
+
+                <div class="layui-form-item">
+                    <label class="layui-form-label" style="width:120px;">最大推特:</label>
+                    <div class="layui-input-block">
+                      <input type="text" name="max_twitter"  style="width:180px;"   id="edit_max_twitter" value="${max_twitter}"  placeholder="最大推特数量"  autocomplete="off" class="layui-input">
+                    </div>
                   </div>
-                    <textarea placeholder="请输入账号备注" name="remark" class="layui-textarea" lay-verify="required"  lay-reqtext="请填写账号备注"  >${remark}</textarea>
+
+                 <div class="layui-form-item">
+                    <label class="layui-form-label" style="width:120px;">最大DC数量:</label>
+                    <div class="layui-input-block">
+                      <input type="text" name="max_discord"  style="width:180px;"    id="edit_max_discord" value="${max_discord}"  placeholder="最大Discord数量"  autocomplete="off" class="layui-input">
+
+                    </div>
+                  </div>
+
+
+                 <div class="layui-form-item">
+                    <label class="layui-form-label" style="width:120px;">最大DC频道:</label>
+                    <div class="layui-input-block">
+                      <input type="text" name="max_discord_channel" style="width:180px;"  id="edit_max_discord_channel" value="${max_discord_channel}"  placeholder="最大Discord的频道数量"  autocomplete="off" class="layui-input">
+
+                    </div>
+                  </div>
+
+
+                 <div class="layui-form-item">
+                    <label class="layui-form-label" style="width:70px;">备注:</label>
+                    <div class="layui-input-block">
+                      <textarea placeholder="请输入账号备注" name="remark" class="layui-textarea" lay-verify="required"  lay-reqtext="请填写账号备注"  >${remark}</textarea>
                      <input type="hidden" name="id" value="${id}" lay-verify="required" placeholder="账号uid"  autocomplete="off" >
-                 </div>
-              </div>
+                    </div>
+                  </div>
 
               <div class="layui-form-item">
                 <button class="layui-btn layui-btn-fluid" id="add-button" lay-submit lay-filter="demo-login">确定修改</button>
@@ -294,6 +362,9 @@ layui.use(function(){
                 },
                 data:{
                     "id":data.field.id,
+                    "max_twitter":data.field.max_twitter,
+                    "max_discord":data.field.max_discord,
+                    "max_discord_channel":data.field.max_discord_channel,
                     "remark":data.field.remark
                 },
                 dataType:"json",
