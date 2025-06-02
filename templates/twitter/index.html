@@ -37,7 +37,7 @@
           <!--begin::Container-->
           <div class="container-fluid">
                  <!--begin::Row-->
-                    <div  style="margin:20px 0px 10px 0px;text-align:center;">
+                    <div  style="text-align:center;">
 
                     <div class="layui-form-item">
                     <div class="layui-inline">
@@ -307,8 +307,8 @@ function formatTimestamp(unixTime) {
 
                           <td>${item.followers}</td>
                           <td>${item.fans}</td>
-                          <td  style="max-width:150px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${item.remark}</td>
-                          <td style="max-width:180px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${item.description}</td>
+                          <td  style="max-width:250px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${item.remark}</td>
+                          <td style="max-width:250px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${item.description}</td>
 
                           <td>
                           <span   lay-on="edit-confirm"  data-id="${item.id}" data-cid="${item.cid}" data-tid="${item.tid}" data-description="${item.description}"    data-username="${item.username}" data-show_name="${item.show_name}" data-url="${item.url}" data-avatar="${item.avatar}" data-followers="${item.followers}" data-fans="${item.fans}"  data-remark="${item.remark}" ><button type="button" class="layui-btn layui-bg-blue  layui-btn-sm">修改</button></span>

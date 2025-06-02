@@ -4,30 +4,18 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="52e72af2-67a7-4242-a6ba-fbef2c11875c" name="更改" comment="第七次提交，增加Discrod，推特取链接相关教程">
-      <change beforePath="$PROJECT_DIR$/.idea/.name" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.name" afterDir="false" />
+    <list default="true" id="52e72af2-67a7-4242-a6ba-fbef2c11875c" name="更改" comment="第七次提交，增加搜索功能">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/auth.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/category.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/crontab/twitter.py" beforeDir="false" afterPath="$PROJECT_DIR$/crontab/twitter.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/discord.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/member.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/rapidapi.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/category.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/category.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/discord.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/discord.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/templates/category/discord.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/category/discord.html" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/templates/category/twitter.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/category/twitter.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/templates/components/footer.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/components/footer.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/templates/components/sidebar.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/components/sidebar.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/templates/discord/guild.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/discord/guild.html" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/templates/discord/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/discord/index.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/templates/discord/message.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/discord/message.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/templates/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/index.html" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/templates/member/codes.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/member/codes.html" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/templates/member/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/member/index.html" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/templates/twitter/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/twitter/index.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/twitter.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/twitter.sql" beforeDir="false" afterPath="$PROJECT_DIR$/twitter.sql" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/web3_auth.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/website.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/templates/website/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/website/index.html" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -295,7 +283,15 @@
       <option name="project" value="LOCAL" />
       <updated>1748823793071</updated>
     </task>
-    <option name="localTasksCounter" value="15" />
+    <task id="LOCAL-00015" summary="第七次提交，增加搜索功能">
+      <option name="closed" value="true" />
+      <created>1748872848889</created>
+      <option name="number" value="00015" />
+      <option name="presentableId" value="LOCAL-00015" />
+      <option name="project" value="LOCAL" />
+      <updated>1748872848889</updated>
+    </task>
+    <option name="localTasksCounter" value="16" />
     <servers />
   </component>
   <component name="VcsManagerConfiguration">
@@ -306,6 +302,7 @@
     <MESSAGE value="第五次提交，增加推特信息流" />
     <MESSAGE value="第六次提交，增加推特信息流" />
     <MESSAGE value="第七次提交，增加Discrod，推特取链接相关教程" />
-    <option name="LAST_COMMIT_MESSAGE" value="第七次提交，增加Discrod，推特取链接相关教程" />
+    <MESSAGE value="第七次提交，增加搜索功能" />
+    <option name="LAST_COMMIT_MESSAGE" value="第七次提交，增加搜索功能" />
   </component>
 </project>

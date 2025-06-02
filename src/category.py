@@ -36,12 +36,18 @@ def page_discord():
         page = request.args.get('page', default=1, type=int)
         limit = request.args.get('limit', default=10, type=int)
         is_type = request.args.get('is_type', default=1, type=int)
+        keyword = request.args.get('keyword')
 
 
-        where = f"uid='{uid}' AND is_type='{is_type}' AND status=1"
+        where_clauses = [f"c.uid='{uid}' AND c.is_type='{is_type}' AND c.status=1"]
 
+        if keyword:
+            where_clauses.append(
+                f"( c.title LIKE '%{keyword}%' OR c.remark LIKE '%{keyword}%'  OR c.id LIKE '%{keyword}%' )")
 
-        order = "id DESC"
+        where = ' AND '.join(where_clauses)
+
+        order = "c.id DESC"
 
         # 然后再计算偏移量
         start_index = (page - 1) * limit + 1
@@ -58,7 +64,7 @@ def page_discord():
             ON 
                 c.id = m.category_id
             WHERE 
-                c.is_type = '{is_type}' AND c.uid='{uid}' 
+                 {where}
             GROUP BY 
                 c.id
             ORDER BY 
@@ -68,7 +74,10 @@ def page_discord():
         print(dbMysql.getLastSql())  # 打印由Model类拼接填充生成的SQL语句
         #data_list = dbMysql.table('guzi_category').where(where).order(order).page(page, limit).select()
         #print(dbMysql.getLastSql())  # 打印由Model类拼接填充生成的SQL语句
-        total =  dbMysql.table('guzi_category').where(where).count()
+        total_sql = f"SELECT COUNT(*) AS total FROM guzi_category AS c   WHERE  {where}  "
+        print(total_sql)  # 打印由Model类拼接填充生成的SQL语句
+        total_list = dbMysql.query(total_sql)
+        total = total_list[0]['total'] if total_list and 'total' in total_list[0] else 0
 
         if total > 0:
             layui_result = {
@@ -107,6 +116,7 @@ def page():
         limit = request.args.get('limit', default=10, type=int)
         is_type = request.args.get('is_type', default=1, type=int)
         keyword = request.args.get('keyword')
+
         where_clauses = [f"c.uid='{uid}' AND c.is_type='{is_type}' AND c.status=1"]
 
         if keyword:

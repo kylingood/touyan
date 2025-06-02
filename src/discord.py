@@ -26,24 +26,47 @@ async def page():
         page = request.args.get('page', default=1, type=int)
         limit = request.args.get('limit', default=10, type=int)
         cid = request.args.get('cid', default=0, type=int)
+        keyword = request.args.get('keyword')
 
-        where = f"uid='{uid}' AND status=1"
-        order = "id DESC"
+        where_sql_clauses = [f" d.uid='{uid}' AND d.status=1"]
+
+        order_sql = "d.id DESC"
+
         if cid:
-            where = f"uid='{uid}' AND status=1 AND cid='{cid}' "
+            where_sql_clauses.append(f"d.cid='{cid}'")
 
+        if keyword:
+            where_sql_clauses.append(
+                f"(d.username LIKE '%{keyword}%' OR d.global_name LIKE '%{keyword}%' OR "
+                f"d.token LIKE '%{keyword}%' OR d.email LIKE '%{keyword}%' OR "
+                f"d.remark LIKE '%{keyword}%' OR c.title LIKE '%{keyword}%' )"
+            )
+
+        where_sql = ' AND '.join(where_sql_clauses)
+        # 然后再计算偏移量
+        offset = (page - 1) * limit
         # 然后再计算偏移量
         start_index = (page - 1) * limit + 1
 
-        data_list = dbMysql.table('guzi_discord').where(where).order(order).page(page, limit).select()
+        sql = f'''SELECT 
+                    d.*, 
+                    c.title AS category_title
+                FROM 
+                    guzi_discord AS d
+                LEFT JOIN 
+                    guzi_category AS c 
+                ON 
+                    d.cid = c.id
+                WHERE {where_sql} ORDER BY {order_sql}   LIMIT  {limit} OFFSET {offset}'''
+
+        data_list = dbMysql.query(sql)
         #print(dbMysql.getLastSql())  # 打印由Model类拼接填充生成的SQL语句
-        total =  dbMysql.table('guzi_discord').where(where).count()
+        total_sql = f"SELECT   COUNT(*) AS total  FROM    guzi_discord AS d  LEFT JOIN   guzi_category AS c  ON   d.cid = c.id  WHERE  {where_sql}"
+        print(total_sql)  # 打印由Model类拼接填充生成的SQL语句
+        total_list = dbMysql.query(total_sql)
+        total = total_list[0]['total'] if total_list and 'total' in total_list[0] else 0
 
 
-        rows = dbMysql.table('guzi_category').where(f"uid='{uid}' AND status=1").field('id,title').select()
-        cate_data = {}
-        for row in rows:
-            cate_data[row['id']] = row['title']
 
         if total > 0:
             layui_result = {
@@ -55,7 +78,7 @@ async def page():
                         "id": item["id"],
                         "uid": item["uid"],
                         "cid": item["cid"],
-                        "cate_name": cate_data.get(item["cid"], "未知分类"),
+                        "cate_name": item["category_title"] or "未知分类",
                         "username": item["username"],
                         "global_name": item["global_name"],
                         "token": item["token"],
@@ -499,21 +522,32 @@ async def page_channel():
         limit = request.args.get('limit', default=10, type=int)
         did = request.args.get('did', default=0, type=int)
         guild_id = request.args.get('guild_id', default=0, type=int)
+        keyword = request.args.get('keyword')
 
-        where = f"uid='{uid}' AND status=1"
+
+
+        where_sql_clauses = [f"uid='{uid}' AND status=1"]
+
         order = "id DESC"
         if did:
-            where = f" did='{did}'  AND {where} "
+            where_sql_clauses.append(f" did='{did}' ")
 
         if guild_id:
-            where = f" guild_id='{guild_id}' AND {where}"
+            where_sql_clauses.append(f" guild_id='{guild_id}'")
+
+
+        if keyword:
+            where_sql_clauses.append(f" ( username LIKE '%{keyword}%'  OR remark LIKE '%{keyword}%'    OR guild_id LIKE '%{keyword}%'  OR channel_id LIKE '%{keyword}%'  "  
+                                     f" OR guild_name LIKE '%{keyword}%'   OR guild_description LIKE '%{keyword}%'  OR token LIKE '%{keyword}%'  )  ")
+
+        where_sql = ' AND '.join(where_sql_clauses)
 
         # 然后再计算偏移量
         start_index = (page - 1) * limit + 1
 
-        data_list = dbMysql.table('guzi_discord_channel').where(where).order(order).page(page, limit).select()
+        data_list = dbMysql.table('guzi_discord_channel').where(where_sql).order(order).page(page, limit).select()
         #print(dbMysql.getLastSql())  # 打印由Model类拼接填充生成的SQL语句
-        total =  dbMysql.table('guzi_discord_channel').where(where).count()
+        total =  dbMysql.table('guzi_discord_channel').where(where_sql).count()
 
 
         rows = dbMysql.table('guzi_discord').where(f"uid='{uid}' AND status=1").field('id,global_name').select()

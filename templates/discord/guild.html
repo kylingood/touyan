@@ -37,7 +37,23 @@
         <div class="app-content">
           <!--begin::Container-->
           <div class="container-fluid">
+                 <!--begin::Row-->
+                    <div  style="text-align:center;">
 
+                    <div class="layui-form-item">
+                    <div class="layui-inline">
+                      <label class="layui-form-label">搜索：</label>
+                      <div class="layui-input-inline layui-input-wrap" style="width:500px;">
+                        <input type="input" name="keyword" id="search_keyword" lay-verify="required|phone" autocomplete="off" lay-reqtext="请填写手机号" lay-affix="clear" class="layui-input demo-phone">
+                      </div>
+                      <div class="layui-form-mid" style="padding: 0!important;">
+                        <button type="button" class="layui-btn layui-btn-primary" id="search_keyword_button" lay-on="get-vercode">开始搜索</button>
+                      </div>
+                    </div>
+                      </div>
+
+                    </div>
+                <!--end::Row-->
                <div class="card mb-4">
                   <div class="card-header">
                     <h3 class="card-title">Discord监控频道</h3>
@@ -199,7 +215,19 @@ layui.use(['laypage', 'jquery'], function() {
     }
   });
 
-  function fetchData(page, limit, did) {
+  // 增加搜索委托给 body 或更合适的父容器
+  $('body').on('click keydown', '#search_keyword_button, #search_keyword', function (e) {
+      if (e.type === 'click' || (e.type === 'keydown' && e.key === 'Enter')) {
+        const keyword = $("#search_keyword").val().trim();
+
+        fetchData(1, 10,0, keyword);  // 默认加载第1页，10条数据
+      }
+  });
+
+  let currentKeyword = ''; // 全局变量，记住 keyword
+
+  function fetchData(page, limit, did, keyword) {
+    currentKeyword = keyword || '';  // 每次 fetch 更新当前 keyword
     $.ajax({
       url: '{{ url_for('discord.page_channel') }}',  // 替换为你的后端接口
       type: 'GET',
@@ -207,7 +235,7 @@ layui.use(['laypage', 'jquery'], function() {
         'Authorization': 'Bearer ' + token,
         'Content-Type': 'application/json'
       },
-      data: { page: page, limit: limit, did: did},
+      data: { page: page, limit: limit, did: did,keyword: currentKeyword },
       success: function(res) {
         // 假设 res 格式：{ code: 0, count: 100, data: [...] }
         if (res.code === 0) {
@@ -220,7 +248,7 @@ layui.use(['laypage', 'jquery'], function() {
             layout: ['count', 'prev', 'page', 'next', 'limit', 'skip'], // 功能布局
             jump: function(obj, first) {
               if (!first) {
-                fetchData(obj.curr, obj.limit, did);  // 重新获取数据
+                fetchData(obj.curr, obj.limit, did,currentKeyword);  // 重新获取数据
               }
             }
           });
