@@ -17,7 +17,6 @@ output.log
 __pycache__/
 *.py[cod]
 *$py.class
-dist/
 log/
 .DS_Store
 # C extensions
@@ -26,7 +25,6 @@ log/
 .Python
 build/
 develop-eggs/
-dist/
 downloads/
 eggs/
 .eggs/

@@ -4,15 +4,9 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="52e72af2-67a7-4242-a6ba-fbef2c11875c" name="更改" comment="第六次提交，增加推特信息流">
+    <list default="true" id="52e72af2-67a7-4242-a6ba-fbef2c11875c" name="更改" comment="第七次提交，增加Discrod，推特取链接相关教程">
+      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/member.py" beforeDir="false" afterPath="$PROJECT_DIR$/member.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/templates/components/footer.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/components/footer.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/templates/discord/guild.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/discord/guild.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/templates/discord/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/discord/index.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/templates/member/codes.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/member/codes.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/templates/twitter/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/twitter/index.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/web3_auth.py" beforeDir="false" afterPath="$PROJECT_DIR$/web3_auth.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -264,7 +258,15 @@
       <option name="project" value="LOCAL" />
       <updated>1748783618178</updated>
     </task>
-    <option name="localTasksCounter" value="13" />
+    <task id="LOCAL-00013" summary="第七次提交，增加Discrod，推特取链接相关教程">
+      <option name="closed" value="true" />
+      <created>1748823672799</created>
+      <option name="number" value="00013" />
+      <option name="presentableId" value="LOCAL-00013" />
+      <option name="project" value="LOCAL" />
+      <updated>1748823672800</updated>
+    </task>
+    <option name="localTasksCounter" value="14" />
     <servers />
   </component>
   <component name="VcsManagerConfiguration">
@@ -274,6 +276,7 @@
     <MESSAGE value="第四次提交，增加推特信息流" />
     <MESSAGE value="第五次提交，增加推特信息流" />
     <MESSAGE value="第六次提交，增加推特信息流" />
-    <option name="LAST_COMMIT_MESSAGE" value="第六次提交，增加推特信息流" />
+    <MESSAGE value="第七次提交，增加Discrod，推特取链接相关教程" />
+    <option name="LAST_COMMIT_MESSAGE" value="第七次提交，增加Discrod，推特取链接相关教程" />
   </component>
 </project>
