@@ -332,7 +332,7 @@ video {
           <div class="container-fluid">
             <!--begin::Row-->
             <div class="row">
-              <div class="col-sm-6"><h4 class="mb-0">全部监控信息</h4></div>
+              <div class="col-sm-6"><h4 class="mb-0">推特信息流</h4><span class="layui-font-gray">注意：第三方接口限制，第一次新增推特，系统预计10分种左右更新数据</span></div>
               <div class="col-sm-6">
                 <ol class="breadcrumb float-sm-end">
                   <li class="breadcrumb-item active" aria-current="page">
@@ -620,7 +620,7 @@ $(document).on('click', '.text_content img', function () {
                         <p class="text_content">${linkifyShortUrls(item.content)}</p>
 
                        <!-- 判断 original_tweet_id 是否有值再渲染引用推文卡片 -->
-                       ${item.original_tweet_id ? `
+                       ${item.original_tweet_user_id  ? `
                         <!-- 引用推文卡片 -->
                         <div class="quoted-tweet">
                           <div class="quoted-header">

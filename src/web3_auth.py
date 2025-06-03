@@ -82,16 +82,14 @@ async def get_channel():
 
         return jsonify({'status': 0, 'message': '无效或被封禁的 token'})
 
-
-async def insert_message_db(item):
-
-    token = item['token']
-    guild_id = item['guild_id']
-    channel_id = item['channel_id']
-    did = item['did']
-    async with AsyncSession() as session:
-        message_info = await get_discord_message(token, guild_id, channel_id, 5, session)
-
+### 把数据同步更新到数据库中
+def insert_message_db(item, message_info):
+        token = item['discord_token']
+        guild_id = item['guild_id']
+        channel_id = item['channel_id']
+        did = item['did']
+        channel_db_id = item['id']
+        username = item['username']
         for message in message_info:
             mid = message['id']
             content = message['content']
@@ -113,6 +111,7 @@ async def insert_message_db(item):
             dbdata = {}
             today_time = int(time.time())
             content_cn = ''
+
             if data_one and edited_timestamp != data_one.get('edited_timestamp'):
                 dbid = data_one['id']
                 dbdata['updated'] = today_time
@@ -121,8 +120,12 @@ async def insert_message_db(item):
                 dbdata['content_cn'] = content_cn
                 dbdata['timestamp'] = timestamp
                 dbdata['edited_timestamp'] = edited_timestamp
-                id = dbMysql.table('guzi_discord_message').where(f"id = '{dbid}'").save(dbdata)
+                result_id = dbMysql.table('guzi_discord_message').where(f"id = '{dbid}'").save(dbdata)
+
+                print(f'更新数据结果：{result_id}')
+                #print(dbMysql.getLastSql())  # 打印由Model类拼接填充生成的SQL语句
             else:
+
                 # 获取当前日期
                 dbdata['mid'] = mid
                 dbdata['username'] = item['username']
@@ -140,10 +143,40 @@ async def insert_message_db(item):
                 dbdata['url'] = item['url']
                 dbdata['status'] = 1
                 dbdata['created'] = today_time
-                id = dbMysql.table('guzi_discord_message').add(dbdata)
+                result_id = dbMysql.table('guzi_discord_message').add(dbdata)
+                print(f'插入数据结果：{result_id}')
+                # print(dbMysql.getLastSql())  # 打印由Model类拼接填充生成的SQL语句
 
-            # print(dbMysql.getLastSql())  # 打印由Model类拼接填充生成的SQL语句
-    return did
+        ## 更新信息抓取的时间，减少抓取量
+        try:
+            today_time = int(time.time())
+            channeldata = {}
+            channeldata['updated_message'] = today_time
+
+            result = dbMysql.table('guzi_discord_channel').where(f"id = '{channel_db_id}'").save(channeldata)
+            # print("执行SQL:", dbMysql.getLastSql())
+            print("更新结果:", result)  # 一般是影响行数
+            # dbMysql.commit()  # 如果需要手动提交
+            return result
+        except Exception as e:
+            print("更新失败:", e)
+            return None
+
+### 异步抓取discord的数据
+async def get_message_db(item):
+
+    token = item['discord_token']
+    guild_id = item['guild_id']
+    channel_id = item['channel_id']
+    did = item['did']
+    channel_db_id = item['id']
+    username =  item['username']
+    async with AsyncSession() as session:
+        message_info = await get_discord_message(token, guild_id, channel_id, 5, session)
+
+
+
+    return message_info
 
 
 @web3_auth.route('/api/auth/update_message')
@@ -151,6 +184,7 @@ async def insert_message_db(item):
 async def update_message():
     uid = g.uid
     data = dbMysql.table('guzi_discord_channel').where(f"uid='{uid}' AND status=1").order("id DESC").limit(50).select()
+    return jsonify({'status': 0, 'data': [], 'msg': '暂无数据'})
     # 判断 data 是否为非空列表
     if not data:
         return  jsonify({'status': 0, 'data': [], 'msg': '暂无数据'})

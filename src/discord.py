@@ -414,7 +414,7 @@ async def add_channel():
         #print(dbMysql.getLastSql())  # 打印由Model类拼接填充生成的SQL语句
         if discord_id:
             ## 修改的频道数据后，同步更新频道公告
-            mid = await insert_message_db(dbdata)
+            # mid = await insert_message_db(dbdata)
             return jsonify({
                 'status': 1,
                 'message': '恭喜您，数据增加成功！'
@@ -498,7 +498,7 @@ async def edit_channel():
         if discord_id:
 
             ## 修改的频道数据后，同步更新频道公告
-            mid = await insert_message_db(dbdata)
+            # mid = await insert_message_db(dbdata)
 
             return jsonify({
                 'status': 1,
