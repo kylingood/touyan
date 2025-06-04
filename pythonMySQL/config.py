@@ -10,6 +10,10 @@ CONFIG = {
         "user": 'root',  # 可选，默认root
         'password': 'Guzi@123',  # 必选
         'database': 'twitter',  # 必选
+        #"host": '127.0.0.1',
+        #"user": 'guzi',  # 可选，默认root
+        #'password': 'J8s2e88y2xLeFRC2',  # 必选
+        #'database': 'guzi',  # 必选
         'port': '3306',  # 可选，默认3306
         'dbms': 'mysql',  # 可选，默认mysql
         'charset': 'utf8',  # 可选
