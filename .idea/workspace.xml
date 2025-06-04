@@ -6,8 +6,6 @@
   <component name="ChangeListManager">
     <list default="true" id="52e72af2-67a7-4242-a6ba-fbef2c11875c" name="更改" comment="第9次提交，优化搜索功能和计划任务">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/twitter.sql" beforeDir="false" afterPath="$PROJECT_DIR$/twitter.sql" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -356,7 +354,15 @@
       <option name="project" value="LOCAL" />
       <updated>1748948215532</updated>
     </task>
-    <option name="localTasksCounter" value="19" />
+    <task id="LOCAL-00019" summary="第9次提交，优化搜索功能和计划任务">
+      <option name="closed" value="true" />
+      <created>1749004824486</created>
+      <option name="number" value="00019" />
+      <option name="presentableId" value="LOCAL-00019" />
+      <option name="project" value="LOCAL" />
+      <updated>1749004824486</updated>
+    </task>
+    <option name="localTasksCounter" value="20" />
     <servers />
   </component>
   <component name="VcsManagerConfiguration">
