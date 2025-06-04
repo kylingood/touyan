@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from quart import Quart, request, jsonify, g, Blueprint,redirect
 from eth_account.messages import encode_defunct
 from eth_account import Account

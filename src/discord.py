@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from quart import Quart, render_template, request, jsonify, g, Blueprint
 from util.db import *
 from src.auth import require_user,require_user_async

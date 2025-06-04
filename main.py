@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from quart import Quart, render_template, request,  g, Blueprint
 from src.web3_auth import web3_auth  # 导入我们刚才创建的 web3_auth Blueprint
 from src.category import category

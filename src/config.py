@@ -1,5 +1,5 @@
 # config.py
-
+# -*- coding: utf-8 -*-
 # 基本配置
 APP_NAME = "MyApp"
 VERSION = "1.0.0"

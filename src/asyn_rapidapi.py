@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from util.db import *
 import aiohttp
 import asyncio

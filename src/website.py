@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from markdown_it.rules_core.normalize import NULL_RE
 from quart import Quart, render_template, request, jsonify,g, Blueprint
 
