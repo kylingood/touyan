@@ -347,10 +347,10 @@ async def page():
               m.uid,
               m.category_id,
               m.twitter_id,
+              m.remark,
               t.id AS twitter_table_id,
               t.username,
               t.show_name,
-              t.remark,
               t.description,
               t.avatar,
               t.followers,
@@ -370,33 +370,6 @@ async def page():
         total_list = dbMysql.query(total_sql)
         total = total_list[0]['total'] if total_list and 'total' in total_list[0] else 0
 
-
-        # total =  dbMysql.table('guzi_member_twitter_map ').where(where).count()
-        # member_list = dbMysql.table('guzi_member_twitter_map ').where(where).order(order).page(page, limit).field('twitter_id,category_id').select()
-        # print(dbMysql.getLastSql())  # 打印由Model类拼接填充生成的SQL语句
-        # # 提取 twitter_id 列（防止重复）
-        # twitter_ids = [row['twitter_id'] for row in member_list if row['twitter_id'] is not None]
-        #
-        # member_data = {}
-        # for member in member_list:
-        #     member_data[member['twitter_id']] = member['category_id']
-        #
-        # print(member_data)
-        #
-        # # 转成逗号分隔的字符串
-        # twitter_ids_str = ', '.join(str(tid) for tid in twitter_ids)
-        # new_where = f"tid IN ({twitter_ids_str})"
-        #
-        #
-        # data_list = dbMysql.table('guzi_twitter').where(new_where).order(order).page(page, limit).select()
-        # print(dbMysql.getLastSql())  # 打印由Model类拼接填充生成的SQL语句
-        #
-        # rows = dbMysql.table('guzi_category').where(f"uid='{uid}' AND status=1").field('id,title').select()
-        # print(dbMysql.getLastSql())  # 打印由Model类拼接填充生成的SQL语句
-        # cate_data = {}
-        # for row in rows:
-        #     cate_data[row['id']] = row['title']
-        # print(cate_data)
 
         print(data_list)
         if total>0:
@@ -418,7 +391,7 @@ async def page():
                         "followers": item["followers"],
                         "fans": item["fans"],
                         "description": item["description"],
-                        "remark": item["remark"]
+                        "remark": item["remark"] or "-",
                     } for i, item in enumerate(data_list)
                 ]
             }
@@ -461,20 +434,6 @@ async def edit():
 
 
         if data_one:
-            twitter_id = data_one['twitter_id']
-            dbdata['updated'] = today_time
-            dbdata['uid'] = uid
-            dbdata['cid'] = cid
-            dbdata['tid'] = twitter_id
-            dbdata['username'] = username
-            dbdata['show_name'] = show_name
-            dbdata['description'] = description
-            dbdata['url'] = url
-            dbdata['remark'] = remark
-            dbdata['avatar'] = avatar
-            dbdata['followers'] = followers
-            dbdata['fans'] = fans
-            result_id = dbMysql.table('guzi_twitter').where(f"id = '{id}'").save(dbdata)
 
             if twitter_id:
                 #asyncio.create_task(getTweetByUserID(tid))
@@ -511,6 +470,7 @@ async def edit():
                     dbdata['twitter_id'] = twitter_id
                     dbdata['updated'] = today_time
                     dbdata['uid'] = uid
+                    dbdata['remark'] = remark
                     dbdata['category_id'] = cid
                     result_id = dbMysql.table('guzi_member_twitter_map ').where(f"id = '{id}'").save(dbdata)
                 else:
@@ -533,6 +493,7 @@ async def edit():
                     # 获取当前日期
                     dbdata['twitter_id'] = twitter_id
                     dbdata['uid'] = uid
+                    dbdata['remark'] = remark
                     dbdata['category_id'] = cid
                     dbdata['created'] = today_time
                     dbdata['status'] = 1
@@ -647,12 +608,14 @@ async def add():
                 dbdata['twitter_id'] = twitter_id
                 dbdata['updated'] = today_time
                 dbdata['uid'] = uid
+                dbdata['remark'] = remark
                 dbdata['category_id'] = cid
                 result_id = dbMysql.table('guzi_member_twitter_map ').where(f"id = '{id}'").save(dbdata)
             else:
                 # 获取当前日期
                 dbdata['twitter_id'] = twitter_id
                 dbdata['uid'] = uid
+                dbdata['remark'] = remark
                 dbdata['category_id'] = cid
                 dbdata['created'] = today_time
                 dbdata['status'] = 1

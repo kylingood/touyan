@@ -538,9 +538,9 @@ layui.use(function(){
                         layer.confirm(result.message, {
                           btn: ['确定', '关闭'] //按钮
                         }, function(){
-                          window.location.href='{{ url_for('discord.index') }}';
+                          window.location.href='{{ url_for('discord.guild') }}';
                         }, function(){
-                          window.location.href='{{ url_for('discord.index') }}';
+                          window.location.href='{{ url_for('discord.guild') }}';
                         });
 
                         return true

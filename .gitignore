@@ -3,6 +3,8 @@ Scripts/
 Lib/
 include/
 logs/
+pythonMySQL
+pythonMySQL/
 data/opencampus/not_key.txt
 .idea/*
 output.log

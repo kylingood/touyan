@@ -294,7 +294,9 @@ layui.use(['form'], function() {
   }
 
   // 初始化主题
-  const initTheme = storedTheme || (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+  // const initTheme = storedTheme || (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+  // 初始化主题为 light，不跟随系统
+  const initTheme = storedTheme || "light";
   setTheme(initTheme);
 
   // 设置开关状态（如果你想同步 switch 状态）
@@ -310,14 +312,14 @@ layui.use(['form'], function() {
     setTheme(theme);
   });
 
-  // 响应系统暗色变化（可选）
-  window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", (e) => {
-    const autoTheme = e.matches ? "dark" : "light";
-    const saved = localStorage.getItem('theme');
-    if (saved !== 'light' && saved !== 'dark') {
-      setTheme(autoTheme);
-    }
-  });
+<!--  // 响应系统暗色变化（可选）-->
+<!--  window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", (e) => {-->
+<!--    const autoTheme = e.matches ? "dark" : "light";-->
+<!--    const saved = localStorage.getItem('theme');-->
+<!--    if (saved !== 'light' && saved !== 'dark') {-->
+<!--      setTheme(autoTheme);-->
+<!--    }-->
+<!--  });-->
 });
 
 layui.use('util', function(){
