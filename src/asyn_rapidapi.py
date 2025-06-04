@@ -70,6 +70,7 @@ async def async_getDataByUserID(session, user_id):
                 return None
 
     try:
+
         user_data = data['result']['data']['users'][0]['result']
 
         tid = user_data.get('rest_id', '')

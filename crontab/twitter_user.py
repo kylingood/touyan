@@ -7,6 +7,7 @@ from src.asyn_rapidapi import *
 from util.utils import get_countdown
 from crontab.db import *
 import aiohttp
+from aiohttp import ClientSession, TCPConnector
 import asyncio
 import time
 
@@ -49,12 +50,15 @@ async def limited_async_getFollowingsByUserID(session, user_id, sum_user=50):
 
 # 批量抓取入口函数
 async def run_batch(user_ids, sum_user=100):
-    async with aiohttp.ClientSession() as session:
+    async with ClientSession(connector=TCPConnector(ssl=False)) as session:
         tasks = [
             limited_async_getFollowingsByUserID(session, uid, sum_user=sum_user)
             for uid in user_ids
         ]
         return await asyncio.gather(*tasks)
+
+
+
 
 # 示例主函数
 async def main():

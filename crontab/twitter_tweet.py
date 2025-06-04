@@ -7,6 +7,7 @@ from src.asyn_rapidapi import *
 from util.utils import get_countdown
 from crontab.db import *
 import aiohttp
+from aiohttp import ClientSession, TCPConnector
 import asyncio
 import time
 
@@ -42,9 +43,11 @@ async def limited_async_getTweetByUserID(session, user_id):
     async with semaphore:
         return await async_getTweetByUserID(session, user_id)
 
+
+
 # 批量任务入口
 async def run_batch(user_ids):
-    async with aiohttp.ClientSession() as session:
+    async with ClientSession(connector=TCPConnector(ssl=False)) as session:
         tasks = [limited_async_getTweetByUserID(session, uid) for uid in user_ids]
         results = await asyncio.gather(*tasks)
         return results
