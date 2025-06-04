@@ -5,10 +5,10 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="52e72af2-67a7-4242-a6ba-fbef2c11875c" name="更改" comment="第11次提交，优化搜索功能和计划任务">
+      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/crontab/twitter_tweet.py" beforeDir="false" afterPath="$PROJECT_DIR$/crontab/twitter_tweet.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/crontab/twitter_user.py" beforeDir="false" afterPath="$PROJECT_DIR$/crontab/twitter_user.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/asyn_rapidapi.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/asyn_rapidapi.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/crontab/db.py" beforeDir="false" afterPath="$PROJECT_DIR$/crontab/db.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pythonMySQL/pythonMySQL.py" beforeDir="false" afterPath="$PROJECT_DIR$/pythonMySQL/pythonMySQL.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -408,7 +408,15 @@
       <option name="project" value="LOCAL" />
       <updated>1749031934778</updated>
     </task>
-    <option name="localTasksCounter" value="24" />
+    <task id="LOCAL-00024" summary="第11次提交，优化搜索功能和计划任务">
+      <option name="closed" value="true" />
+      <created>1749039914702</created>
+      <option name="number" value="00024" />
+      <option name="presentableId" value="LOCAL-00024" />
+      <option name="project" value="LOCAL" />
+      <updated>1749039914702</updated>
+    </task>
+    <option name="localTasksCounter" value="25" />
     <servers />
   </component>
   <component name="VcsManagerConfiguration">

@@ -743,7 +743,7 @@ class pythonMySQL(object):
             else:
                 res = self.cur.fetchall()
             return res
-        except mysql.connector.Error as err:
+        except pymysql.MySQLError as err:
             return self.haveErrorThrowException(err)
 
     def execute(self, execStr):
@@ -763,7 +763,7 @@ class pythonMySQL(object):
                 self.cur.execute(execStr)
             self.numRows = self.cur.rowcount
             return self.numRows
-        except mysql.connector.Error as err:
+        except pymysql.MySQLError as err:
             return self.haveErrorThrowException(err)
 
     # If consistent_snapshot is True, Connector/Python sends WITH CONSISTENT SNAPSHOT with the statement. MySQL ignores this for isolation levels for which that option does not apply.

@@ -101,7 +101,9 @@ def insertTwitterFollowingsToDB(twitter_id,following_id):
 def insertTeeetToDB(records):
 
         for dbdata in records:
-
+            if not dbdata.get('tweet_id'):
+                print("警告：tweet_id为空，跳过此条数据", dbdata)
+                continue
             tweet_id = dbdata['tweet_id']
             ## 推特用户如果没有，操作直接入数据库
             twitter_id = dbdata['twitter_id']
