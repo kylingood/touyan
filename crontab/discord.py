@@ -29,7 +29,7 @@ def get_data():
     LEFT JOIN 
         guzi_discord d ON dc.did = d.id
     WHERE 
-        dc.status = 1 AND dc.updated_message < UNIX_TIMESTAMP() - 300
+        dc.status = 1 AND dc.updated_message < UNIX_TIMESTAMP() - 600
     ORDER BY 
         dc.id DESC  
     '''

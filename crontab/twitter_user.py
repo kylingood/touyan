@@ -26,7 +26,7 @@ def get_data():
             GROUP BY twitter_id
         ) latest_map ON map.id = latest_map.max_id
         JOIN guzi_twitter t ON map.twitter_id = t.tid
-        WHERE  t.updated_fans < UNIX_TIMESTAMP() - 300
+        WHERE  t.updated_fans < UNIX_TIMESTAMP() - 250
         ORDER BY map.id DESC 
     """
     data_list =  dbMysql.query(sql)
