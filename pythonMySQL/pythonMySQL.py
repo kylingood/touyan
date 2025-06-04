@@ -3,54 +3,49 @@
 
 __author__ = 'Frankie'
 
-
-from mysql.connector import errorcode
-import mysql.connector
+import pymysql
+from pymysql.cursors import DictCursor
+from pymysql.err import OperationalError
 import traceback
 import sys
 import re
 
-# 数据库配置信息
 CONFIG = {
-    # 数据库默认配置信息，必选，且索引必须为0
-    0 : {
-        "host": '192.168.60.2',  # 可选，默认127.0.0.1
-        #"host": '127.0.0.1',  # 可选，默认127.0.0.1
-        "user": 'root',  # 可选，默认root
-        'password': 'Guzi@123',  # 必选
-        'database': 'twitter',  # 必选
-        'port': '3306',  # 可选，默认3306
-        'dbms': 'mysql',  # 可选，默认mysql
-        'charset': 'utf8mb4',  # 可选charset='utf8mb4'
-        'DB_DEBUG': True,  # 可选，是否开启DEBUG模式，请在系统上线后关闭DEBUG模式
-        'autocommit': True,  # 开启自动提交事务
-        'connect_timeout':1800
+    0: {
+        "host": '192.168.60.2',
+        "user": 'root',
+        'password': 'Guzi@123',
+        'database': 'twitter',
+        'port': 3306,
+        'dbms': 'mysql',
+        'charset': 'utf8mb4',
+        'DB_DEBUG': True,
+        'autocommit': True,
+        'connect_timeout': 1800
     },
-
-    # 可选，数据库配置，'1'可以是任意字符串
     '1': {
-        'database': 'db_name2',  # 必选
+        'database': 'db_name2',
     },
 }
 
 class pythonMySQL(object):
-    configs = {}  # 设置连接参数，配置信息(字典)
-    links = {}  # 保存连接标识符(字典)
-    NumberLink = 0  # 保存数据库连接数量/配置信息数量
+    configs = {}
+    links = {}
+    NumberLink = 0
 
-    current = 0  # 标识当前对应的数据库配置，可以是数字或者字符串
-    config = {}  # 保存当前模型的数据库配置
-    con = None  # 保存连接标识符
-    cur = None  # 保存数据库游标
-    dbdebug = False  # 是否开启DEBUG模式
-    database = ''  # 记录连接的数据库
-    table_name = ''  # 记录操作的数据表名
-    columns = []  # 记录表中字段名
-    connected = False  # 是否连接成功
-    queryStr = ''  # 保存最后执行的操作
-    SQLerror = {}  # SQL执行报错错误信息
-    lastInsertId = 0  # 保存上一步插入操作产生AUTO_INCREMENT
-    numRows = 0  # 上一步操作产生受影响的记录的条数
+    current = 0
+    config = {}
+    con = None
+    cur = None
+    dbdebug = False
+    database = ''
+    table_name = ''
+    columns = []
+    connected = False
+    queryStr = ''
+    SQLerror = {}
+    lastInsertId = 0
+    numRows = 0
 
     tmp_table = ''
     aliasString = ''
@@ -66,104 +61,83 @@ class pythonMySQL(object):
     whereStringArray = []
     whereValueArray = []
 
-    SQL_logic = ['AND', 'OR', 'XOR']  # SQL语句支持的逻辑运算符
+    SQL_logic = ['AND', 'OR', 'XOR']
 
-    # 对于参数dbConfig，需为dict，包含host、port、user、password、database、charset、autocommit、DB_DEBUG、MYSQL_LOG，至少须包含user、password、database
     def __init__(self, dbtable, ConfigID=0, dbConfig=None):
         if not isinstance(ConfigID, (int, str)):
             self.throw_exception("第二个参数只能是数字或字符串", True)
-        # 将类变量中的可变元素初始化
-        self.columns = []  # 记录表中字段名
+
+        self.columns = []
         self.whereStringArray = []
         self.whereValueArray = []
         self.SQLerror = {}
-        # 如果数据库配置已被存在self::$configs中时
+
         if ConfigID in pythonMySQL.configs:
-            if dbConfig != None:
-                self.throw_exception(
-                    '数据库配置编号' + (str(ConfigID) if isinstance(ConfigID, int) else "'" + ConfigID + "'") + '已被占用', True)
+            if dbConfig is not None:
+                self.throw_exception(f'数据库配置编号"{ConfigID}"已被占用', True)
             self.init(ConfigID, dbtable)
             return
-        # 以下为数据库配置还未被存在self::$configs中时
-        if dbConfig == None:
-            if not isset('CONFIG'):
-                self.throw_exception("配置文件未定义CONFIG", True)
-            # 检查配置文件中是否有对应的配置信息
+
+        if dbConfig is None:
             if ConfigID not in CONFIG:
-                self.throw_exception(
-                    "配置文件中无" + (str(ConfigID) if isinstance(ConfigID, int) else "'" + ConfigID + "'") + "的配置信息", True)
-            # 使用配置文件中对应的配置
-            if ConfigID == 0:
-                dbConfig = CONFIG[0]
-            else:
-                dbConfig = dict(CONFIG[0])
+                self.throw_exception(f"配置文件中无'{ConfigID}'的配置信息", True)
+            dbConfig = dict(CONFIG[0])
+            if ConfigID != 0:
                 dbConfig.update(CONFIG[ConfigID])
-        if 'DB_DEBUG' in dbConfig:
-            if dbConfig['DB_DEBUG'] == True:
-                self.dbdebug = True
-            del dbConfig['DB_DEBUG']
+
+        if dbConfig.get('DB_DEBUG'):
+            self.dbdebug = True
+        dbConfig.pop('DB_DEBUG', None)
+
+        dbConfig.setdefault('host', '127.0.0.1')
+        dbConfig.setdefault('user', 'root')
+        dbConfig.setdefault('port', 3306)
+        dbConfig.setdefault('autocommit', True)
+        dbConfig.setdefault('dbms', 'mysql')
+        dbConfig.setdefault('connect_timeout', 1800)
+
         if 'password' not in dbConfig:
-            if 'password' in CONFIG[0]:
-                dbConfig['password'] = CONFIG[0]['password']
-            else:
-                self.throw_exception('数据库未设置密码')
-        if 'host' not in dbConfig:
-            dbConfig['host'] = '127.0.0.1'
-        if 'user' not in dbConfig:
-            dbConfig['user'] = 'root'
-        if 'port' not in dbConfig:
-            dbConfig['port'] = '3306'
-        if 'autocommit' not in dbConfig:
-            dbConfig['autocommit'] = True
-        if 'dbms' not in dbConfig:
-            dbConfig['dbms'] = 'mysql'
-        if 'connect_timeout' not in dbConfig:
-            dbConfig['connect_timeout'] = '1800'
+            dbConfig['password'] = CONFIG[0].get('password', '')
+        dbConfig.pop('dbms', None)
+
         pythonMySQL.configs[ConfigID] = dbConfig
         self.current = ConfigID
         self.config = dbConfig
         self.database = dbConfig['database']
-        del dbConfig['dbms']
-
 
         try:
-            self.con = mysql.connector.connect(**dbConfig)
-            self.cur = self.con.cursor(dictionary=True)
-        except mysql.connector.Error as err:
-            if err.errno == errorcode.ER_ACCESS_DENIED_ERROR:
+            self.con = pymysql.connect(
+                host=dbConfig['host'],
+                user=dbConfig['user'],
+                password=dbConfig['password'],
+                database=dbConfig['database'],
+                port=int(dbConfig['port']),
+                charset=dbConfig['charset'],
+                autocommit=dbConfig['autocommit'],
+                connect_timeout=int(dbConfig['connect_timeout']),
+                cursorclass=DictCursor
+            )
+            self.cur = self.con.cursor()
+        except OperationalError as err:
+            msg = str(err)
+            if 'Access denied' in msg:
                 msg = "Something is wrong with your user name or password"
-            elif err.errno == errorcode.ER_BAD_DB_ERROR:
+            elif 'Unknown database' in msg:
                 msg = "Database does not exist"
-            else:
-                msg = err
             self.throw_exception('数据库连接错误：' + msg)
-        # 设置 self.link, self.table_name, self.connected
+
         if self.cur:
             pythonMySQL.links[ConfigID] = self.con
         else:
             self.throw_exception('数据库连接错误')
+
         if self.in_db(dbtable):
             self.table_name = dbtable
         else:
             self.throw_exception('数据库' + dbConfig['database'] + '中不存在' + dbtable + '表')
-        self.connected = True
-        # 最后将数据库连接数 + 1
-        pythonMySQL.NumberLink += 1
 
-    # 初始化私有变量
-    def init(self, current, dbtable):
-        self.current = current
-        self.config = pythonMySQL.configs[current]
-        self.con = pythonMySQL.links[current]
-        self.cur = self.con.cursor(dictionary=True)
-        if 'DB_DEBUG' in self.config and self.config['DB_DEBUG'] == True:
-            self.dbdebug = True
-        self.database = self.config['database']
-        if self.in_db(dbtable):
-            self.table_name = dbtable
-        else:
-            self.throw_exception('数据库' + self.config['database'] + '中不存在' + dbtable + '表')
         self.connected = True
+        pythonMySQL.NumberLink += 1
 
     def in_db(self, dbtable):
         self.cur.execute('show tables')

@@ -4,21 +4,10 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="52e72af2-67a7-4242-a6ba-fbef2c11875c" name="更改" comment="第9次提交，优化搜索功能和计划任务">
+    <list default="true" id="52e72af2-67a7-4242-a6ba-fbef2c11875c" name="更改" comment="第10次提交，优化搜索功能和计划任务">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/asyn_rapidapi.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/asyn_rapidapi.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/auth.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/auth.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/category.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/category.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/config.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/config.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/discord.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/discord.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pythonMySQL/pythonMySQL.py" beforeDir="false" afterPath="$PROJECT_DIR$/pythonMySQL/pythonMySQL.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/member.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/member.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/rapidapi.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/rapidapi.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/twitter.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/twitter.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/web3_auth.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/web3_auth.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/website.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/website.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/util/db.py" beforeDir="false" afterPath="$PROJECT_DIR$/util/db.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/util/utils.py" beforeDir="false" afterPath="$PROJECT_DIR$/util/utils.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -34,12 +23,12 @@
     &quot;assignee&quot;: &quot;kylingood&quot;
   }
 }</component>
-  <component name="GithubPullRequestsUISettings">{
-  &quot;selectedUrlAndAccountId&quot;: {
-    &quot;url&quot;: &quot;https://github.com/kylingood/touyan.git&quot;,
-    &quot;accountId&quot;: &quot;7447ec2e-227e-41c6-afaa-f248be2f8309&quot;
+  <component name="GithubPullRequestsUISettings"><![CDATA[{
+  "selectedUrlAndAccountId": {
+    "url": "git@github.com:kylingood/touyan.git",
+    "accountId": "7447ec2e-227e-41c6-afaa-f248be2f8309"
   }
-}</component>
+}]]></component>
   <component name="ProjectColorInfo">{
   &quot;associatedIndex&quot;: 7
 }</component>
@@ -49,22 +38,22 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "Python.app.executor": "Run",
-    "Python.discord.executor": "Run",
-    "Python.main.executor": "Run",
-    "Python.test.executor": "Run",
-    "Python.twitter.executor": "Run",
-    "Python.twitter_tweet.executor": "Run",
-    "Python.twitter_user.executor": "Run",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "SHARE_PROJECT_CONFIGURATION_FILES": "true",
-    "git-widget-placeholder": "master",
-    "ignore.virus.scanning.warn.message": "true"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;Python.app.executor&quot;: &quot;Run&quot;,
+    &quot;Python.discord.executor&quot;: &quot;Run&quot;,
+    &quot;Python.main.executor&quot;: &quot;Run&quot;,
+    &quot;Python.test.executor&quot;: &quot;Run&quot;,
+    &quot;Python.twitter.executor&quot;: &quot;Run&quot;,
+    &quot;Python.twitter_tweet.executor&quot;: &quot;Run&quot;,
+    &quot;Python.twitter_user.executor&quot;: &quot;Run&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;SHARE_PROJECT_CONFIGURATION_FILES&quot;: &quot;true&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;master&quot;,
+    &quot;ignore.virus.scanning.warn.message&quot;: &quot;true&quot;
   }
-}]]></component>
-  <component name="RunManager" selected="Python.twitter_user">
+}</component>
+  <component name="RunManager" selected="Python.main">
     <configuration name="app" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="twitter" />
       <option name="ENV_FILES" value="" />
@@ -383,7 +372,15 @@
       <option name="project" value="LOCAL" />
       <updated>1749005662219</updated>
     </task>
-    <option name="localTasksCounter" value="21" />
+    <task id="LOCAL-00021" summary="第10次提交，优化搜索功能和计划任务">
+      <option name="closed" value="true" />
+      <created>1749006051813</created>
+      <option name="number" value="00021" />
+      <option name="presentableId" value="LOCAL-00021" />
+      <option name="project" value="LOCAL" />
+      <updated>1749006051813</updated>
+    </task>
+    <option name="localTasksCounter" value="22" />
     <servers />
   </component>
   <component name="VcsManagerConfiguration">
@@ -397,6 +394,7 @@
     <MESSAGE value="第七次提交，增加搜索功能" />
     <MESSAGE value="第8次提交，优化搜索功能" />
     <MESSAGE value="第9次提交，优化搜索功能和计划任务" />
-    <option name="LAST_COMMIT_MESSAGE" value="第9次提交，优化搜索功能和计划任务" />
+    <MESSAGE value="第10次提交，优化搜索功能和计划任务" />
+    <option name="LAST_COMMIT_MESSAGE" value="第10次提交，优化搜索功能和计划任务" />
   </component>
 </project>

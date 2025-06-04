@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# from quart import Quart, render_template, request, jsonify,g, Blueprint
+from quart import Quart, render_template, request, jsonify,g, Blueprint
 from util.db import *
 from util.utils import generate_invite_codes
 from src.auth import require_user,require_user_async,require_admin
