@@ -13,13 +13,13 @@
 
                      <li class="breadcrumb-item active" aria-current="page">
                         <a href="{{ url_for('discord.index') }}" >
-                            <button type="button"  class="layui-btn" style="background-color: #16b777">Discord账号列表</button>
+                            <button type="button"  class="layui-btn layui-btn-touyan" ><b>Discord账号列表</b></button>
                         </a>
                     </li>
 
                   <li class="breadcrumb-item active" aria-current="page">
                       <a href="{{ url_for('discord.message') }}" >
-                        <button type="button" class="layui-btn">查看全部监控信息</button>
+                        <button type="button" class="layui-btn layui-btn-touyan"><b>查看全部监控信息</b></button>
                       </a>
                   </li>
                 </ol>
@@ -100,9 +100,11 @@ layui.use(['laypage', 'jquery'], function() {
   // 监听分类按钮点击
   $('#category_html').on('click', '.layui-btn', function() {
     did = $(this).data('id');
+
     // 样式切换：移除其他按钮的 cur，添加当前按钮的 cur
+    $('#category_html .layui-btn').removeClass('layui-btn-touyan');
     $('#category_html .layui-btn').addClass('layui-btn-primary');
-    $(this).removeClass('layui-btn-primary');
+    $(this).addClass('layui-btn-touyan');
 
     fetchData(1, 10,did); // 点击分类时重置为第一页
   });
@@ -315,7 +317,7 @@ layui.use(['laypage', 'jquery'], function() {
             if (did>0) {
                 select.append('<button type="button" data-id="0"  class="layui-btn layui-btn-primary layui-btn-sm ">全部Discord账号</button>');
             }else{
-                select.append('<button type="button" data-id="0"  class="layui-btn  layui-btn-sm ">全部Discord账号</button>');
+                select.append('<button type="button" data-id="0"  class="layui-btn  layui-btn-sm layui-btn-touyan">全部Discord账号</button>');
             }
 
             res.data.forEach(item => {

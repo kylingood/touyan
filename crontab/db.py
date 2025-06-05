@@ -2,7 +2,12 @@ from util.db import *
 
 ## 通过把用户数据入库
 def insertUserToDB(records):
-
+    if not records:
+        print("⚠️ insertUserToDB：records 是 None，跳过插入。")
+        return
+    if not records.get('rest_id'):
+        print("⚠️ insertUserToDB：缺少 rest_id 字段，跳过插入。")
+        return
     tid = records['rest_id']
     uid = 1
     cid = 1

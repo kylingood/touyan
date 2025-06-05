@@ -11,12 +11,12 @@
               <div class="col-sm-6">
                 <ol class="breadcrumb float-sm-end">
 
-                    <li class="breadcrumb-item"> <button type="button" class="layui-btn layui-bg-blue"  lay-on="add-discord-page-custom">添加Discord账号</button></li>
+                    <li class="breadcrumb-item"> <button type="button" class="layui-btn layui-bg-blue layui-btn-touyan"  lay-on="add-discord-page-custom"><b>添加Discord账号</b></button></li>
 
-                    <li class="breadcrumb-item active" aria-current="page"><button type="button" lay-on="add-category-page-custom"  class="layui-btn" style="background-color: #16b777">添加Discord分组</button></li>
+                    <li class="breadcrumb-item active" aria-current="page"><button type="button" lay-on="add-category-page-custom"  class="layui-btn layui-btn-touyan" ><b>添加Discord分组</b></button></li>
                     <li class="breadcrumb-item active" aria-current="page">
                         <a href="{{ url_for('category.discord') }}" >
-                            <button type="button"  class="layui-btn">管理Discord分组</button>
+                            <button type="button"  class="layui-btn layui-btn-touyan"><b>管理Discord分组</b></button>
                         </a>
                     </li>
 
@@ -106,8 +106,9 @@ layui.use(['laypage', 'jquery'], function() {
   $('#category_html').on('click', '.layui-btn', function() {
     cid = $(this).data('id');
     // 样式切换：移除其他按钮的 cur，添加当前按钮的 cur
+    $('#category_html .layui-btn').removeClass('layui-btn-touyan');
     $('#category_html .layui-btn').addClass('layui-btn-primary');
-    $(this).removeClass('layui-btn-primary');
+    $(this).addClass('layui-btn-touyan');
 
     fetchData(1, 10,cid); // 点击分类时重置为第一页
   });
@@ -348,7 +349,7 @@ layui.use(['laypage', 'jquery'], function() {
               if (res.status === 1 && Array.isArray(res.data)) {
                 const select = $('#category_html');
                 select.empty();  // 清空旧内容
-                select.append('<button type="button" data-id="0"  class="layui-btn  layui-btn-sm ">全部分组</button>');
+                select.append('<button type="button" data-id="0"  class="layui-btn  layui-btn-sm layui-btn-touyan">全部分组</button>');
                 res.data.forEach(item => {
                     const selected = (item.id === cid) ? 'selected' : '';
                     select.append(`<button type="button" data-id="${item.id}" class="layui-btn layui-btn-primary layui-btn-sm  ${selected}"> ${item.title}</button>`);

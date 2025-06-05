@@ -74,7 +74,7 @@
 /* 中文消息，左边加“译”标识 */
 .message-zh {
   font-size: 14px;
-  color: #666;
+  color: red;
   margin-top:10px;
   padding-left: 55px;
   position: relative;
@@ -86,7 +86,7 @@
   left: 0;
   top: 0;
   font-size: 12px;
-  background-color: #16b777;
+  background-color: red;
   color: white;
   border-radius: 3px;
   padding: 1px 4px;
@@ -107,7 +107,7 @@
                 <ol class="breadcrumb float-sm-end">
                   <li class="breadcrumb-item active" aria-current="page">
                       <a href="{{ url_for('discord.guild') }}" >
-                        <button type="button" class="layui-btn">查看全部监控频道</button>
+                        <button type="button" class="layui-btn layui-btn-touyan"><b>查看全部监控频道</b></button>
                       </a>
                   </li>
                 </ol>
@@ -145,9 +145,26 @@
 
 <script>
 
+function stripMediaTags(html) {
+  return html
+    .replace(/<img[^>]*>/gi, '')
+    .replace(/<video[^>]*>.*?<\/video>/gis, '')
+    .replace(/<audio[^>]*>.*?<\/audio>/gis, '')
+    .replace(/<script[^>]*>.*?<\/script>/gis, '')
+    .replace(/<style[^>]*>.*?<\/style>/gis, '')
+    .replace(/<iframe[^>]*>.*?<\/iframe>/gis, '')
+    .replace(/<(input|button|select|form)[^>]*>.*?<\/\1>/gis, '')
+    .replace(/<(head|meta|link)[^>]*>/gi, '')
+    .replace(/style="display:\s*none[^"]*"/gi, '')
+    .replace(/<[^>]+>/g, '') // 可选：去除所有 HTML 标签
+    .replace(/\s+/g, ' ')     // 多个空格变一个
+    .trim();
+}
+
 // 翻译函数（Google Translate 非官方接口）
 async function translateToZh(text) {
-  const res = await fetch(`https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=zh-CN&dt=t&q=${encodeURIComponent(text)}`);
+  const cleanText = stripMediaTags(text);
+  const res = await fetch(`https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=zh-CN&dt=t&q=${encodeURIComponent(cleanText)}`);
   const data = await res.json();
   return data[0].map(item => item[0]).join('');
 }
@@ -212,17 +229,21 @@ layui.use(['flow', 'jquery'], function(){
                           </div>
                         </div>
                         <div class="message-en" >${contentHtml}</div>
-                        <div class="message-zh" id="${contentId}">翻译中...</div>
+                        <div class="message-zh" id="${contentId}">
+                        <img src="{{ url_for('static', filename='dist/img/laoding_2.gif') }}" alt="loading" class="opacity-75 shadow">
+                        </div>
                       </div>
                     </li>
                 `);
 
-                  // 异步翻译并填入对应位置
-                  translateToZh(contentEn).then(result => {
-                    document.getElementById(contentId).innerText = result;
-                  }).catch(() => {
-                    //document.getElementById(contentId).innerText = '翻译失败';
-                  });
+                setTimeout(() => {
+                      // 异步翻译并填入对应位置
+                      translateToZh(contentEn).then(result => {
+                        document.getElementById(contentId).innerText = result;
+                      }).catch(() => {
+                        //document.getElementById(contentId).innerText = '翻译失败';
+                      });
+                  }, 500);
               });
               // 判断是否还有下一页
               next(lis.join(''), page < res.count);
@@ -240,9 +261,13 @@ layui.use(['flow', 'jquery'], function(){
   // 监听分类按钮点击
   $('#category_html').on('click', '.layui-btn', function() {
     did = $(this).data('id');
+
     // 样式切换：移除其他按钮的 cur，添加当前按钮的 cur
+    $('#category_html .layui-btn').removeClass('layui-btn-touyan');
     $('#category_html .layui-btn').addClass('layui-btn-primary');
-    $(this).removeClass('layui-btn-primary');
+    $(this).addClass('layui-btn-touyan');
+
+
     $('#ID-flow-demo').html('');  // 清空当前内容
     const message_guild = localStorage.getItem('message_guild');
     localStorage.setItem('message_did', did);
@@ -254,9 +279,12 @@ layui.use(['flow', 'jquery'], function(){
   $('#guild_html').on('click', '.layui-btn', function() {
     guild_id = $(this).data('id');
      console.log('guild_id:@@@----'+ guild_id);
-    // 样式切换：移除其他按钮的 cur，添加当前按钮的 cur
+
+     // 样式切换：移除其他按钮的 cur，添加当前按钮的 cur
+    $('#guild_html .layui-btn').removeClass('layui-btn-touyan');
     $('#guild_html .layui-btn').addClass('layui-btn-primary');
-    $(this).removeClass('layui-btn-primary');
+    $(this).addClass('layui-btn-touyan');
+
     $('#ID-flow-demo').html('');  // 清空当前内容
     //加载数据
     const did = localStorage.getItem('message_did');
@@ -281,9 +309,9 @@ layui.use(['flow', 'jquery'], function(){
             const select = $('#guild_html');
             select.empty();  // 清空旧内容
             if (gid>0) {
-                select.append('<button type="button" data-id="0"  class="layui-btn layui-btn-primary layui-btn-sm ">全部DC服务器</button>');
+                select.append('<button type="button" data-id="0"  class="layui-btn layui-btn-sm layui-btn-touyan">全部DC服务器</button>');
             }else{
-                select.append('<button type="button" data-id="0"  class="layui-btn  layui-btn-sm ">全部DC服务器</button>');
+                select.append('<button type="button" data-id="0"  class="layui-btn  layui-btn-sm layui-btn-touyan">全部DC服务器</button>');
             }
 
 
@@ -319,9 +347,9 @@ layui.use(['flow', 'jquery'], function(){
             const select = $('#category_html');
             select.empty();  // 清空旧内容
             if (did>0) {
-                select.append('<button type="button" data-id="0"  class="layui-btn layui-btn-primary layui-btn-sm ">全部DC账号</button>');
+                select.append('<button type="button" data-id="0"  class="layui-btn  layui-btn-sm layui-btn-touyan">全部DC账号</button>');
             }else{
-                select.append('<button type="button" data-id="0"  class="layui-btn  layui-btn-sm ">全部DC账号</button>');
+                select.append('<button type="button" data-id="0"  class="layui-btn  layui-btn-sm layui-btn-touyan">全部DC账号</button>');
             }
 
 

@@ -229,7 +229,7 @@ async function checkLoginStatus() {
           const data = await res.json();
           // 登录成功：显示用户头像
           loginContainer.innerHTML = `
-            <button type="button" class="layui-btn layui-btn-sm layui-btn-normal" onclick="logout()">欢迎：${data.username}   🔓点击退出</button>
+            <button type="button" class="layui-btn layui-btn-sm layui-btn-normal layui-btn-touyan"  onclick="logout()">欢迎：${data.username}   🔓点击退出</button>
            `;
         } else {
           throw new Error('无效 token');
@@ -240,7 +240,7 @@ async function checkLoginStatus() {
         // 显示登录按钮
         loginContainer.innerHTML = `
           <span class="d-none d-md-inline">
-            <button type="button" class="btn btn-primary btn-sm" onclick="loginWithWallet()">🔐 使用钱包登录</button>
+            <button type="button" class="btn btn-primary btn-sm layui-btn-touyan"  onclick="loginWithWallet()">🔐 使用钱包登录</button>
           </span>
         `;
       }

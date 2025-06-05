@@ -16,7 +16,7 @@
               <!--begin::Col-->
               <div class="col-lg-3 col-6">
                 <!--begin::Small Box Widget 1-->
-                <div class="small-box layui-bg-blue" >
+                <div class="small-box layui-bg-blue layui-bg-touyan"  >
                   <div class="inner"  style="text-align:center;">
                     <h3 id="total_twitter" >0</h3>
                     <p>推特账号</p>
@@ -31,7 +31,7 @@
               <!--end::Col-->
               <div class="col-lg-3 col-6">
                 <!--begin::Small Box Widget 2-->
-                <div class="small-box layui-bg-cyan">
+                <div class="small-box  layui-bg-blue layui-bg-touyan"   >
                   <div class="inner"  style="text-align:center;">
                     <h3 id="total_twitter_category" >0</h3>
                     <p>推特分组</p>
@@ -46,13 +46,13 @@
               <!--end::Col-->
               <div class="col-lg-3 col-6">
                 <!--begin::Small Box Widget 3-->
-                <div class="small-box layui-bg-orange" >
+                <div class="small-box layui-bg-green  layui-bg-touyan"  >
                   <div class="inner"  style="text-align:center;">
                     <h3 id="total_discord" >0</h3>
                     <p>Discord账号</p>
                   </div>
 
-                  <a href="{{ url_for('discord.index') }}" class="small-box-footer link-dark link-underline-opacity-0 link-underline-opacity-50-hover">
+                  <a href="{{ url_for('discord.index') }}" class="small-box-footer link-light link-underline-opacity-0 link-underline-opacity-50-hover">
                     去管理Discord账号 <i class="bi bi-link-45deg"></i>
                   </a>
                 </div>
@@ -61,7 +61,7 @@
               <!--end::Col-->
               <div class="col-lg-3 col-6">
                 <!--begin::Small Box Widget 4-->
-                <div class="small-box layui-bg-green">
+                <div class="small-box layui-bg-green  layui-bg-touyan" >
                   <div class="inner"  style="text-align:center;">
                     <h3 id="total_twitter_discord" >0</h3>
                     <p>Discord分组</p>
@@ -104,11 +104,10 @@
 .tool-card {
   max-width: 300px;
   display: flex;
+  color: #16b777;
   border: 1px solid #e5e7eb;
   border-radius: 10px;
-
   text-decoration: none;
-  color: #333;
   transition: box-shadow 0.2s ease;
   box-sizing: border-box;
   overflow: hidden;
@@ -146,7 +145,7 @@
 
 .tool-card-title {
   font-size: 14px;
-  font-weight: 400;
+  font-weight: 700;
   margin-bottom: 8px;
 }
 

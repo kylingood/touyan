@@ -325,6 +325,30 @@ video {
 }
 
 
+/* 中文消息，左边加“译”标识 */
+.message-zh {
+  font-size: 14px;
+  color: red;
+  margin:20px 0px 20px 0px;
+  padding-left: 25px;
+  position: relative;
+}
+
+.message-zh::before {
+  content: "译";
+  position: absolute;
+  left: 0;
+  top: 0;
+  font-size: 12px;
+  background-color: red;
+  color: white;
+  border-radius: 3px;
+  padding: 1px 4px;
+}
+.msg-link {
+    color: #16b777;
+    text-decoration: underline;
+}
 </style>
  <!--begin::App Content Header-->
          <div class="app-content-header">
@@ -337,7 +361,7 @@ video {
                 <ol class="breadcrumb float-sm-end">
                   <li class="breadcrumb-item active" aria-current="page">
                       <a href="{{ url_for('twitter.index') }}" >
-                        <button type="button" class="layui-btn">查看全部推特</button>
+                        <button type="button" class="layui-btn" style="background-color: #16b777 !important;" >查看全部推特</button>
                       </a>
                   </li>
                 </ol>
@@ -403,18 +427,37 @@ video {
 
 <script>
 
-// 翻译函数（Google Translate 非官方接口）
-async function translateToZh(text) {
-  const res = await fetch(`https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=zh-CN&dt=t&q=${encodeURIComponent(text)}`);
-  const data = await res.json();
-  return data[0].map(item => item[0]).join('');
-}
+
 
 function formatContent(content) {
   return content
     .replace(/<([^>\s]+)>/g, '$1') // 去掉尖括号
     .replace(/(https?:\/\/[^\s<]+)/g, '<a href="$1" target="_blank" style="color: #16b777; text-decoration: underline;">$1</a>') // 设置颜色和下划线
     .replace(/\n/g, "<br>");
+}
+
+function stripMediaTags(html) {
+  return html
+    .replace(/<img[^>]*>/gi, '')
+    .replace(/<video[^>]*>.*?<\/video>/gis, '')
+    .replace(/<audio[^>]*>.*?<\/audio>/gis, '')
+    .replace(/<script[^>]*>.*?<\/script>/gis, '')
+    .replace(/<style[^>]*>.*?<\/style>/gis, '')
+    .replace(/<iframe[^>]*>.*?<\/iframe>/gis, '')
+    .replace(/<(input|button|select|form)[^>]*>.*?<\/\1>/gis, '')
+    .replace(/<(head|meta|link)[^>]*>/gi, '')
+    .replace(/style="display:\s*none[^"]*"/gi, '')
+    .replace(/<[^>]+>/g, '') // 可选：去除所有 HTML 标签
+    .replace(/\s+/g, ' ')     // 多个空格变一个
+    .trim();
+}
+
+// 翻译函数（Google Translate 非官方接口）
+async function translateToZh(text) {
+  const cleanText = stripMediaTags(text);
+  const res = await fetch(`https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=zh-CN&dt=t&q=${encodeURIComponent(cleanText)}`);
+  const data = await res.json();
+  return data[0].map(item => item[0]).join('');
 }
 
 function formatTimestamp(unixTime) {
@@ -490,9 +533,9 @@ $(document).on('click', '.text_content img', function () {
               var lis = [];
               // 假设后端返回 res.data 是数组，res.total_pages 是总页数
               $.each(res.data, function(index, item){
-                  const contentEn = item.content || '';
-                  const contentHtml = formatContent(item.content || '');
-                  const contentId = `content-cn-${item.id || Math.random().toString(36).substr(2, 8)}`;
+                  const contentEn = item.t2_description || '';
+                  const contentHtml = formatContent(item.t2_description || '');
+                  const contentId = `twitter-content-cn-${item.id || Math.random().toString(36).substr(2, 8)}`;
                    // 判断是否是最近一天的消息
                   const now = Date.now();
                   const msgTime = new Date(item.timestamp).getTime();  // 注意这里时间格式要能被解析
@@ -532,6 +575,11 @@ $(document).on('click', '.text_content img', function () {
 
                           <div class="description">
                             ${item.t2_description}
+                             ${contentEn  ? `
+                            <p class="message-zh" id="${contentId}">
+                            <img src="{{ url_for('static', filename='dist/img/laoding_2.gif') }}" alt="loading" class="opacity-75 shadow">
+                            </p>
+                            ` : ''}
                           </div>
 
                         </div>
@@ -588,6 +636,28 @@ $(document).on('click', '.text_content img', function () {
                   const contentEn = item.content || '';
                   const contentHtml = formatContent(item.content || '');
                   const contentId = `content-cn-${item.id || Math.random().toString(36).substr(2, 8)}`;
+                  let contentSonId = '';  // 默认设为空
+                  if (item.original_tweet_user_id) {
+                        const contentSonEn = item.data_original_tweets.content || '';
+                        contentSonId = `son-content-cn-${item.id || Math.random().toString(36).substr(2, 8)}`;
+                         // 异步翻译并填入对应位置
+                         setTimeout(() => {
+                          if (contentSonEn && contentSonId && document.getElementById(contentSonId)) {
+                            console.log('contentSonEn:'+ contentSonEn);
+                            console.log('contentSonId:'+ contentSonId);
+                            translateToZh(contentSonEn).then(result => {
+
+                                console.log('result ----'+ result);
+                                document.getElementById(contentSonId).innerText = result;
+                            }).catch(() => {
+                              console.warn('翻译失败:', contentSonEn);
+                            });
+                          } else {
+                            console.warn('contentSonId 未定义或 DOM 不存在：', contentSonId);
+                          }
+                        },2000);
+
+                  }
                    // 判断是否是最近一天的消息
                   const now = Date.now();
                   const msgTime = new Date(item.timestamp).getTime();  // 注意这里时间格式要能被解析
@@ -613,11 +683,14 @@ $(document).on('click', '.text_content img', function () {
                             <span class="timestamp">· ${item.created_at}</span>
                           </div>
                           <a class="view-link" href="https://x.com/${item.username}/status/${item.tweet_id}" target="_blank" >
-                          <button type="button" class="layui-btn layui-btn-normal layui-btn-sm layui-btn-radius">查看原文</button></a>
+                          <button type="button" class="layui-btn layui-btn-normal layui-btn-sm layui-btn-radius layui-btn-touyan">查看原文</button></a>
                         </div>
 
                         <!-- 正文 -->
                         <p class="text_content">${linkifyShortUrls(item.content)}</p>
+                        <p class="message-zh" id="${contentId}">
+                        <img src="{{ url_for('static', filename='dist/img/laoding_2.gif') }}" alt="loading" class="opacity-75 shadow">
+                        </p>
 
                        <!-- 判断 original_tweet_id 是否有值再渲染引用推文卡片 -->
                        ${item.original_tweet_user_id  ? `
@@ -631,21 +704,26 @@ $(document).on('click', '.text_content img', function () {
                               <span class="timestamp">· ${formatTimestamp(item.data_original_tweets.created_at)}</span>
                             </div>
                             <a class="view-link" href="https://x.com/${item.data_original_user.username}/status/${item.data_original_tweets.tweet_id}" target="_blank">
-                            <button type="button" class="layui-btn layui-btn-normal layui-btn-sm layui-btn-radius">查看原文</button>
+                            <button type="button" class="layui-btn layui-btn-normal layui-btn-sm layui-btn-radius layui-btn-touyan">查看原文</button>
                             </a>
                           </div>
                           <p class="text_content">
                            ${linkifyShortUrls(item.data_original_tweets.content)}
                           </p>
+                          <p class="message-zh" id="${contentSonId}">
+                          <img src="{{ url_for('static', filename='dist/img/laoding_2.gif') }}" alt="loading" class="opacity-75 shadow">
+                          </p>
                         </div>
                         ` : ''}
 
                         <!-- 交互栏 -->
+                        <!--
                         <div class="tweet-actions">
                           <span>💬 ${item.replies}</span>
                           <span>🔁 ${item.retweets}</span>
                           <span>❤️ ${item.likes}</span>
                         </div>
+                        -->
                       </div>
                     </section>
 
@@ -654,12 +732,16 @@ $(document).on('click', '.text_content img', function () {
 
                 `);
 
-                  // 异步翻译并填入对应位置
-                  translateToZh(contentEn).then(result => {
-                    document.getElementById(contentId).innerText = result;
-                  }).catch(() => {
-                    //document.getElementById(contentId).innerText = '翻译失败';
-                  });
+
+                  setTimeout(() => {
+                      // 异步翻译并填入对应位置
+                      translateToZh(contentEn).then(result => {
+                        document.getElementById(contentId).innerText = result;
+                      }).catch(() => {
+                        //document.getElementById(contentId).innerText = '翻译失败';
+                      });
+                  }, 500);
+
               });
               // 判断是否还有下一页
               next(lis.join(''), page < res.count);
@@ -678,8 +760,9 @@ $(document).on('click', '.text_content img', function () {
   $('#category_html').on('click', '.layui-btn', function() {
         user_id = $(this).data('id');
         // 样式切换：移除其他按钮的 cur，添加当前按钮的 cur
+        $('#category_html .layui-btn').removeClass('layui-btn-touyan');
         $('#category_html .layui-btn').addClass('layui-btn-primary');
-        $(this).removeClass('layui-btn-primary');
+        $(this).addClass('layui-btn-touyan');
         $('#ID-flow-demo').html('');  // 清空当前内容
         const message_guild = localStorage.getItem('message_guild');
         localStorage.setItem('message_did', user_id);
@@ -710,16 +793,16 @@ $(document).on('click', '.text_content img', function () {
             const select = $('#category_html');
             select.empty();  // 清空旧内容
             if (user_id>0) {
-                select.append('<button type="button" data-id="0"  class="layui-btn layui-btn-primary layui-btn-sm ">全部推特账号</button>');
+                select.append('<button type="button" data-id="0"  class="layui-btn layui-btn-primary layui-btn-sm " >全部推特账号</button>');
             }else{
-                select.append('<button type="button" data-id="0"  class="layui-btn  layui-btn-sm ">全部推特账号</button>');
+                select.append('<button type="button" data-id="0"  class="layui-btn  layui-btn-sm layui-btn-touyan"  >全部推特账号</button>');
             }
 
 
             res.data.forEach(item => {
                 const selected = (parseInt(item.tid) === parseInt(user_id)) ? '' : 'layui-btn-primary';
                 console.log(item.tid+'----'+ user_id);
-                select.append(`<button type="button" data-id="${item.tid}" class="layui-btn  layui-btn-sm  ${selected}"> ${item.show_name}</button>`);
+                select.append(`<button type="button" data-id="${item.tid}" class="layui-btn  layui-btn-sm  ${selected}"  > ${item.show_name}</button>`);
             });
 
           } else {
