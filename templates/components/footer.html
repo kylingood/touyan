@@ -213,7 +213,7 @@ async function checkLoginStatus() {
       if (!token) {
         // 未登录：显示登录按钮
         loginContainer.innerHTML = `
-           <button type="button" class="layui-btn layui-btn-sm layui-btn-normal" onclick="loginWithWallet()">🔐 请用EVM钱包登录</button>
+           <button type="button" class="layui-btn layui-btn-sm layui-btn-normal  layui-btn-touyan" onclick="loginWithWallet()">🔐 请用EVM钱包登录</button>
         `;
         return;
       }

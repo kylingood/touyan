@@ -10,15 +10,9 @@ from util.db import *
 from src.config import SYSTEM_MAX_TWITTER
 from src.auth import require_user,require_user_async
 from src.rapidapi import *
-import threading
 
-def run_async_task(coro):
-    loop = asyncio.new_event_loop()
-    asyncio.set_event_loop(loop)
-    loop.run_until_complete(coro)
 
-def fire_and_forget(coro):
-    threading.Thread(target=run_async_task, args=(coro,)).start()
+
 
 # 创建一个 Blueprint 用于 Web3 登录功能
 twitter = Blueprint('twitter', __name__)
@@ -29,6 +23,11 @@ async def index():
 
     return await render_template("/twitter/index.html")
 
+###批量提交推特
+@twitter.route('/twitter/batch', methods=['GET'])
+async def batch():
+
+    return await render_template("/twitter/batch.html")
 
 ## 推特信息流列表
 @twitter.route('/twitter/message', methods=['GET'])
@@ -436,9 +435,7 @@ async def edit():
         if data_one:
 
             if twitter_id:
-                #asyncio.create_task(getTweetByUserID(tid))
-                ###异步抓取推文
-                # fire_and_forget(getTweetByUserID(twitter_id))
+
                 ###插入关联表
                 ## 先查看此钱包有没有数据，没有就插入，有就更新数据状态
                 data_one = dbMysql.table('guzi_twitter_category_map').where(
@@ -512,6 +509,168 @@ async def edit():
                 'status': 0,
                 'message': '对不起，无权限修改此数据！'
             })
+
+
+
+@twitter.route('/twitter/addbatch', methods=['POST'])
+@require_user_async  # 使用装饰器来验证登录状态
+async def addbatch():
+    uid = g.uid
+
+    if request.method == 'POST':
+        data = await request.get_json()
+        alldata = data.get('alldata', [])
+        print("收到的地址数据：", alldata)
+
+        if not alldata:
+            return jsonify({
+                'status': 0,
+                'message': '对不起，空数据不能提交！'
+            })
+
+        success = False  # 标记是否至少成功插入一条
+        failed_usernames = []  # 记录插入失败的 username
+        # 示例插入数据库
+        for dataone in alldata:
+
+            username = dataone.get('username')
+            remark = dataone.get('remark')
+            cid = dataone.get('cid')
+            twitter_id = dataone.get('tid')
+            show_name = dataone.get('show_name')
+            url = dataone.get('url')
+            avatar = dataone.get('avatar')
+            followers = dataone.get('followers')
+            fans = dataone.get('fans')
+            description = dataone.get('description')
+            print(dataone)
+
+            try:
+                ###统计此账号下有多少个推特，超过配置的限制，不让再增加
+                total_twitter = dbMysql.table('guzi_member_twitter_map').where(f"uid='{uid}' AND status='1'").count()
+                data_one = dbMysql.table('guzi_member').where(f"uid='{uid}'").field("max_twitter,max_discord,max_discord_channel").find()
+                print(dbMysql.getLastSql())  # 打印由Model类拼接填充生成的SQL语句
+                db_max_twitter = data_one['max_twitter']
+                # 取两个限制中较大的一个
+                max_limit = max(SYSTEM_MAX_TWITTER,db_max_twitter)
+                if total_twitter >= max_limit:
+                    return jsonify({
+                        'status': 0,
+                        'message': f'对不起，已超过系统限制的 <span style="color:#16b777;">{max_limit}</span> 个账号，请联系管理员！'
+                    })
+
+                ## 先查看此钱包有没有数据，没有就插入，有就更新数据状态
+                data_one = dbMysql.table('guzi_twitter').where(f"username='{username}' AND tid='{twitter_id}'").find()
+                print(dbMysql.getLastSql())  # 打印由Model类拼接填充生成的SQL语句
+                dbdata = {}
+                today_time = int(time.time())
+                dbdata['uid'] = uid
+                dbdata['cid'] = cid
+                dbdata['tid'] = twitter_id
+                dbdata['username'] = username
+                dbdata['show_name'] = show_name
+                dbdata['url'] = url
+                dbdata['description'] = description
+                dbdata['remark'] = remark
+                dbdata['avatar'] = avatar
+                dbdata['followers'] = followers
+                dbdata['fans'] = fans
+
+                if data_one:
+                    id = data_one['id']
+                    dbdata['updated'] = today_time
+                    result_id = dbMysql.table('guzi_twitter').where(f"id = '{id}'").save(dbdata)
+                    print(dbMysql.getLastSql())  # 打印由Model类拼接填充生成的SQL语句
+                else:
+                    dbdata['status'] = 1
+                    dbdata['created'] = today_time
+                    id = dbMysql.table('guzi_twitter').add(dbdata)
+                    print(dbMysql.getLastSql())  # 打印由Model类拼接填充生成的SQL语句
+
+
+                if twitter_id:
+
+                    ###插入分类关联表
+                    ## 先查看此钱包有没有数据，没有就插入，有就更新数据状态
+                    data_one = dbMysql.table('guzi_twitter_category_map').where(
+                        f"twitter_id='{twitter_id}' AND uid='{uid}' AND category_id='{cid}'").find()
+                    dbdata = {}
+                    today_time = int(time.time())
+                    if data_one:
+                        id = data_one['id']
+                        dbdata['twitter_id'] = twitter_id
+                        dbdata['category_id'] = cid
+                        dbdata['updated'] = today_time
+                        dbdata['uid'] = uid
+                        result_id = dbMysql.table('guzi_twitter_category_map').where(f"id = '{id}'").save(dbdata)
+                        print(dbMysql.getLastSql())  # 打印由Model类拼接填充生成的SQL语句
+                    else:
+                        # 获取当前日期
+                        dbdata['twitter_id'] = twitter_id
+                        dbdata['category_id'] = cid
+                        dbdata['uid'] = uid
+                        dbdata['created'] = today_time
+                        dbdata['status'] = 1
+                        result_id = dbMysql.table('guzi_twitter_category_map').add(dbdata)
+                        print(dbMysql.getLastSql())  # 打印由Model类拼接填充生成的SQL语句
+
+                    ###插入会员与推特账号关联表
+                    ## 先查看此钱包有没有数据，没有就插入，有就更新数据状态
+                    data_one = dbMysql.table('guzi_member_twitter_map ').where(
+                        f"twitter_id='{twitter_id}' AND uid='{uid}' ").find()
+                    dbdata = {}
+                    today_time = int(time.time())
+                    if data_one:
+                        id = data_one['id']
+                        dbdata['twitter_id'] = twitter_id
+                        dbdata['updated'] = today_time
+                        dbdata['uid'] = uid
+                        dbdata['remark'] = remark
+                        dbdata['category_id'] = cid
+                        result_id = dbMysql.table('guzi_member_twitter_map ').where(f"id = '{id}'").save(dbdata)
+                        print(dbMysql.getLastSql())  # 打印由Model类拼接填充生成的SQL语句
+                    else:
+                        # 获取当前日期
+                        dbdata['twitter_id'] = twitter_id
+                        dbdata['uid'] = uid
+                        dbdata['remark'] = remark
+                        dbdata['category_id'] = cid
+                        dbdata['created'] = today_time
+                        dbdata['status'] = 1
+                        result_id = dbMysql.table('guzi_member_twitter_map ').add(dbdata)
+                        print(dbMysql.getLastSql())  # 打印由Model类拼接填充生成的SQL语句
+                    success = True  # 有一个成功就标记
+
+            except Exception as e:
+                print(f"Inserting {username} failed: {str(e)}")
+                failed_usernames.append(username)
+
+        # 最后统一处理结果
+        if success:
+            result = {
+                'status': 1,
+                'message': '恭喜您，数据增加成功！'
+            }
+        else:
+            # 将 failed_usernames 转换为以逗号分隔的字符串
+            failed_usernames_str = ', '.join(failed_usernames)
+            result = {
+                'status': 0,
+                'message': f'对不起，增加失败的账号有：{failed_usernames_str}',
+                "failed_usernames": failed_usernames
+            }
+
+        return result
+
+
+
+    else:
+        return jsonify({
+            'status': 0,
+            'message': '对不起，数据增加失败！'
+        })
+
+
 
 
 @twitter.route('/twitter/add', methods=['GET', 'POST'])

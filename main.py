@@ -43,4 +43,5 @@ import asyncio
 
 if __name__ == "__main__":
     #asyncio.run(app.run_task(debug=True))
-    asyncio.run(app.run_task(host="0.0.0.0", port=8080, debug=True))
+    asyncio.run(app.run_task(host="127.0.0.1", port=8080, debug=True))
+    #asyncio.run(app.run_task(host="0.0.0.0", port=8080, debug=True))

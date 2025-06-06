@@ -577,7 +577,7 @@ $(document).on('click', '.text_content img', function () {
                             ${item.t2_description}
                              ${contentEn  ? `
                             <p class="message-zh" id="${contentId}">
-                            <img src="{{ url_for('static', filename='dist/img/laoding_2.gif') }}" alt="loading" class="opacity-75 shadow">
+                            <img src="{{ url_for('static', filename='dist/img/loading_2.gif') }}" alt="loading" class="opacity-75 shadow">
                             </p>
                             ` : ''}
                           </div>
@@ -689,7 +689,7 @@ $(document).on('click', '.text_content img', function () {
                         <!-- 正文 -->
                         <p class="text_content">${linkifyShortUrls(item.content)}</p>
                         <p class="message-zh" id="${contentId}">
-                        <img src="{{ url_for('static', filename='dist/img/laoding_2.gif') }}" alt="loading" class="opacity-75 shadow">
+                        <img src="{{ url_for('static', filename='dist/img/loading_2.gif') }}" alt="loading" class="opacity-75 shadow">
                         </p>
 
                        <!-- 判断 original_tweet_id 是否有值再渲染引用推文卡片 -->
@@ -711,7 +711,7 @@ $(document).on('click', '.text_content img', function () {
                            ${linkifyShortUrls(item.data_original_tweets.content)}
                           </p>
                           <p class="message-zh" id="${contentSonId}">
-                          <img src="{{ url_for('static', filename='dist/img/laoding_2.gif') }}" alt="loading" class="opacity-75 shadow">
+                          <img src="{{ url_for('static', filename='dist/img/loading_2.gif') }}" alt="loading" class="opacity-75 shadow">
                           </p>
                         </div>
                         ` : ''}

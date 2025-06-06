@@ -11,7 +11,10 @@
               <div class="col-sm-6">
                 <ol class="breadcrumb float-sm-end">
                   <li class="breadcrumb-item">
-                      <button type="button" class="layui-btn layui-bg-blue layui-btn-touyan"    lay-on="add-twitter-page-custom"><b>添加新推特</b></button>
+                      <button type="button" class="layui-btn layui-bg-blue layui-btn-touyan"    lay-on="add-twitter-page-custom"><b>单个添加</b></button>
+                  </li>
+                  <li class="breadcrumb-item">
+                      <button type="button" class="layui-btn layui-bg-blue layui-btn-touyan"    lay-on="add-twitter-page-custom"><b>批量添加</b></button>
                   </li>
                   <li class="breadcrumb-item active" aria-current="page">
                       <button type="button" lay-on="add-category-page-custom"  class="layui-btn btn-success layui-btn-touyan"  ><b>添加分组</b></button>
@@ -299,7 +302,7 @@ function formatTimestamp(unixTime) {
                           <td>${item.num}.</td>
                           <td >
                            <a href="https://x.com/${item.username}" class="alert-link" target="_blank">
-                           <div style="display: flex; align-items: center; gap: 10px;">
+                           <div style="display: flex; align-items: center; gap: 10px;text-align:left;">
                               <img src="${item.avatar}" class="user-image rounded-circle shadow"  style="width:40px; height:40px;" alt="User Image">
                               <div style="display: flex; flex-direction: column;">
                                 <div style="font-weight: bold;">${item.show_name}</div>
@@ -377,7 +380,7 @@ layui.use(function(){
     'del-twitter-confirm': function(){
       const id = $(this).data('id');       // 获取 data-id 的值
 
-        layer.confirm('你确定删除此信息？', {
+      layer.confirm('你确定删除此信息？', {
         btn: ['确定', '取消'] //按钮
       }, function(){
         // 此处可执行 Ajax 等操作

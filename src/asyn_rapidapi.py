@@ -47,6 +47,57 @@ def extract_media_html(legacy):
     return "\n".join(html_parts)
 
 
+
+# 通过推特用户名获取账号详细数据（异步版本）
+async def async_getDataByUsername(session, username):
+    url = "https://twitter241.p.rapidapi.com/user"
+    querystring = {"username": username}
+
+    retries = 3
+    sleep_time = 1
+
+    for attempt in range(retries):
+        try:
+            async with session.get(url, headers=HEADERS, params=querystring) as resp:
+                resp.raise_for_status()
+                data = await resp.json()  # 解析 JSON
+                user_data = data['result']['data']['user']['result']
+
+                tid = user_data.get('rest_id', '')
+                username = user_data['legacy'].get('screen_name', '')
+                show_name = user_data['legacy'].get('name', '')
+                description = user_data['legacy'].get('description', '')
+                avatar = user_data['legacy'].get('profile_image_url_https', '')
+                followers = user_data['legacy'].get('friends_count', 0)
+                fans = user_data['legacy'].get('followers_count', 0)
+                url = f"https://x.com/{username}"
+                created_at = user_data['legacy'].get('created_at', '')
+
+                user_data = {
+                    'rest_id': tid,
+                    'username': username,
+                    'show_name': show_name,
+                    'url': url,
+                    'description': description,
+                    'remark': show_name,
+                    'avatar': avatar,
+                    'followers': followers,
+                    'fans': fans,
+                    'created_at': created_at
+                }
+
+                return user_data
+
+
+        except Exception as e:
+            print(f"⚠️ 第 {attempt + 1} 次请求失败：{e}")
+            if attempt < retries - 1:
+                await asyncio.sleep(sleep_time)  # 异步睡眠
+            else:
+                print("❌ 超过最大重试次数，放弃请求")
+                return None
+
+
 ## 通过接口取推特账号数据
 async def async_getDataByUserID(session, user_id):
     url = "https://twitter241.p.rapidapi.com/get-users"
@@ -78,8 +129,8 @@ async def async_getDataByUserID(session, user_id):
         show_name = user_data['legacy'].get('name', '')
         description = user_data['legacy'].get('description', '')
         avatar = user_data['legacy'].get('profile_image_url_https', '')
-        followers = user_data['legacy'].get('followers_count', 0)
-        fans = user_data['legacy'].get('friends_count', 0)
+        followers = user_data['legacy'].get('friends_count', 0)
+        fans = user_data['legacy'].get('followers_count', 0)
         url = f"https://x.com/{username}"
         created_at = user_data['legacy'].get('created_at', '')
 

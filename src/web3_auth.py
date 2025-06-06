@@ -8,15 +8,20 @@ from src.auth import require_user,require_login,require_user_async
 from src.model.discord.get_discord_info import *
 from datetime import datetime, timedelta
 from src.rapidapi import getDataByUsername
+from src.asyn_rapidapi import async_getDataByUsername
 from src.config import DB_MAX_DISCORD,DB_MAX_TWITTER,DB_MAX_DISCORD_CHANNEL
 from src.config import ADMIN_LIST_ID
+import aiohttp
+from aiohttp import ClientSession, TCPConnector
+import asyncio
 
 SECRET_KEY = '681f4d8e-d290-800f-a7e5-06bd9291c0d8'
 
 # 存储 nonce 和签名消息
 NONCE_STORE = {}
 EXPIRE_SECONDS = 300  # 5分钟有效
-
+MAX_CONCURRENT = 5  # 最多 5 个并发任务
+semaphore = asyncio.Semaphore(MAX_CONCURRENT)
 # 创建一个 Blueprint 用于 Web3 登录功能
 web3_auth = Blueprint('web3_auth', __name__)
 
@@ -63,6 +68,47 @@ async def get_twitter():
 
         return jsonify({'status': 0, 'message': '无效或被封禁的 token'})
 
+
+# 使用异步并发处理多个请求
+async def get_users_data(usernames):
+    async with ClientSession(connector=TCPConnector(ssl=False)) as session:
+        tasks = []
+        for username in usernames:
+            tasks.append(async_getDataByUsername(session, username))  # 添加每个请求的任务
+        results = await asyncio.gather(*tasks)  # 异步并行执行所有请求
+        return results
+
+# 根据用户名批量获取推特信息
+@web3_auth.route('/api/auth/get_all_twitter', methods=['GET', 'POST'])
+async def get_all_twitter():
+    if request.method == 'POST':
+        form = await request.form  # 注意必须 await
+        remarks = form.get('remark')
+
+        if not remarks:
+            return jsonify({"error": "Missing remark"}), 400
+
+        # 正则：验证合法的 URL，并提取用户名部分
+        valid_url_regex = r"https:\/\/(x\.com|twitter\.com)\/([a-zA-Z0-9_]+)"
+
+        # 过滤 remark 中的每一行，并提取用户名,需要查询的用户名列表
+        usernames = [
+            match.group(2)  # 提取用户名（match.group(2)是URL中的用户名部分）
+            for line in remarks.split('\n')
+            if re.match(valid_url_regex, line)  # 如果匹配到合法 URL
+            for match in [re.match(valid_url_regex, line)] if match  # 匹配后提取
+        ]
+
+        # 直接使用 await 来执行异步任务，而不使用 run_until_complete
+        user_data = await get_users_data(usernames)  # 执行异步任务并获取结果
+        print(user_data)
+        if user_data:
+            # 有值，处理逻辑
+            return jsonify({'status': 1, 'data': user_data})
+
+
+
+    return jsonify({'status': 0, 'message': '无效或被封禁的 token'})
 
 
 # 获取签名消息（带时间戳/nonce）
