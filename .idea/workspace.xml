@@ -4,26 +4,15 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="52e72af2-67a7-4242-a6ba-fbef2c11875c" name="更改" comment="第12次提交，优化翻译显示等功能">
-      <change beforePath="$PROJECT_DIR$/.idea/csv-editor.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/csv-editor.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/twitter.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/twitter.iml" afterDir="false" />
+    <list default="true" id="52e72af2-67a7-4242-a6ba-fbef2c11875c" name="更改" comment="第13次提交，优化以及批量增加推特功能">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/crontab/twitter_tweet.py" beforeDir="false" afterPath="$PROJECT_DIR$/crontab/twitter_tweet.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/crontab/twitter_user.py" beforeDir="false" afterPath="$PROJECT_DIR$/crontab/twitter_user.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/asyn_rapidapi.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/asyn_rapidapi.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/twitter.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/twitter.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/web3_auth.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/web3_auth.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/static/dist/img/laoding_1.gif" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/static/dist/img/laoding_2.gif" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/static/dist/img/laoding_3.gif" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/templates/category/discord.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/category/discord.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/templates/category/twitter.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/category/twitter.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/templates/components/footer.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/components/footer.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/templates/discord/message.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/discord/message.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/templates/components/sidebar.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/components/sidebar.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/templates/discord/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/discord/index.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/templates/twitter/batch.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/twitter/batch.html" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/templates/twitter/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/twitter/index.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/templates/twitter/message.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/twitter/message.html" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -64,23 +53,23 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent">{
-  &quot;keyToString&quot;: {
-    &quot;Python.app.executor&quot;: &quot;Run&quot;,
-    &quot;Python.discord.executor&quot;: &quot;Run&quot;,
-    &quot;Python.main.executor&quot;: &quot;Run&quot;,
-    &quot;Python.pythonMySQL.executor&quot;: &quot;Run&quot;,
-    &quot;Python.test.executor&quot;: &quot;Run&quot;,
-    &quot;Python.twitter.executor&quot;: &quot;Run&quot;,
-    &quot;Python.twitter_tweet.executor&quot;: &quot;Run&quot;,
-    &quot;Python.twitter_user.executor&quot;: &quot;Run&quot;,
-    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;SHARE_PROJECT_CONFIGURATION_FILES&quot;: &quot;true&quot;,
-    &quot;git-widget-placeholder&quot;: &quot;master&quot;,
-    &quot;ignore.virus.scanning.warn.message&quot;: &quot;true&quot;,
-    &quot;last_opened_file_path&quot;: &quot;E:/touyan/.venv&quot;
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "Python.app.executor": "Run",
+    "Python.discord.executor": "Run",
+    "Python.main.executor": "Run",
+    "Python.pythonMySQL.executor": "Run",
+    "Python.test.executor": "Run",
+    "Python.twitter.executor": "Run",
+    "Python.twitter_tweet.executor": "Run",
+    "Python.twitter_user.executor": "Run",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "SHARE_PROJECT_CONFIGURATION_FILES": "true",
+    "git-widget-placeholder": "master 上的 #2",
+    "ignore.virus.scanning.warn.message": "true",
+    "last_opened_file_path": "E:/touyan/.venv"
   }
-}</component>
+}]]></component>
   <component name="RunManager" selected="Python.twitter_user">
     <configuration name="discord" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="twitter" />
@@ -464,7 +453,15 @@
       <option name="project" value="LOCAL" />
       <updated>1749092497136</updated>
     </task>
-    <option name="localTasksCounter" value="29" />
+    <task id="LOCAL-00029" summary="第13次提交，优化以及批量增加推特功能">
+      <option name="closed" value="true" />
+      <created>1749193878760</created>
+      <option name="number" value="00029" />
+      <option name="presentableId" value="LOCAL-00029" />
+      <option name="project" value="LOCAL" />
+      <updated>1749193878760</updated>
+    </task>
+    <option name="localTasksCounter" value="30" />
     <servers />
   </component>
   <component name="VcsManagerConfiguration">
@@ -482,6 +479,7 @@
     <MESSAGE value="第11次提交，优化搜索功能和计划任务" />
     <MESSAGE value="第12次提交，增加计划任务" />
     <MESSAGE value="第12次提交，优化翻译显示等功能" />
-    <option name="LAST_COMMIT_MESSAGE" value="第12次提交，优化翻译显示等功能" />
+    <MESSAGE value="第13次提交，优化以及批量增加推特功能" />
+    <option name="LAST_COMMIT_MESSAGE" value="第13次提交，优化以及批量增加推特功能" />
   </component>
 </project>

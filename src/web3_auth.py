@@ -8,7 +8,7 @@ from src.auth import require_user,require_login,require_user_async
 from src.model.discord.get_discord_info import *
 from datetime import datetime, timedelta
 from src.rapidapi import getDataByUsername
-from src.asyn_rapidapi import async_getDataByUsername
+from src.asyn_rapidapi import async_getDataByUsername,async_getUserFollowingIds,async_getDataByUserID
 from src.config import DB_MAX_DISCORD,DB_MAX_TWITTER,DB_MAX_DISCORD_CHANNEL
 from src.config import ADMIN_LIST_ID
 import aiohttp
@@ -78,12 +78,60 @@ async def get_users_data(usernames):
         results = await asyncio.gather(*tasks)  # 异步并行执行所有请求
         return results
 
+# 使用异步并发处理多个请求
+async def get_users_id_data(usernames,nums):
+    async with ClientSession(connector=TCPConnector(ssl=False)) as session:
+        tasks = []
+        for username in usernames:
+            tasks.append(async_getUserFollowingIds(session, username,nums))  # 添加每个请求的任务
+        results = await asyncio.gather(*tasks)  # 异步并行执行所有请求
+        return results
+
+# 使用异步并发处理多个请求
+async def get_users_data_by_id(user_data):
+    async with ClientSession(connector=TCPConnector(ssl=False)) as session:
+        tasks = []
+        for user_id in user_data:
+            await asyncio.sleep(1)  # 暂停1秒，避免请求过快
+            tasks.append(async_getDataByUserID(session, user_id))  # 添加每个请求的任务
+        results = await asyncio.gather(*tasks)
+
+        # 过滤掉 None 或空数据（假设空数据是 None、空字符串、空列表、空字典）
+        filtered_results = [r for r in results if r]
+        return filtered_results
+
+
+# 根据用户名uid批量获取推特信息
+@web3_auth.route('/api/auth/get_single_twitter', methods=['GET', 'POST'])
+async def get_single_twitter():
+    if request.method == 'POST':
+        form = await request.form  # 注意必须 await
+        remarks = form.get('remark')
+        is_twitter = form.get('is_twitter')
+        user_id = form.get('user_id')
+
+        if not user_id:
+            return jsonify({"error": "Missing user_id"}), 400
+        user_id_list = []
+        if user_id:
+            user_id_list = [user_id]  # 将单个值放入列表
+        user_data = await get_users_data_by_id(user_id_list)  # 执行异步任务并获取结果
+        print(user_data)
+        if user_data:
+            # 有值，处理逻辑
+            return jsonify({'status': 1, 'data': user_data})
+
+
+
+    return jsonify({'status': 0, 'message': '数据处理出错了！'})
+
 # 根据用户名批量获取推特信息
 @web3_auth.route('/api/auth/get_all_twitter', methods=['GET', 'POST'])
 async def get_all_twitter():
     if request.method == 'POST':
         form = await request.form  # 注意必须 await
         remarks = form.get('remark')
+        is_twitter = form.get('is_twitter')
 
         if not remarks:
             return jsonify({"error": "Missing remark"}), 400
@@ -99,8 +147,23 @@ async def get_all_twitter():
             for match in [re.match(valid_url_regex, line)] if match  # 匹配后提取
         ]
 
-        # 直接使用 await 来执行异步任务，而不使用 run_until_complete
-        user_data = await get_users_data(usernames)  # 执行异步任务并获取结果
+
+        ## 如果是采集账号
+        if is_twitter:
+            # 直接使用 await 来执行异步任务，而不使用 run_until_complete
+            user_id_data = await get_users_id_data(usernames,50) # 执行异步任务并获取结果
+            user_data = user_id_data[0]
+            # print(user_id_data)
+            # user_data = await get_users_data_by_id(user_id_data[0])  # 执行异步任务并获取结果
+            # print(user_data)
+            # 有值，处理逻辑
+            if user_data:
+                return jsonify({'status': 1, 'data': user_data})
+
+        else:
+            # 直接使用 await 来执行异步任务，而不使用 run_until_complete
+            user_data = await get_users_data(usernames)  # 执行异步任务并获取结果
+
         print(user_data)
         if user_data:
             # 有值，处理逻辑
@@ -108,7 +171,7 @@ async def get_all_twitter():
 
 
 
-    return jsonify({'status': 0, 'message': '无效或被封禁的 token'})
+    return jsonify({'status': 0, 'message': '数据处理出错！'})
 
 
 # 获取签名消息（带时间戳/nonce）

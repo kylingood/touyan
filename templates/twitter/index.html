@@ -14,7 +14,9 @@
                       <button type="button" class="layui-btn layui-bg-blue layui-btn-touyan"    lay-on="add-twitter-page-custom"><b>单个添加</b></button>
                   </li>
                   <li class="breadcrumb-item">
-                      <button type="button" class="layui-btn layui-bg-blue layui-btn-touyan"    lay-on="add-twitter-page-custom"><b>批量添加</b></button>
+                      <a href="{{ url_for('twitter.batch') }}" class="alert-link" >
+                      <button type="button" class="layui-btn layui-bg-blue layui-btn-touyan"   ><b>批量添加</b></button>
+                       </a>
                   </li>
                   <li class="breadcrumb-item active" aria-current="page">
                       <button type="button" lay-on="add-category-page-custom"  class="layui-btn btn-success layui-btn-touyan"  ><b>添加分组</b></button>

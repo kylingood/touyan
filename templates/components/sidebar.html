@@ -34,7 +34,7 @@
 
 
               <li class="nav-item login-nav-item" style="display:none;">
-                <a href="{{ url_for('twitter.index') }}" class="nav-link {% if request.path.startswith('/twitter/index') %}active{% endif %} {% if request.path.startswith('/category/twitter') %}active{% endif %} ">
+                <a href="{{ url_for('twitter.index') }}" class="nav-link {% if request.path.startswith('/twitter/index') %}active{% endif %} {% if request.path.startswith('/twitter/batch') %}active{% endif %}  {% if request.path.startswith('/category/twitter') %}active{% endif %} ">
                   <i class="nav-icon layui-icon layui-icon-template-1"></i>
                   <p>推特账号</p>
                 </a>

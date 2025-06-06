@@ -154,6 +154,28 @@ async def async_getDataByUserID(session, user_id):
         return None
 
 
+##通过推特账号取到本推特号指定数量的粉丝数据
+async def async_getUserFollowingIds(session, username,count=50):
+    url = "https://twitter241.p.rapidapi.com/following-ids"
+    params = {"username": username, "count": count}
+
+    retries = 3
+    for attempt in range(retries):
+        try:
+            async with session.get(url, headers=HEADERS, params=params) as resp:
+                resp.raise_for_status()
+                user_data = await resp.json()
+                return user_data['ids']
+        except Exception as e:
+            print(f"⚠️ 第 {attempt+1} 次请求失败：{e}")
+            if attempt == retries - 1:
+                print("❌ 超过最大重试次数")
+            await asyncio.sleep(1)
+
+    return None
+
+
+##通过推特id取到本推特号下面的推文数据
 async def fetch_user_tweets(session, user_id):
     url = "https://twitter241.p.rapidapi.com/user-tweets"
     params = {"user": user_id, "count": "20"}

@@ -54,7 +54,7 @@ async def listuser():
     sql = f'''SELECT t.tid, t.show_name
         FROM guzi_member_twitter_map AS m
         INNER JOIN guzi_twitter AS t ON m.twitter_id = t.tid
-        WHERE m.status = 1 AND m.uid='{uid}';
+        WHERE m.status = 1 AND m.uid='{uid} Limit 50';
         '''
     data = dbMysql.query(sql)
     print(dbMysql.getLastSql())  # 打印由Model类拼接填充生成的SQL语句
@@ -520,7 +520,7 @@ async def addbatch():
     if request.method == 'POST':
         data = await request.get_json()
         alldata = data.get('alldata', [])
-        print("收到的地址数据：", alldata)
+        #print("收到的地址数据：", alldata)
 
         if not alldata:
             return jsonify({
@@ -543,13 +543,13 @@ async def addbatch():
             followers = dataone.get('followers')
             fans = dataone.get('fans')
             description = dataone.get('description')
-            print(dataone)
+            #print(dataone)
 
             try:
                 ###统计此账号下有多少个推特，超过配置的限制，不让再增加
                 total_twitter = dbMysql.table('guzi_member_twitter_map').where(f"uid='{uid}' AND status='1'").count()
                 data_one = dbMysql.table('guzi_member').where(f"uid='{uid}'").field("max_twitter,max_discord,max_discord_channel").find()
-                print(dbMysql.getLastSql())  # 打印由Model类拼接填充生成的SQL语句
+                #print(dbMysql.getLastSql())  # 打印由Model类拼接填充生成的SQL语句
                 db_max_twitter = data_one['max_twitter']
                 # 取两个限制中较大的一个
                 max_limit = max(SYSTEM_MAX_TWITTER,db_max_twitter)
@@ -561,7 +561,7 @@ async def addbatch():
 
                 ## 先查看此钱包有没有数据，没有就插入，有就更新数据状态
                 data_one = dbMysql.table('guzi_twitter').where(f"username='{username}' AND tid='{twitter_id}'").find()
-                print(dbMysql.getLastSql())  # 打印由Model类拼接填充生成的SQL语句
+                #print(dbMysql.getLastSql())  # 打印由Model类拼接填充生成的SQL语句
                 dbdata = {}
                 today_time = int(time.time())
                 dbdata['uid'] = uid
@@ -580,12 +580,12 @@ async def addbatch():
                     id = data_one['id']
                     dbdata['updated'] = today_time
                     result_id = dbMysql.table('guzi_twitter').where(f"id = '{id}'").save(dbdata)
-                    print(dbMysql.getLastSql())  # 打印由Model类拼接填充生成的SQL语句
+                    #print(dbMysql.getLastSql())  # 打印由Model类拼接填充生成的SQL语句
                 else:
                     dbdata['status'] = 1
                     dbdata['created'] = today_time
                     id = dbMysql.table('guzi_twitter').add(dbdata)
-                    print(dbMysql.getLastSql())  # 打印由Model类拼接填充生成的SQL语句
+                    #print(dbMysql.getLastSql())  # 打印由Model类拼接填充生成的SQL语句
 
 
                 if twitter_id:
@@ -603,7 +603,7 @@ async def addbatch():
                         dbdata['updated'] = today_time
                         dbdata['uid'] = uid
                         result_id = dbMysql.table('guzi_twitter_category_map').where(f"id = '{id}'").save(dbdata)
-                        print(dbMysql.getLastSql())  # 打印由Model类拼接填充生成的SQL语句
+                        #print(dbMysql.getLastSql())  # 打印由Model类拼接填充生成的SQL语句
                     else:
                         # 获取当前日期
                         dbdata['twitter_id'] = twitter_id
@@ -612,7 +612,7 @@ async def addbatch():
                         dbdata['created'] = today_time
                         dbdata['status'] = 1
                         result_id = dbMysql.table('guzi_twitter_category_map').add(dbdata)
-                        print(dbMysql.getLastSql())  # 打印由Model类拼接填充生成的SQL语句
+                        #print(dbMysql.getLastSql())  # 打印由Model类拼接填充生成的SQL语句
 
                     ###插入会员与推特账号关联表
                     ## 先查看此钱包有没有数据，没有就插入，有就更新数据状态
@@ -628,7 +628,7 @@ async def addbatch():
                         dbdata['remark'] = remark
                         dbdata['category_id'] = cid
                         result_id = dbMysql.table('guzi_member_twitter_map ').where(f"id = '{id}'").save(dbdata)
-                        print(dbMysql.getLastSql())  # 打印由Model类拼接填充生成的SQL语句
+                        #print(dbMysql.getLastSql())  # 打印由Model类拼接填充生成的SQL语句
                     else:
                         # 获取当前日期
                         dbdata['twitter_id'] = twitter_id
@@ -638,11 +638,11 @@ async def addbatch():
                         dbdata['created'] = today_time
                         dbdata['status'] = 1
                         result_id = dbMysql.table('guzi_member_twitter_map ').add(dbdata)
-                        print(dbMysql.getLastSql())  # 打印由Model类拼接填充生成的SQL语句
+                        #print(dbMysql.getLastSql())  # 打印由Model类拼接填充生成的SQL语句
                     success = True  # 有一个成功就标记
 
             except Exception as e:
-                print(f"Inserting {username} failed: {str(e)}")
+                #print(f"Inserting {username} failed: {str(e)}")
                 failed_usernames.append(username)
 
         # 最后统一处理结果

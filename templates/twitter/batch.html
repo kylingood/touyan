@@ -12,7 +12,9 @@
               <div class="col-sm-6"><h4 class="mb-0">批量增加推特</h4></div>
               <div class="col-sm-6">
                 <ol class="breadcrumb float-sm-end">
-                  <li class="breadcrumb-item"> <button type="button" class="layui-btn btn-success layui-btn-touyan" lay-on="add-category-page-custom" ><b>＋ 批量增加</b></button></li>
+                  <li class="breadcrumb-item"> <button type="button" class="layui-btn btn-success layui-btn-touyan" lay-on="add-category-page-custom" ><b>＋ 按主页批量增加</b></button></li>
+                    <li class="breadcrumb-item"> <button type="button" class="layui-btn btn-success layui-btn-touyan" lay-on="add-twitter-page-custom" ><b>＋ 一键抓取关注者</b></button></li>
+
                 </ol>
               </div>
             </div>
@@ -24,8 +26,8 @@
           <!--begin::Container-->
           <div class="container-fluid">
                  <!--begin::Row-->
+                    <!--
                     <div  style="text-align:center;">
-
                     <div class="layui-form-item">
                     <div class="layui-inline">
                       <label class="layui-form-label">搜索：</label>
@@ -39,6 +41,7 @@
                       </div>
 
                     </div>
+                    -->
                   <!--end::Row-->
                <div class="card mb-4">
                   <div class="card-header">
@@ -68,8 +71,8 @@
 
                         <div style="text-align: center;margin:20px" >
                            <div class="btn-container">
-                              <button type="button" id="add-touyan-btn"  class="layui-btn btn-success" lay-on="add-category-page-custom" ><b>＋ 批量增加</b></button>
-                              &nbsp;&nbsp;&nbsp;&nbsp;<button type="submit" id="submit-touyan-btn" class="layui-btn layui-btn-touyan" ><b>确定提交</b></button>
+                              <button type="button" id="add-touyan-btn"  class="layui-btn btn-success layui-btn-touyan" lay-on="add-category-page-custom" ><b>＋ 批量增加</b></button>
+                              &nbsp;&nbsp;&nbsp;&nbsp;<button type="submit" id="submit-touyan-btn " class="layui-btn layui-bg-blue" ><b>确定提交</b></button>
                             </div>
 
                     </div>
@@ -204,7 +207,7 @@ layui.use(function(){
   const token = localStorage.getItem('token');
 
 
-    let maxRows = 20; // 最大行数
+    let maxRows = 50; // 最大行数
     let rowCount = 0;
 
 
@@ -389,7 +392,7 @@ layui.use(function(){
         }
         $("#submit-touyan-btn").html("请稍等，正在提交数据...").attr("disabled","disabled");
         $.ajax({
-            url: '{{ url_for('twitter.addbatch') }}',  // ⬅️ 改成你的后端地址
+            url: '{{ url_for('twitter.addbatch') }}',  // 
             headers: {
                   'Authorization': 'Bearer ' + token,
             },
@@ -550,6 +553,223 @@ layui.use(function(){
         }
       });
     },
+    'add-twitter-page-custom': function(){
+
+      layer.open({
+        type: 1,
+        area: ['450px','250px'],
+        resize: false,
+        shadeClose: true,
+        title: '按账号增加推特',
+        content: `
+          <div class="layui-form" lay-filter="filter-test-layer" style="margin: 16px;">
+
+           <div class="layui-form-item">
+                <div class="layui-input-wrap">
+                  <div class="layui-input-prefix">
+                    <i class="layui-icon layui-icon-list"></i>
+                  </div>
+                    <select name="category_id" id="category_select" lay-verify="required" lay-search>
+                      <option value="">选择或搜索分组</option>
+                    </select>
+                 </div>
+              </div>
+
+            <div class="demo-login-container">
+              <div class="layui-form-item">
+                <div class="layui-input-wrap">
+                  <div class="layui-input-prefix">
+                    <i class="layui-icon layui-icon-password"></i>
+                  </div>
+                   <input type="text" name="remark" value="" lay-verify="required" placeholder="注意：填推特主页链接，一次最多抓取前50个粉丝数" lay-reqtext="请填推特主页链接" autocomplete="off" class="layui-input" lay-affix="clear">
+
+                 </div>
+              </div>
+
+              <div class="layui-form-item">
+                <button class="layui-btn layui-btn-fluid layui-btn-touyan" id="add-twitter-button" lay-submit lay-filter="demo-login">确定增加</button>
+              </div>
+
+            </div>
+          </div>
+        `,
+        success: function(){
+          // 对弹层中的表单进行初始化渲染
+          form.render();
+           // Step 2: 异步加载下拉数据
+          $.ajax({
+            url:'{{ url_for('category.list') }}',// ✅ 你后端接口地址
+            headers: {
+                'Authorization': 'Bearer ' + token,
+            },
+            type: 'GET',
+            data: { is_type: 1 },
+            success: function(res) {
+              if (res.status === 1 && Array.isArray(res.data)) {
+                const select = $('#category_select');
+                select.empty();  // 清空旧内容
+                select.append('<option value="">选择或搜索默认分组</option>');
+                res.data.forEach(item => {
+                  select.append(`<option value="${item.id}">${item.title}</option>`);
+                });
+                form.render('select');  // ⭐ 重要：重新渲染 layui select
+              } else {
+                layer.msg('下拉数据加载失败');
+              }
+            },
+            error: function() {
+              //layer.msg('请求出错');
+            }
+          });
+          // 表单提交事件
+          form.on('submit(demo-login)', function(data){
+             const remark = data.field.remark;
+
+              // 检查 remark 是否为空
+              if (!remark || remark.trim() === '') {
+                layer.msg('备注字段不能为空');
+                return false;  // 阻止表单提交
+              }
+
+            const remarks = filterValidRemarks(remark);
+            console.log(remarks);  // 返回的应为一个数组
+            // 如果 remarks 是数组，转换成字符串显示
+            if (remarks.length <= 0) {
+                layer.msg('都不是合法的推特主页地址，请重新填写！');
+                return false;  // 阻止表单提交
+            }
+
+            $("#add-twitter-button").html("请稍等，正在提交数据...").attr("disabled","disabled");
+            layer.closeAll();       // 关闭所有类型弹窗
+            const loadingIndex = layer.open({
+              type: 1,
+              title: false,
+              shadeClose: false,
+              shade: 0.3,
+              area: ['280px', '100px'],
+              content: `
+                <div style="text-align: center; padding: 20px;">
+                  <img src="/static/dist/img/loading_3.gif" ><br>
+                  <span style="display:block; margin-top:10px;">系统正在抓取数据中...请稍后...</span>
+                </div>
+              `
+            });
+
+			 // 第一步：先获取 user_ids
+			  $.ajax({
+				url:'{{ url_for('web3_auth.get_all_twitter') }}',
+				 headers: {
+					'Authorization': 'Bearer ' + token,
+				},
+				data:{
+					"remark":remark,
+					"is_twitter":1,
+					"cid":data.field.category_id
+				},
+				dataType:"json",
+				type:"post",
+				async:false,
+				success:function(result){
+				  if (result.status === 1) {
+					const user_ids = result.data;  // 假设后端返回的是一个数组
+					// 调用处理函数
+					fetchTwitterUsers(user_ids, remark, data.field.category_id, token);
+				  } else {
+					layer.msg("获取用户 ID 失败: " + response.message);
+				  }
+				},
+				error: function(err) {
+				  console.error("获取用户 ID 出错：", err);
+				  layer.msg("请求用户 ID 接口失败");
+				}
+			  });
+
+
+          function fetchTwitterUsers(user_ids, remark, category_id, token) {
+            const maxConcurrency = 5; // 同时最多请求数
+            let currentIndex = 0;
+            let completedCount = 0;  // 已完成请求计数
+            const totalCount = user_ids.length;
+
+            // 显示加载层
+            const loadingIndex = layer.open({
+                type: 1,
+                title: false,
+                shadeClose: false,
+                shade: 0.3,
+                area: ['280px', '100px'],
+                content: `
+                  <div style="text-align: center; padding: 20px;">
+                    <img src="/static/dist/img/loading_3.gif" ><br>
+                    <span style="display:block; margin-top:10px;">系统正在抓取数据中...请稍后...</span>
+                  </div>
+                `
+            });
+
+            function processNext() {
+                if (currentIndex >= totalCount) {
+                    return;
+                }
+
+                const user_id = user_ids[currentIndex++];
+                $.ajax({
+                    url: '{{ url_for("web3_auth.get_single_twitter") }}',
+                    type: "post",
+                    dataType: "json",
+                    headers: {
+                        'Authorization': 'Bearer ' + token,
+                    },
+                    data: {
+                        "remark": remark,
+                        "is_twitter": 1,
+                        "cid": category_id,
+                        "user_id": user_id
+                    },
+                    success: function(result) {
+                        if (result.status === 1) {
+                            const serverData = result.data;
+                            serverData.forEach(item => {
+                                addRow({
+                                    url: item.url,
+                                    avatar: item.avatar,
+                                    tid: item.rest_id,
+                                    cid: category_id,
+                                    username: item.username,
+                                    show_name: item.show_name,
+                                    followers: item.followers,
+                                    fans: item.fans,
+                                    remark: item.remark,
+                                    description: item.description
+                                });
+                            });
+                        } else {
+                            console.warn("抓取失败", user_id, result.message);
+                        }
+                    },
+                    complete: function() {
+                        completedCount++;
+                        if (completedCount >= totalCount) {
+                            layer.closeAll(); // 所有请求完成，关闭加载层
+                            $("#add-twitter-button").html("确定提交").removeAttr("disabled");
+                        } else {
+                            processNext(); // 发下一个请求
+                        }
+                    }
+                });
+            }
+
+            // 启动请求
+            for (let i = 0; i < maxConcurrency; i++) {
+                processNext();
+            }
+        }
+
+
+            return false; // 阻止默认 form 跳转
+          });
+        }
+      });
+    },
     'add-category-page-custom': function(){
 
       layer.open({
@@ -578,7 +798,7 @@ layui.use(function(){
                   <div class="layui-input-prefix">
                     <i class="layui-icon layui-icon-password"></i>
                   </div>
-                    <textarea placeholder="注意：请填主页链接，一行一个账号，一次最多20个号" name="remark" class="layui-textarea" style="height:260px" lay-reqtext="请填写推特列表" ></textarea>
+                    <textarea placeholder="注意：请填主页链接，一行一个账号，一次最多50个号 参考：https://x.com/elonmusk" name="remark" class="layui-textarea" style="height:260px" lay-reqtext="请填写推特列表" ></textarea>
                  </div>
               </div>
 
@@ -652,53 +872,56 @@ layui.use(function(){
                   `
                 });
             }
+            // 强制 DOM 更新完成后再发请求
+            setTimeout(() => {
+                //return false;  // 阻止表单提交
+                // 此处可执行 Ajax 等操作
+                $.ajax({
+                    url:'{{ url_for('web3_auth.get_all_twitter') }}',
+                    headers: {
+                        'Authorization': 'Bearer ' + token,
+                    },
+                    data:{
+                        "remark":remark,
+                        "cid":data.field.category_id,
+                    },
+                    dataType:"json",
+                    type:"post",
+                    async:false,
+                    success:function(result){
+                        if(result.status == 1){
+                            const serverData = result.data
+                            // 批量添加数据
+                            serverData.forEach(item => {
+                              addRow({
+                                url: item.url,
+                                avatar: item.avatar,
+                                tid: item.rest_id,
+                                cid: data.field.category_id,
+                                username: item.username,
+                                show_name: item.show_name,
+                                followers: item.followers,
+                                fans: item.fans,
+                                remark: item.remark,
+                                description: item.description
+                              });
+                            });
+                            layer.closeAll();       // 关闭所有类型弹窗
+                            return true
 
-            //return false;  // 阻止表单提交
-            // 此处可执行 Ajax 等操作
-            $.ajax({
-                url:'{{ url_for('web3_auth.get_all_twitter') }}',
-                headers: {
-                    'Authorization': 'Bearer ' + token,
-                },
-                data:{
-                    "remark":remark,
-                    "cid":data.field.category_id,
-                },
-                dataType:"json",
-                type:"post",
-                async:false,
-                success:function(result){
-                    if(result.status == 1){
-                        const serverData = result.data
-                        // 批量添加数据
-                        serverData.forEach(item => {
-                          addRow({
-                            url: item.url,
-                            avatar: item.avatar,
-                            tid: item.rest_id,
-                            cid: data.field.category_id,
-                            username: item.username,
-                            show_name: item.show_name,
-                            followers: item.followers,
-                            fans: item.fans,
-                            remark: item.remark,
-                            description: item.description
-                          });
-                        });
-                        layer.closeAll();       // 关闭所有类型弹窗
-                        return true
-
-                    }else{
-                    	$("#add-button").html("确定提交").removeAttr("disabled");
-                    	return layer.msg(result.message);
+                        }else{
+                            $("#add-button").html("确定提交").removeAttr("disabled");
+                            return layer.msg(result.message);
+                        }
                     }
-                }
-            })
+                })
+            }, 100);
             return false; // 阻止默认 form 跳转
           });
         }
       });
     }
+
   })
 });
 </script>

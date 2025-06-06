@@ -89,6 +89,25 @@
 
 <script>
 
+
+function copyFromElement(id) {
+  const element = document.getElementById(id);
+  const token = element.getAttribute("data-token"); // 读取 data-token 属性
+
+  if (!token) {
+    layer.msg("没有找到要复制的内容", { icon: 2 });
+    return;
+  }
+
+  navigator.clipboard.writeText(token).then(() => {
+    layer.msg("复制成功！");
+  }).catch(err => {
+    console.error("复制失败:", err);
+    layer.msg("复制失败");
+  });
+}
+
+
 layui.use(['laypage', 'jquery'], function() {
   var laypage = layui.laypage;
   var $ = layui.jquery;
@@ -317,7 +336,7 @@ layui.use(['laypage', 'jquery'], function() {
                           <td>${item.num}.</td>
                           <td><a href="https://discord.com" class="alert-link" target="_blank">${item.global_name}</a></td>
                           <td><span class="layui-badge ${randomClass}">${item.cate_name}</span></td>
-                          <td style="filter: blur(0px);">${maskString(item.token)}</td>
+                          <td style="filter: blur(0px);"><span id="getcode_${item.id}" data-token="${item.token}"> ${maskString(item.token)} </span> <i onclick="copyFromElement('getcode_${item.id}')" class="nav-icon layui-icon layui-icon-template-1" style="cursor: pointer;"></i> </td>
                           <td>${item.remark}</td>
                           <td>${item.email}</td>
                           <td>
