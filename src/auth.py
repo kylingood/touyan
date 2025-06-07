@@ -94,7 +94,7 @@ def check_user_login_do(f):
     @wraps(f)
     async def wrapper(*args, **kwargs):
         ### 处理默认数据
-        if getattr(g, 'login_uid', 0) != DEFAULT_UID:
+        if getattr(g, 'login_uid', 0) != getattr(g, 'uid', DEFAULT_UID):
             return jsonify({
                 'status': 0,
                 'not_login': 1,
