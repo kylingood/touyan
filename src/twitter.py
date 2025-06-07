@@ -451,8 +451,6 @@ async def edit():
                     dbdata['twitter_id'] = twitter_id
                     dbdata['category_id'] = cid
                     dbdata['uid'] = uid
-                    print('@@@@@@@@')
-                    print(dbdata)
                     result_id = dbMysql.table('guzi_twitter_category_map').where(f"id = '{id}'").save(dbdata)
                     print(dbMysql.getLastSql())  # 打印由Model类拼接填充生成的SQL语句
                 else:
