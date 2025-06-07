@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
 import requests
 from util.db import *
-
+from src.config import X_RAPIDAPI_KEY,X_RAPIDAPI_HOST
 # 定义常量
 HEADERS = {
-    "x-rapidapi-key": "a500f12012msh6da813a3681a40cp1578f4jsn3bc8772c883e",
-    "x-rapidapi-host": "twitter241.p.rapidapi.com"
+    "x-rapidapi-key": X_RAPIDAPI_KEY,
+    "x-rapidapi-host": X_RAPIDAPI_HOST
 }
 
 # ✅ 时间格式化

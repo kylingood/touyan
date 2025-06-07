@@ -16,16 +16,15 @@ async def twitter():
 async def discord():
     return await render_template("category/discord.html")
 
-@category.route('/category/list', methods=['GET', 'POST'])
+
+@category.route('/category/list_data', methods=['GET', 'POST'])
 @require_user_async
-def list():
+def list_data():
     uid = g.uid
     is_type = request.args.get('is_type', default=1, type=int)
     data = dbMysql.table('guzi_category').where(f"uid='{uid}'  AND is_type='{is_type}' AND status=1").field('id,title').select()
     #print(dbMysql.getLastSql())  # 打印由Model类拼接填充生成的SQL语句
     return jsonify({'status': 1, 'data': data})
-
-
 
 @category.route("/category/page_discord", methods=['GET', 'POST'])
 @require_user  # 使用装饰器来验证登录状态
@@ -193,20 +192,42 @@ def page():
 @check_user_login_do
 async def del_cate():  # 因为 require_login 会解码 token
     if request.method == 'POST':
+        uid = g.uid
         form = await request.form  # 注意必须 await
         id = form.get('id')
-        uid = g.uid
-        where = f"id='{id}' AND uid='{uid}'"
-        result = dbMysql.table('guzi_category').where(where).delete()  # 返回删除的行数
+        data = await request.get_json()  # ✅ 这里必须加 await
 
-        if result:
-            where = f"category_id='{id}' AND uid='{uid}'"
-            result = dbMysql.table('guzi_twitter_category_map').where(where).delete()  # 返回删除的行数
+        if id:
+            where = f"id='{id}' AND uid='{uid}'"
+            result = dbMysql.table('guzi_category').where(where).delete()  # 返回删除的行数
 
-            return jsonify({
-                'status': 1,
-                'message': '恭喜您，数据删除成功！'
-            })
+            if result:
+                # where = f"category_id='{id}' AND uid='{uid}'"
+                # result = dbMysql.table('guzi_twitter_category_map').where(where).delete()  # 返回删除的行数
+                return jsonify({
+                    'status': 1,
+                    'message': '恭喜您，数据删除成功！'
+                })
+
+        if data:
+            twitter_ids = data.get('ids', [])
+            if not isinstance(twitter_ids, list):
+                return jsonify({'status': 0, 'message': '参数错误，ids 应该是一个列表'})
+
+            print('将要删除的 Twitter ID 列表：', twitter_ids)
+            # 构造 SQL 条件
+            id_conditions = " OR ".join([f"id='{tid}'" for tid in twitter_ids])
+            where = f"({id_conditions}) AND uid='{uid}'"
+            ###删除分类关联数据
+            result = dbMysql.table('guzi_category').where(where).delete()  # 返回删除的行数
+            print(dbMysql.getLastSql())  # 打印由Model类拼接填充生成的SQL语句
+
+            if result:
+                return jsonify({
+                    'status': 1,
+                    'message': '恭喜您，数据删除成功！'
+                })
+
 
         else:
             return jsonify({

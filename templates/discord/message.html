@@ -102,7 +102,7 @@
           <div class="container-fluid">
             <!--begin::Row-->
             <div class="row">
-              <div class="col-sm-6"><h4 class="mb-0">Discord信息流</h4><span class="layui-font-gray">注意：新增Discord频道，预计5分种左右更新数据</span></div>
+              <div class="col-sm-6" style="margin:10px 0 10px 0px;"><h4 class="mb-0">Discord信息流</h4><span class="layui-font-gray">注意：新增Discord频道，预计5分种左右更新数据</span></div>
               <div class="col-sm-6">
                 <ol class="breadcrumb float-sm-end">
                   <li class="breadcrumb-item active" aria-current="page">
@@ -316,7 +316,7 @@ layui.use(['flow', 'jquery'], function(){
 
 
             res.data.forEach(item => {
-                const selected = (BigInt(item.guild_id) === BigInt(gid)) ? '' : 'layui-btn-primary';
+                const selected = (BigInt(item.guild_id) === BigInt(gid)) ? 'layui-btn-touyan' : 'layui-btn-primary';
                 console.log(item.guild_id+'----'+ gid);
                 select.append(`<button type="button" data-id="${item.guild_id}" class="layui-btn  layui-btn-sm  ${selected}"> ${item.guild_name}</button>`);
             });
@@ -336,7 +336,7 @@ layui.use(['flow', 'jquery'], function(){
        const  did = 0;
        const token = localStorage.getItem('token');
        $.ajax({
-        url:'{{ url_for('discord.list') }}',
+        url:'{{ url_for('discord.list_data') }}',
         headers: {
             'Authorization': 'Bearer ' + token,
         },

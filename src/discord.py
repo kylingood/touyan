@@ -286,20 +286,49 @@ async def add():
 @check_user_login_do
 async def delete():  # 因为 require_login 会解码 token
     if request.method == 'POST':
+
         form = await request.form  # 注意必须 await
         id = form.get('id')
         uid = g.uid
-        where = f"id='{id}' AND uid='{uid}'"
-        result = dbMysql.table('guzi_discord').where(where).delete()  # 返回删除的行数
+        data = await request.get_json()  # ✅ 这里必须加 await
 
-        if result:
-            where = f"discord_id='{id}' AND uid='{uid}'"
-            result = dbMysql.table('guzi_discord_category_map').where(where).delete()  # 返回删除的行数
 
-            return jsonify({
-                'status': 1,
-                'message': '恭喜您，数据删除成功！'
-            })
+        if id:
+            where = f"id='{id}' AND uid='{uid}'"
+
+            result = dbMysql.table('guzi_discord').where(where).delete()  # 返回删除的行数
+
+            if result:
+                where = f"discord_id='{id}' AND uid='{uid}'"
+                result = dbMysql.table('guzi_discord_category_map').where(where).delete()  # 返回删除的行数
+
+                return jsonify({
+                    'status': 1,
+                    'message': '恭喜您，数据删除成功！'
+                })
+        if data:
+            ids = data.get('ids', [])
+            if not isinstance(ids, list):
+                return jsonify({'status': 0, 'message': '参数错误，ids 应该是一个列表'})
+
+            print('将要删除的 Twitter ID 列表：', ids)
+            # 构造 SQL 条件
+            id_conditions = " OR ".join([f"id='{did}'" for did in ids])
+            where = f"({id_conditions}) AND uid='{uid}'"
+            result = dbMysql.table('guzi_discord').where(where).delete()  # 返回删除的行数
+            print(dbMysql.getLastSql())  # 打印由Model类拼接填充生成的SQL语句
+            if result:
+
+                id_conditions = " OR ".join([f"discord_id='{did}'" for did in ids])
+                where = f"({id_conditions}) AND uid='{uid}'"
+                result = dbMysql.table('guzi_discord_category_map').where(where).delete()  # 返回删除的行数
+                print(dbMysql.getLastSql())  # 打印由Model类拼接填充生成的SQL语句
+
+                return jsonify({
+                    'status': 1,
+                    'message': '恭喜您，数据删除成功！'
+                })
+
 
         else:
             return jsonify({
@@ -327,9 +356,9 @@ async def message(gid=0):
 
 
 
-@discord.route('/discord/list', methods=['GET', 'POST'])
+@discord.route('/discord/list_data', methods=['GET', 'POST'])
 @require_user_async
-async def list():
+async def list_data():
     uid = g.uid
     data = dbMysql.table('guzi_discord').where(f"uid='{uid}'  AND  status=1").field('id,global_name').select()
     #print(dbMysql.getLastSql())  # 打印由Model类拼接填充生成的SQL语句
@@ -611,26 +640,43 @@ async def page_channel():
 @check_user_login_do
 async def delete_channel():  # 因为 require_login 会解码 token
     if request.method == 'POST':
+        uid = g.uid
         form = await request.form  # 注意必须 await
         id = form.get('id')
-        uid = g.uid
-        where = f"id='{id}' AND uid='{uid}'"
-        #result = dbMysql.table('guzi_discord_channel').where(where).delete()  # 返回删除的行数
+        data = await request.get_json()  # ✅ 这里必须加 await
 
-        data_one = dbMysql.table('guzi_discord_channel').where(where).find()
-        today_time = int(time.time())
-        discord_id = 0
-        if data_one:
-            data_one['status'] = -1
-            data_one['updated'] = today_time
-            discord_id = dbMysql.table('guzi_discord_channel').where(where).save(data_one)
+        if id:
 
-        if discord_id:
+            where = f"id='{id}' AND uid='{uid}'"
 
-            return jsonify({
-                'status': 1,
-                'message': '恭喜您，监控数据移除成功！'
-            })
+            result = dbMysql.table('guzi_discord_channel').where(where).delete()  # 返回删除的行数
+            print(dbMysql.getLastSql())  # 打印由Model类拼接填充生成的SQL语句
+
+            if result:
+                return jsonify({
+                    'status': 1,
+                    'message': '恭喜您，监控数据移除成功！'
+                })
+
+        if data:
+            ids = data.get('ids', [])
+            if not isinstance(ids, list):
+                return jsonify({'status': 0, 'message': '参数错误，ids 应该是一个列表'})
+
+            print('将要删除的 Twitter ID 列表：', ids)
+            # 构造 SQL 条件
+            id_conditions = " OR ".join([f"id='{tid}'" for tid in ids])
+            where = f"({id_conditions}) AND uid='{uid}'"
+            print('将要删除的 Twitter ID 列表：', where)
+            result = dbMysql.table('guzi_discord_channel').where(where).delete()  # 返回删除的行数
+            print(dbMysql.getLastSql())  # 打印由Model类拼接填充生成的SQL语句
+
+            if result:
+                return jsonify({
+                    'status': 1,
+                    'message': '恭喜您，监控数据移除成功！'
+                })
+
 
         else:
             return jsonify({

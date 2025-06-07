@@ -1,6 +1,83 @@
 {% extends "base.html" %}
 
 {% block content %}
+
+ <!--begin::App Content Header-->
+         <div class="app-content-header">
+          <!--begin::Container-->
+          <div class="container-fluid">
+            <!--begin::Row-->
+            <div class="row">
+              <div class="col-sm-6" style="margin:10px 0 10px 0px;"><h4 class="mb-0">推特信息流</h4><span class="layui-font-gray">注意：第一次新增推特，系统预计10分种左右更新数据。【只显示前50账号】</span></div>
+              <div class="col-sm-6">
+                <ol class="breadcrumb float-sm-end">
+                  <li class="breadcrumb-item active" aria-current="page">
+                      <a href="{{ url_for('twitter.index') }}" >
+                          <button type="button" class="layui-btn" style="background-color: #16b777 !important;" ><b>管理全部推特</b></button>
+                      </a>
+                  </li>
+                </ol>
+              </div>
+            </div>
+
+            <div class="layui-btn-container" id="category_html">
+
+            </div>
+
+            <div class="layui-btn-container" id="guild_html">
+
+            </div>
+
+            <!--end::Row-->
+          </div>
+          <!--end::Container-->
+        </div>
+        <div class="app-content">
+          <!--begin::Container-->
+          <div class="container-fluid">
+
+
+
+            <div class="row">
+
+              <div class="layui-row">
+              <div class="layui-col-xs4 layui-col-sm7 layui-col-md8">
+                <div class="grid-demo">
+                    <div class="flow-demo" id="ID-flow-demo">
+
+
+                    </div>
+
+                </div>
+              </div>
+              <div class="layui-col-xs4 layui-col-sm5 layui-col-md4">
+                <div class="grid-demo">
+                <div class="tweet-card-title"><h5 class="mb-0 " style="color:#16b777 !important;">TA的最新关注</h5></div>
+
+                <div class="flow-demo" id="ID-flow-followings">
+
+
+
+
+                </div>
+
+
+
+                </div>
+              </div>
+            </div>
+
+
+
+            </div>
+
+
+          </div>
+          <!--end::Container-->
+        </div>
+        <!--end::App Content-->
+
+
 <style>
 video {
   display: block;
@@ -350,80 +427,6 @@ video {
     text-decoration: underline;
 }
 </style>
- <!--begin::App Content Header-->
-         <div class="app-content-header">
-          <!--begin::Container-->
-          <div class="container-fluid">
-            <!--begin::Row-->
-            <div class="row">
-              <div class="col-sm-6" style="margin:10px 0 10px 0px;"><h4 class="mb-0">推特信息流</h4><span class="layui-font-gray">注意：第三方接口限制，第一次新增推特，系统预计10分种左右更新数据。【只显示前50账号】</span></div>
-              <div class="col-sm-6">
-                <ol class="breadcrumb float-sm-end">
-                  <li class="breadcrumb-item active" aria-current="page">
-                      <a href="{{ url_for('twitter.index') }}" >
-                        <button type="button" class="layui-btn" style="background-color: #16b777 !important;" >查看全部推特</button>
-                      </a>
-                  </li>
-                </ol>
-              </div>
-            </div>
-
-            <div class="layui-btn-container" id="category_html">
-
-            </div>
-
-            <div class="layui-btn-container" id="guild_html">
-
-            </div>
-
-            <!--end::Row-->
-          </div>
-          <!--end::Container-->
-        </div>
-        <div class="app-content">
-          <!--begin::Container-->
-          <div class="container-fluid">
-
-
-
-            <div class="row">
-
-              <div class="layui-row">
-              <div class="layui-col-xs4 layui-col-sm7 layui-col-md8">
-                <div class="grid-demo">
-                    <div class="flow-demo" id="ID-flow-demo">
-
-
-                    </div>
-
-                </div>
-              </div>
-              <div class="layui-col-xs4 layui-col-sm5 layui-col-md4">
-                <div class="grid-demo">
-                <div class="tweet-card-title"><h5 class="mb-0 " style="color:#16b777 !important;">TA的最新关注</h5></div>
-
-                <div class="flow-demo" id="ID-flow-followings">
-
-
-
-
-                </div>
-
-
-
-                </div>
-              </div>
-            </div>
-
-
-
-            </div>
-
-
-          </div>
-          <!--end::Container-->
-        </div>
-        <!--end::App Content-->
 
 <script>
 
@@ -483,10 +486,10 @@ layui.use(['flow', 'jquery'], function(){
   var flow = layui.flow;
   var $ = layui.jquery;
   const token = localStorage.getItem('token');
-  let  guild_id = BigInt("{{gid}}");
+  let  tid = BigInt("{{tid}}");
   let  user_id = 0;
   localStorage.setItem('message_did', user_id);
-  localStorage.setItem('message_guild', guild_id);
+  localStorage.setItem('message_tid', tid);
 
 
   function showBig(src) {
@@ -508,23 +511,23 @@ $(document).on('click', '.text_content img', function () {
 
 
 
-  function fetchFollowings(page, limit, user_id,guild_id){
+  function fetchFollowings(page, limit, user_id,tid){
 
       flow.load({
         elem: '#ID-flow-followings',
         scrollElem: '#ID-flow-followings',
         done: function(page, next){
-          if (guild_id<0) {
-            let  guild_id = BigInt("{{gid}}");
+          if (tid<0) {
+            let  tid = BigInt("{{tid}}");
           }else{
-             guild_id = localStorage.getItem('message_guild');
+             tid = localStorage.getItem('message_tid');
           }
 
-          console.log('guild_id+----'+ guild_id);
+          console.log('tid+----'+ tid);
           $.ajax({
             url: '{{ url_for('twitter.page_followings') }}',
             type: 'GET',
-            data: { page: page, user_id: user_id,  limit: 10 },
+            data: { page: page, user_id: user_id,  tid: tid,  limit: 10 },
             dataType: 'json',
             headers: {
             'Authorization': 'Bearer ' + token,
@@ -608,23 +611,23 @@ $(document).on('click', '.text_content img', function () {
   }
 
 
-  function fetchMessage(page, limit, user_id,guild_id){
+  function fetchMessage(page, limit, user_id,tid){
 
       flow.load({
         elem: '#ID-flow-demo',
         scrollElem: '#ID-flow-demo',
         done: function(page, next){
-          if (guild_id<0) {
-            let  guild_id = BigInt("{{gid}}");
+          if (tid<0) {
+            let  tid = BigInt("{{tid}}");
           }else{
-             guild_id = localStorage.getItem('message_guild');
+             tid = localStorage.getItem('message_tid');
           }
 
-          console.log('guild_id+----'+ guild_id);
+          console.log('tid+----'+ tid);
           $.ajax({
             url: '{{ url_for('twitter.page_messages') }}',
             type: 'GET',
-            data: { page: page, user_id: user_id,  limit: 10 },
+            data: { page: page, user_id: user_id,  tid: tid,  limit: 10 },
             dataType: 'json',
             headers: {
             'Authorization': 'Bearer ' + token,
@@ -766,6 +769,7 @@ $(document).on('click', '.text_content img', function () {
         $('#ID-flow-demo').html('');  // 清空当前内容
         const message_guild = localStorage.getItem('message_guild');
         localStorage.setItem('message_did', user_id);
+        localStorage.setItem('message_tid', user_id);
         //加载数据
         fetchMessage(1,10,user_id,message_guild)// 点击分类时重置为第一页
          $('#ID-flow-followings').html('');  // 清空当前内容
@@ -781,6 +785,11 @@ $(document).on('click', '.text_content img', function () {
   function getUser(){
        const  user_id = 0;
        const token = localStorage.getItem('token');
+       if (tid<0) {
+        let  tid = BigInt("{{tid}}");
+       }else{
+         tid = localStorage.getItem('message_tid');
+       }
        $.ajax({
         url:'{{ url_for('twitter.listuser') }}',
         headers: {
@@ -792,7 +801,7 @@ $(document).on('click', '.text_content img', function () {
           if (res.status === 1 && Array.isArray(res.data)) {
             const select = $('#category_html');
             select.empty();  // 清空旧内容
-            if (user_id>0) {
+            if (tid>0) {
                 select.append('<button type="button" data-id="0"  class="layui-btn layui-btn-primary layui-btn-sm " >全部推特账号</button>');
             }else{
                 select.append('<button type="button" data-id="0"  class="layui-btn  layui-btn-sm layui-btn-touyan"  >全部推特账号</button>');
@@ -800,7 +809,7 @@ $(document).on('click', '.text_content img', function () {
 
 
             res.data.forEach(item => {
-                const selected = (parseInt(item.tid) === parseInt(user_id)) ? '' : 'layui-btn-primary';
+                const selected = (parseInt(item.tid) === parseInt(tid)) ? 'layui-btn-touyan' : 'layui-btn-primary';
                 console.log(item.tid+'----'+ user_id);
                 select.append(`<button type="button" data-id="${item.tid}" class="layui-btn  layui-btn-sm  ${selected}"  > ${item.show_name}</button>`);
             });

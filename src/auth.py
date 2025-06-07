@@ -54,6 +54,7 @@ def extract_user_from_token():
         for key in ["address", "username", "uid", "max_twitter", "max_discord", "max_discord_channel"]:
             setattr(g, key, decoded.get(key))
         g.login_uid = decoded.get('uid')
+        #print(f'到了111@@@@@{g.login_uid}')
         return True
     except (jwt.ExpiredSignatureError, jwt.InvalidTokenError, IndexError):
         g.uid = DEFAULT_UID ###只要出错就提供默认账号，让游客能查看登陆
@@ -94,7 +95,7 @@ def check_user_login_do(f):
     @wraps(f)
     async def wrapper(*args, **kwargs):
         ### 处理默认数据
-        if getattr(g, 'login_uid', 0) != DEFAULT_UID:
+        if getattr(g, 'login_uid', 0) != getattr(g, 'uid', DEFAULT_UID):
             return jsonify({
                 'status': 0,
                 'not_login': 1,

@@ -77,7 +77,16 @@
 
                       </tbody>
                     </table>
-                    <div style="text-align: center;" id="demo-laypage-all"></div>
+
+                    <div class="toolbar-checkbox-wrapper">
+                      <div class="layui-form toolbar-checkbox-left" id="check_all_data">
+                        <button type="button" class="layui-btn layui-btn-sm layui-btn-touyan" id="toggleSelectBtn" data-status="unselected">全选</button>
+                        <button type="button" class="layui-btn layui-btn-sm layui-bg-red " id="batchDeleteBtn">批量删除</button>
+                      </div>
+
+                      <div id="demo-laypage-all" class="toolbar-checkbox-right"></div>
+                    </div>
+
                   </div>
                   <!-- /.card-body -->
                 </div>
@@ -96,6 +105,47 @@ layui.use(['laypage', 'jquery'], function() {
   var $ = layui.jquery;
   const token = localStorage.getItem('token');
   let  did = 0;
+
+
+    // 批量删除按钮监听（动态项）
+    $('body').on('click', '#batchDeleteBtn', function () {
+      if (selectedIds.size === 0) {
+        return layer.msg("请至少选择一项进行删除");
+      }
+
+      const ids = Array.from(selectedIds);
+      console.log('checkbox ids:', ids);
+      layer.confirm(`确认删除 ${ids.length} 项吗？`, function (index) {
+        $.ajax({
+          url: '{{ url_for('discord.delete_channel') }}',
+          type: 'POST',
+          headers: {
+            'Authorization': 'Bearer ' + token,
+          },
+          contentType: 'application/json',
+          data: JSON.stringify({ ids }),  // ✅ 正确传 JSON
+          success:function(result){
+            if(result.status == 1){
+              layer.msg("删除成功");
+
+              // 删除成功后，清除已选中的 ID
+              ids.forEach(id => selectedIds.delete(String(id)));
+
+              // 重新拉取数据
+              fetchData(1, 10,{{did}});  // 默认加载第1页，10条数据
+            } else {
+              layer.msg(result.message || "删除失败");
+            }
+          },
+          error: function () {
+            layer.msg("请求失败");
+          }
+        });
+
+        layer.close(index);
+      });
+    });
+
 
   // 监听分类按钮点击
   $('#category_html').on('click', '.layui-btn', function() {
@@ -273,17 +323,22 @@ layui.use(['laypage', 'jquery'], function() {
     data.forEach(function(item) {
       // 随机选择一个 class
       const randomClass = colorClasses[Math.floor(Math.random() * colorClasses.length)];
+      const isYesChecked = selectedIds.has(String(item.id)) ? 'checked' : '';
       html += `<tr class="align-middle" id="del_discord_${item.id}">
-                          <td>${item.num}.</td>
+                          <td  style="text-align:left;">
+                              <div class="layui-form">
+                                   <input type="checkbox" name="checkItem" value="${item.id}"  lay-filter="checkItem"   data-id="${item.id}" lay-skin="primary" ${isYesChecked}   > ${item.num}.
+                              </div>
+                          </td>
                           <td><a href="${item.url}" class="alert-link" target="_blank"><img src="https://cdn.discordapp.com/icons/${item.guild_id}/${item.guild_icon}.jpeg" class="user-image rounded-circle shadow"  style="width:30px; height:30px;" alt="User Image"><br/> ${item.guild_name}</a></td>
                           <td><a href="${item.url}" class="alert-link" target="_blank"><span class="layui-badge ${randomClass}">${item.username}</span></a></td>
                           <!--<td><a href="${item.url}" class="alert-link" target="_blank">${item.guild_id}</br>${item.channel_id}</a></td>-->
                           <td>${item.discord_name}</td>
                           <td>${item.remark}</td>
-                          <td>
+                          <td style="text-align:right;">
                            <span><a href="/discord/message/gid/${item.guild_id}" class="alert-link" ><button type="button" class="layui-btn  layui-btn-sm" style="background-color: #16b777;">消息列表</button></a></span>
 
-                          <span   lay-on="add-channel-confirm"  data-id="${item.did}"  data-title="${item.discord_name}" data-discord-token="${item.token}"  ><button type="button" class="layui-btn  layui-btn-sm">增加监控</button></span>
+                          <span   lay-on="add-channel-confirm"  data-id="${item.did}"  data-title="${item.discord_name}" data-discord-token="${item.token}"  ><button type="button" class="layui-btn  layui-btn-sm" style="background-color: #16b777;">增加监控</button></span>
 
                           <span   lay-on="edit-confirm"  data-id="${item.id}" data-did="${item.did}" data-discord-token="${item.token}"  data-username="${item.username}"
                           data-guild-id="${item.guild_id}" data-guild-name="${item.guild_name}"  data-guild-icon="${item.guild_icon}" data-guild-description="${item.guild_description}"
@@ -291,11 +346,25 @@ layui.use(['laypage', 'jquery'], function() {
                            >
                           <button type="button" class="layui-btn layui-bg-blue  layui-btn-sm">修改</button>
                           </span>
-                           <span   lay-on="del-discord-confirm"  data-id="${item.id}" ><button type="button" class="layui-btn layui-bg-red  layui-btn-sm">移除监控</button></span>
+                           <span   lay-on="del-discord-confirm"  data-id="${item.id}" ><button type="button" class="layui-btn layui-bg-red  layui-btn-sm">删除</button></span>
                            </td>
                         </tr>`;
     });
     $('#data-table').html(html);
+    // 先渲染 layui checkbox 外观
+      layui.form.render('checkbox');
+
+      // 再设置选中状态
+      $('#data-table input[name="checkItem"]').each(function () {
+        const id = String($(this).data('id'));
+        if (selectedIds.has(id)) {
+          $(this).prop('checked', true);
+        } else {
+          $(this).prop('checked', false);
+        }
+      });
+
+      updateToggleSelectBtnStatus()
   }
 
 
@@ -304,7 +373,7 @@ layui.use(['laypage', 'jquery'], function() {
        const  did = {{did}};
        const token = localStorage.getItem('token');
        $.ajax({
-        url:'{{ url_for('discord.list') }}',
+        url:'{{ url_for('discord.list_data') }}',
         headers: {
             'Authorization': 'Bearer ' + token,
         },
@@ -321,7 +390,7 @@ layui.use(['laypage', 'jquery'], function() {
             }
 
             res.data.forEach(item => {
-                const selected = (parseInt(item.id) === parseInt(did)) ? '' : 'layui-btn-primary';
+                const selected = (parseInt(item.id) === parseInt(did)) ? 'layui-btn-touyan' : 'layui-btn-primary';
                 console.log(item.id+'----'+ did);
                 select.append(`<button type="button" data-id="${item.id}" class="layui-btn  layui-btn-sm  ${selected}"> ${item.global_name}</button>`);
             });
@@ -723,7 +792,7 @@ layui.use(function(){
           form.render();
            // Step 2: 异步加载下拉数据
           $.ajax({
-            url:'{{ url_for('category.list') }}',// ✅ 你后端接口地址
+            url:'{{ url_for('category.list_data') }}',// ✅ 你后端接口地址
             headers: {
                 'Authorization': 'Bearer ' + token,
             },

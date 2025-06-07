@@ -299,7 +299,7 @@ layui.use(function(){
         rowCount++;
 
           $.ajax({
-            url: '{{ url_for("category.list") }}',
+            url: '{{ url_for("category.list_data") }}',
             headers: {
               'Authorization': 'Bearer ' + token,
             },
@@ -605,7 +605,7 @@ layui.use(function(){
           form.render();
            // Step 2: 异步加载下拉数据
           $.ajax({
-            url:'{{ url_for('category.list') }}',
+            url:'{{ url_for('category.list_data') }}',
             headers: {
                 'Authorization': 'Bearer ' + token,
             },
@@ -688,7 +688,7 @@ layui.use(function(){
 					// 调用处理函数
 					fetchTwitterUsers(user_ids, remark, data.field.category_id, token);
 				  } else {
-					layer.msg("获取用户 ID 失败: " + response.message);
+					layer.msg("获取用户 ID 失败: " + result.message);
 				  }
 				},
 				error: function(err) {
@@ -828,7 +828,7 @@ layui.use(function(){
 
            // Step 2: 异步加载下拉数据
           $.ajax({
-            url:'{{ url_for('category.list') }}',// ✅ 你后端接口地址
+            url:'{{ url_for('category.list_data') }}',// ✅ 你后端接口地址
             headers: {
                 'Authorization': 'Bearer ' + token,
             },

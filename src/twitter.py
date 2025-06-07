@@ -32,9 +32,10 @@ async def batch():
 ## 推特信息流列表
 @twitter.route('/twitter/message', methods=['GET'])
 @twitter.route('/twitter/message/gid/<int:gid>', methods=['GET'])
-async def message(gid=0):
+@twitter.route('/twitter/message/tid/<int:tid>', methods=['GET'])
+async def message(gid=0,tid=0):
 
-    return await render_template("/twitter/message.html", gid=gid)
+    return await render_template("/twitter/message.html", gid=gid, tid=tid)
 
 
 ## 推特信息总结列表
@@ -189,7 +190,7 @@ async def page_messages():
         page = request.args.get('page', default=1, type=int)
         limit = request.args.get('limit', default=10, type=int)
         user_id = request.args.get('user_id', default=0, type=int)
-        guild_id = request.args.get('guild_id', default=0, type=int)
+        tid = request.args.get('tid', default=0, type=int)
 
 
         # 初始化
@@ -199,12 +200,19 @@ async def page_messages():
         if user_id:
             where_clauses.append(f"twitter_id='{user_id}'")
 
-        # ## 先取到所有关注频道信息
-        sql = f'''SELECT t.*
-                FROM guzi_member_twitter_map AS m
-                INNER JOIN guzi_twitter AS t ON m.twitter_id = t.tid
-                WHERE m.status = 1 AND m.uid='{uid}';
-                '''
+        # ## 先取到所有关注推特用户
+        if tid:
+            sql = f'''SELECT t.*
+                    FROM guzi_member_twitter_map AS m
+                    INNER JOIN guzi_twitter AS t ON m.twitter_id = t.tid
+                    WHERE m.status = 1 AND m.uid='{uid}' AND m.twitter_id='{tid}';
+                    '''
+        else:
+            sql = f'''SELECT t.*
+                                FROM guzi_member_twitter_map AS m
+                                INNER JOIN guzi_twitter AS t ON m.twitter_id = t.tid
+                                WHERE m.status = 1 AND m.uid='{uid} ';
+                                '''
         channel_list = dbMysql.query(sql)
         print(dbMysql.getLastSql())  # 打印由Model类拼接填充生成的SQL语句
         twitter_data = {}
@@ -814,24 +822,46 @@ async def add():
 @check_user_login_do
 async def delete():  # 因为 require_login 会解码 token
     if request.method == 'POST':
+        uid = g.uid
         form = await request.form  # 注意必须 await
         twitter_id = form.get('id')
-        uid = g.uid
+        data = await request.get_json()  # ✅ 这里必须加 await
 
-        ###删除分类关联数据
-        where = f"twitter_id='{twitter_id}' AND uid='{uid}'"
-        result = dbMysql.table('guzi_twitter_category_map').where(where).delete()  # 返回删除的行数
+        if twitter_id:
+            ###删除分类关联数据
+            where = f"twitter_id='{twitter_id}' AND uid='{uid}'"
+            result = dbMysql.table('guzi_twitter_category_map').where(where).delete()  # 返回删除的行数
 
-        ###删除推特关联数据
-        where = f"twitter_id='{twitter_id}' AND uid='{uid}'"
-        result = dbMysql.table('guzi_member_twitter_map ').where(where).delete()  # 返回删除的行数
+            ###删除推特关联数据
+            where = f"twitter_id='{twitter_id}' AND uid='{uid}'"
+            result = dbMysql.table('guzi_member_twitter_map ').where(where).delete()  # 返回删除的行数
 
-        if result:
+            if result:
+                return jsonify({
+                    'status': 1,
+                    'message': '恭喜您，数据删除成功！'
+                })
 
-            return jsonify({
-                'status': 1,
-                'message': '恭喜您，数据删除成功！'
-            })
+        if data:
+            twitter_ids = data.get('ids', [])
+            if not isinstance(twitter_ids, list):
+                return jsonify({'status': 0, 'message': '参数错误，ids 应该是一个列表'})
+
+            print('将要删除的 Twitter ID 列表：', twitter_ids)
+            # 构造 SQL 条件
+            id_conditions = " OR ".join([f"twitter_id='{tid}'" for tid in twitter_ids])
+            where = f"({id_conditions}) AND uid='{uid}'"
+            ###删除分类关联数据
+            result = dbMysql.table('guzi_twitter_category_map').where(where).delete()  # 返回删除的行数
+            print(dbMysql.getLastSql())  # 打印由Model类拼接填充生成的SQL语句
+            ###删除推特关联数据
+            result = dbMysql.table('guzi_member_twitter_map ').where(where).delete()  # 返回删除的行数
+            print(dbMysql.getLastSql())  # 打印由Model类拼接填充生成的SQL语句
+            if result:
+                return jsonify({
+                    'status': 1,
+                    'message': '恭喜您，数据删除成功！'
+                })
 
         else:
             return jsonify({

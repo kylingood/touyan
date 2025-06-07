@@ -71,7 +71,8 @@
                     <table class="table table-striped" style="text-align: center;">
                       <thead>
                         <tr>
-                          <th style="width: 80px">序号</th>
+                          <th  style="text-align:left;">序号 </th>
+
                           <th style="text-align:left;" >推特账号</th>
                           <th>分组</th>
                           <th>关注量</th>
@@ -79,14 +80,23 @@
                           <th>排序(值越大越前)</th>
                           <th>备注</th>
                           <th >简介</th>
-                          <th style="width: 150px">操作</th>
+                          <th >操作</th>
                         </tr>
                       </thead>
                       <tbody id="data-table">
 
                       </tbody>
                     </table>
-                    <div style="text-align: center;" id="demo-laypage-all"></div>
+
+                    <div class="toolbar-checkbox-wrapper">
+                      <div class="layui-form toolbar-checkbox-left" id="check_all_data">
+                        <button type="button" class="layui-btn layui-btn-sm layui-btn-touyan" id="toggleSelectBtn" data-status="unselected">全选</button>
+                        <button type="button" class="layui-btn layui-btn-sm layui-bg-red " id="batchDeleteBtn">批量删除</button>
+                      </div>
+
+                      <div id="demo-laypage-all" class="toolbar-checkbox-right"></div>
+                    </div>
+
                   </div>
                   <!-- /.card-body -->
                 </div>
@@ -100,11 +110,54 @@
 
 <script>
 
-layui.use(['laypage', 'jquery'], function() {
+
+layui.use(['laypage', 'form','jquery'], function() {
   var laypage = layui.laypage;
   var $ = layui.jquery;
+  var form = layui.form;
   const token = localStorage.getItem('token');
   let  cid = 0;
+
+
+// 批量删除按钮监听（动态项）
+$('body').on('click', '#batchDeleteBtn', function () {
+  if (selectedIds.size === 0) {
+    return layer.msg("请至少选择一项进行删除");
+  }
+
+  const ids = Array.from(selectedIds);
+  console.log('checkbox ids:', ids);
+  layer.confirm(`确认删除 ${ids.length} 项吗？`, function (index) {
+    $.ajax({
+      url: '{{ url_for('twitter.delete') }}',
+      type: 'POST',
+      headers: {
+        'Authorization': 'Bearer ' + token,
+      },
+      contentType: 'application/json',
+      data: JSON.stringify({ ids }),  // ✅ 正确传 JSON
+      success:function(result){
+        if(result.status == 1){
+          layer.msg("删除成功");
+
+          // 删除成功后，清除已选中的 ID
+          ids.forEach(id => selectedIds.delete(String(id)));
+
+          // 重新拉取数据
+          fetchData(1, 10,0);  // 默认加载第1页，10条数据
+        } else {
+          layer.msg(result.message || "删除失败");
+        }
+      },
+      error: function () {
+        layer.msg("请求失败");
+      }
+    });
+
+    layer.close(index);
+  });
+});
+
 
    // 增加推特时，实时取粉丝量 委托给 body 或更合适的父容器
   $('body').on('blur keydown', '#add-twitter-input', function () {
@@ -124,7 +177,7 @@ layui.use(['laypage', 'jquery'], function() {
 
         if (twitter) {
           $.ajax({
-            url: '/api/auth/get_twitter',  // 你需要创建这个后端路由
+            url: '/api/auth/get_twitter',
             type: 'GET',
             headers: {
             'Authorization': 'Bearer ' + token,
@@ -297,12 +350,18 @@ function formatTimestamp(unixTime) {
       'layui-bg-blue',
       'layui-bg-black'
     ];
-
+    console.log('当前选中的 ID 列表:', Array.from(selectedIds));
     data.forEach(function(item) {
       // 随机选择一个 class
       const randomClass = colorClasses[Math.floor(Math.random() * colorClasses.length)];
+      const isYesChecked = selectedIds.has(String(item.id)) ? 'checked' : '';
+
       html += `<tr class="align-middle" id="del_twitter_${item.tid}">
-                          <td>${item.num}.</td>
+                          <td  style="text-align:left;">
+                              <div class="layui-form">
+                                   <input type="checkbox" name="checkItem" value="${item.tid}"  lay-filter="checkItem"   data-id="${item.tid}" lay-skin="primary" ${isYesChecked}   > ${item.num}.
+                              </div>
+                          </td>
                           <td >
                            <a href="https://x.com/${item.username}" class="alert-link" target="_blank">
                            <div style="display: flex; align-items: center; gap: 10px;text-align:left;">
@@ -322,13 +381,28 @@ function formatTimestamp(unixTime) {
                           <td  style="max-width:250px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${item.remark}</td>
                           <td style="max-width:250px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${item.description}</td>
 
-                          <td>
+                          <td style="text-align:right;">
+                          <span><a href="/twitter/message/tid/${item.tid}" class="alert-link" ><button type="button" class="layui-btn  layui-btn-sm" style="background-color: #16b777;">推文列表</button></a></span>
                           <span   lay-on="edit-confirm"   data-id="${item.id}" data-sorts="${item.sorts}" data-cid="${item.cid}" data-tid="${item.tid}" data-username="${item.username}" data-show_name="${item.show_name}"  data-remark="${item.remark}" ><button type="button" class="layui-btn layui-bg-blue  layui-btn-sm layui-btn-touyan"  >修改</button></span>
                            <span   lay-on="del-twitter-confirm"  data-id="${item.tid}" ><button type="button" class="layui-btn layui-bg-red  layui-btn-sm">删除</button></span>
                            </td>
                         </tr>`;
     });
-    $('#data-table').html(html);
+      $('#data-table').html(html);
+      // 先渲染 layui checkbox 外观
+      layui.form.render('checkbox');
+
+      // 再设置选中状态
+      $('#data-table input[name="checkItem"]').each(function () {
+        const id = String($(this).data('id'));
+        if (selectedIds.has(id)) {
+          $(this).prop('checked', true);
+        } else {
+          $(this).prop('checked', false);
+        }
+      });
+
+      updateToggleSelectBtnStatus()
   }
 
 
@@ -337,7 +411,7 @@ function formatTimestamp(unixTime) {
 
        const token = localStorage.getItem('token');
        $.ajax({
-        url:'{{ url_for('category.list') }}',// ✅ 你后端接口地址
+        url:'{{ url_for('category.list_data') }}',// ✅ 你后端接口地址
         headers: {
             'Authorization': 'Bearer ' + token,
         },
@@ -481,7 +555,7 @@ layui.use(function(){
 
           // Step 2: 异步加载下拉数据
           $.ajax({
-            url:'{{ url_for('category.list') }}',// ✅ 你后端接口地址
+            url:'{{ url_for('category.list_data') }}',// ✅ 你后端接口地址
             headers: {
                 'Authorization': 'Bearer ' + token,
             },
@@ -658,7 +732,7 @@ layui.use(function(){
           form.render();
            // Step 2: 异步加载下拉数据
           $.ajax({
-            url:'{{ url_for('category.list') }}',// ✅ 你后端接口地址
+            url:'{{ url_for('category.list_data') }}',// ✅ 你后端接口地址
             headers: {
                 'Authorization': 'Bearer ' + token,
             },
@@ -791,9 +865,9 @@ layui.use(function(){
                         layer.confirm(result.message, {
                           btn: ['确定', '关闭'] //按钮
                         }, function(){
-                          window.location.href='{{ url_for('twitter.index') }}';
+                          window.location.href='{{ url_for('category.twitter') }}';
                         }, function(){
-                          window.location.href='{{ url_for('twitter.index') }}';
+                          window.location.href='{{ url_for('category.twitter') }}';
                         });
 
                         return true

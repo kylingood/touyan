@@ -13,7 +13,7 @@
                   <li class="breadcrumb-item"> <button type="button" class="layui-btn layui-bg-blue layui-btn-touyan" lay-on="add-category-page-custom" ><b>添加Discord分组</b></button></li>
                      <li class="breadcrumb-item active" aria-current="page">
                         <a href="{{ url_for('discord.index') }}" >
-                            <button type="button"  class="layui-btn">管理Discord账号</button>
+                            <button type="button"  class="layui-btn  layui-btn-touyan">管理Discord账号</button>
                         </a>
                     </li>
                 </ol>
@@ -64,7 +64,14 @@
 
                       </tbody>
                     </table>
-                    <div style="text-align: center;" id="demo-laypage-all"></div>
+                     <div class="toolbar-checkbox-wrapper">
+                      <div class="layui-form toolbar-checkbox-left" id="check_all_data">
+                        <button type="button" class="layui-btn layui-btn-sm layui-btn-touyan" id="toggleSelectBtn" data-status="unselected">全选</button>
+                        <button type="button" class="layui-btn layui-btn-sm layui-bg-red " id="batchDeleteBtn">批量删除</button>
+                      </div>
+
+                      <div id="demo-laypage-all" class="toolbar-checkbox-right"></div>
+                    </div>
                   </div>
                   <!-- /.card-body -->
                 </div>
@@ -82,6 +89,47 @@ layui.use(['laypage', 'jquery'], function() {
   var laypage = layui.laypage;
   var $ = layui.jquery;
   const token = localStorage.getItem('token');
+
+
+    // 批量删除按钮监听（动态项）
+    $('body').on('click', '#batchDeleteBtn', function () {
+      if (selectedIds.size === 0) {
+        return layer.msg("请至少选择一项进行删除");
+      }
+
+      const ids = Array.from(selectedIds);
+      console.log('checkbox ids:', ids);
+      layer.confirm(`确认删除 ${ids.length} 项吗？`, function (index) {
+        $.ajax({
+          url: '{{ url_for('category.del_cate') }}',
+          type: 'POST',
+          headers: {
+            'Authorization': 'Bearer ' + token,
+          },
+          contentType: 'application/json',
+          data: JSON.stringify({ ids }),  // ✅ 正确传 JSON
+          success:function(result){
+            if(result.status == 1){
+              layer.msg("删除成功");
+
+              // 删除成功后，清除已选中的 ID
+              ids.forEach(id => selectedIds.delete(String(id)));
+
+              // 重新拉取数据
+              fetchData(1, 10,{{did}});  // 默认加载第1页，10条数据
+            } else {
+              layer.msg(result.message || "删除失败");
+            }
+          },
+          error: function () {
+            layer.msg("请求失败");
+          }
+        });
+
+        layer.close(index);
+      });
+  });
+
 
   // 增加搜索委托给 body 或更合适的父容器
   $('body').on('click keydown', '#search_keyword_button, #search_keyword', function (e) {
@@ -136,8 +184,13 @@ layui.use(['laypage', 'jquery'], function() {
     data.forEach(function(item) {
       // 随机选择一个 class
       const randomClass = colorClasses[Math.floor(Math.random() * colorClasses.length)];
+      const isYesChecked = selectedIds.has(String(item.id)) ? 'checked' : '';
       html += `<tr class="align-middle" id="del_twitter_${item.id}">
-                          <td>${item.num}.</td>
+                           <td  style="text-align:left;">
+                              <div class="layui-form">
+                                   <input type="checkbox" name="checkItem" value="${item.id}"  lay-filter="checkItem"   data-id="${item.id}" lay-skin="primary" ${isYesChecked}   > ${item.num}.
+                              </div>
+                          </td>
                           <td><a href="{{ url_for('category.discord') }}/${item.cid}" class="alert-link" target="_blank"><span class="layui-badge ${randomClass} ">${item.title}</span></a></td>
                           <td>${item.remark}</td>
                           <td>${item.total}</td>
@@ -150,6 +203,19 @@ layui.use(['laypage', 'jquery'], function() {
                         </tr>`;
     });
     $('#data-table').html(html);
+    // 先渲染 layui checkbox 外观
+      layui.form.render('checkbox');
+
+      // 再设置选中状态
+      $('#data-table input[name="checkItem"]').each(function () {
+        const id = String($(this).data('id'));
+        if (selectedIds.has(id)) {
+          $(this).prop('checked', true);
+        } else {
+          $(this).prop('checked', false);
+        }
+      });
+      updateToggleSelectBtnStatus()
   }
 
   fetchData(1, 10);  // 默认加载第1页，10条数据
