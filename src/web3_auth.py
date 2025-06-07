@@ -103,7 +103,6 @@ async def get_users_data_by_id(user_data):
 
 # 根据用户名uid批量获取推特信息
 @web3_auth.route('/api/auth/get_single_twitter', methods=['GET', 'POST'])
-@check_user_login_do
 async def get_single_twitter():
     if request.method == 'POST':
         form = await request.form  # 注意必须 await
@@ -144,7 +143,6 @@ async def get_single_twitter():
 
 # 根据用户名批量获取推特信息
 @web3_auth.route('/api/auth/get_all_twitter', methods=['GET', 'POST'])
-@check_user_login_do
 async def get_all_twitter():
     if request.method == 'POST':
         form = await request.form  # 注意必须 await

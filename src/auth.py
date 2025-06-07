@@ -98,7 +98,7 @@ def check_user_login_do(f):
             return jsonify({
                 'status': 0,
                 'not_login': 1,
-                'message': '操作失败，账号未登录状态！'
+                'message': f'操作失败，账号未登录状态！'
             }), 200
 
         result = f(*args, **kwargs)

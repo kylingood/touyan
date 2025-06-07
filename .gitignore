@@ -2,6 +2,7 @@
 Scripts/
 Lib/
 include/
+pythonMySQL/
 logs/
 data/opencampus/not_key.txt
 .idea/*
