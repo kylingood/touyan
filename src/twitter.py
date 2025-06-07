@@ -443,25 +443,25 @@ async def edit():
                 ###插入关联表
                 ## 先查看此钱包有没有数据，没有就插入，有就更新数据状态
                 data_one = dbMysql.table('guzi_twitter_category_map').where( f"twitter_id='{twitter_id}' AND uid='{uid}' AND category_id='{cid}'").find()
-                print(dbMysql.getLastSql())  # 打印由Model类拼接填充生成的SQL语句
+                #print(dbMysql.getLastSql())  # 打印由Model类拼接填充生成的SQL语句
                 dbdata = {}
-                print(data_one)
+
                 if data_one:
                     id = data_one['id']
                     dbdata['twitter_id'] = twitter_id
                     dbdata['category_id'] = cid
                     dbdata['uid'] = uid
                     result_id = dbMysql.table('guzi_twitter_category_map').where(f"id = '{id}'").save(dbdata)
-                    print(dbMysql.getLastSql())  # 打印由Model类拼接填充生成的SQL语句
+                    #print(dbMysql.getLastSql())  # 打印由Model类拼接填充生成的SQL语句
                 else:
                     # 获取当前日期
                     dbdata['twitter_id'] = twitter_id
                     dbdata['category_id'] = cid
                     dbdata['uid'] = uid
                     dbdata['status'] = 1
-                    print(dbdata)
+
                     result_id = dbMysql.table('guzi_twitter_category_map').add(dbdata)
-                    print(dbMysql.getLastSql())  # 打印由Model类拼接填充生成的SQL语句
+                    #print(dbMysql.getLastSql())  # 打印由Model类拼接填充生成的SQL语句
 
                 ###插入会员与推特账号关联表
                 ## 先查看此钱包有没有数据，没有就插入，有就更新数据状态
