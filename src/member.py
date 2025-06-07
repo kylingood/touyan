@@ -2,7 +2,7 @@
 from quart import Quart, render_template, request, jsonify,g, Blueprint
 from util.db import *
 from util.utils import generate_invite_codes
-from src.auth import require_user,require_user_async,require_admin
+from src.auth import check_user_login_do,require_user_async,require_admin
 
 # 创建一个 Blueprint 用于 Web3 登录功能
 member = Blueprint('member', __name__)

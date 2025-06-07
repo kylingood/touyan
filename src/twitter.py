@@ -7,8 +7,8 @@ import time
 import jwt
 import datetime
 from util.db import *
-from src.config import SYSTEM_MAX_TWITTER
-from src.auth import require_user,require_user_async
+from src.config import SYSTEM_MAX_TWITTER,DEFAULT_UID
+from src.auth import check_user_login_do,require_user_async
 from src.rapidapi import *
 
 
@@ -50,11 +50,10 @@ async def summary(gid=0):
 @require_user_async
 async def listuser():
     uid = g.uid
-
     sql = f'''SELECT t.tid, t.show_name
         FROM guzi_member_twitter_map AS m
         INNER JOIN guzi_twitter AS t ON m.twitter_id = t.tid
-        WHERE m.status = 1 AND m.uid='{uid} Limit 50';
+        WHERE m.status = 1 AND m.uid='{uid}' ORDER BY m.sorts DESC,m.id DESC  Limit 50
         '''
     data = dbMysql.query(sql)
     print(dbMysql.getLastSql())  # 打印由Model类拼接填充生成的SQL语句
@@ -336,7 +335,7 @@ async def page():
         # 然后再计算偏移量
         start_index = (page - 1) * limit + 1
 
-        order_sql = f"m.id DESC"
+        order_sql = f"m.sorts DESC,m.id DESC"
         # 然后再计算偏移量
         offset = (page - 1) * limit
         # 然后再计算偏移量
@@ -347,6 +346,7 @@ async def page():
               m.category_id,
               m.twitter_id,
               m.remark,
+              m.sorts,
               t.id AS twitter_table_id,
               t.username,
               t.show_name,
@@ -380,6 +380,7 @@ async def page():
                         "num": i + start_index,
                         "id": item["id"],
                         "uid": item["uid"],
+                        "sorts": item["sorts"],
                         "cid": item["category_id"],
                         "tid": item["twitter_id"],
                         "cate_name": item["category_title"] or "未知分类",
@@ -408,6 +409,7 @@ async def page():
 
 @twitter.route('/twitter/edit', methods=['GET', 'POST'])
 @require_user_async  # 使用装饰器来验证登录状态
+@check_user_login_do
 async def edit():
     uid = g.uid
 
@@ -421,6 +423,7 @@ async def edit():
         show_name = form.get('show_name')
         url = form.get('url')
         avatar = form.get('avatar')
+        sorts = form.get('sorts')
         followers = form.get('followers')
         fans = form.get('fans')
         description = form.get('description')
@@ -428,6 +431,7 @@ async def edit():
         ## 先查看此钱包有没有数据，没有就插入，有就更新数据状态
         data_one = dbMysql.table('guzi_member_twitter_map ').where(
             f"uid='{uid}' AND twitter_id='{twitter_id}'").find()
+        print(dbMysql.getLastSql())  # 打印由Model类拼接填充生成的SQL语句
         dbdata = {}
         today_time = int(time.time())
 
@@ -467,6 +471,7 @@ async def edit():
                     dbdata['twitter_id'] = twitter_id
                     dbdata['updated'] = today_time
                     dbdata['uid'] = uid
+                    dbdata['sorts'] = sorts
                     dbdata['remark'] = remark
                     dbdata['category_id'] = cid
                     result_id = dbMysql.table('guzi_member_twitter_map ').where(f"id = '{id}'").save(dbdata)
@@ -490,6 +495,7 @@ async def edit():
                     # 获取当前日期
                     dbdata['twitter_id'] = twitter_id
                     dbdata['uid'] = uid
+                    dbdata['sorts'] = sorts
                     dbdata['remark'] = remark
                     dbdata['category_id'] = cid
                     dbdata['created'] = today_time
@@ -514,6 +520,7 @@ async def edit():
 
 @twitter.route('/twitter/addbatch', methods=['POST'])
 @require_user_async  # 使用装饰器来验证登录状态
+@check_user_login_do
 async def addbatch():
     uid = g.uid
 
@@ -652,11 +659,11 @@ async def addbatch():
                 'message': '恭喜您，数据增加成功！'
             }
         else:
-            # 将 failed_usernames 转换为以逗号分隔的字符串
-            failed_usernames_str = ', '.join(failed_usernames)
+            # 将 failed_usernames 转换为以逗号分隔的字符串部分失败用户（前5个）
+            failed_usernames_str = ', '.join(failed_usernames[:5])
             result = {
                 'status': 0,
-                'message': f'对不起，增加失败的账号有：{failed_usernames_str}',
+                'message': f'对不起，以下账号可能您已关注过（只显示前5个）：{failed_usernames_str}',
                 "failed_usernames": failed_usernames
             }
 
@@ -675,6 +682,7 @@ async def addbatch():
 
 @twitter.route('/twitter/add', methods=['GET', 'POST'])
 @require_user_async  # 使用装饰器来验证登录状态
+@check_user_login_do
 async def add():
     uid = g.uid
 
@@ -800,6 +808,7 @@ async def add():
 
 @twitter.route('/twitter/delete', methods=['POST'])
 @require_user_async  # 使用装饰器来验证登录状态
+@check_user_login_do
 async def delete():  # 因为 require_login 会解码 token
     if request.method == 'POST':
         form = await request.form  # 注意必须 await

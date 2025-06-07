@@ -356,7 +356,7 @@ video {
           <div class="container-fluid">
             <!--begin::Row-->
             <div class="row">
-              <div class="col-sm-6"><h4 class="mb-0">推特信息流</h4><span class="layui-font-gray">注意：第三方接口限制，第一次新增推特，系统预计10分种左右更新数据</span></div>
+              <div class="col-sm-6" style="margin:10px 0 10px 0px;"><h4 class="mb-0">推特信息流</h4><span class="layui-font-gray">注意：第三方接口限制，第一次新增推特，系统预计10分种左右更新数据。【只显示前50账号】</span></div>
               <div class="col-sm-6">
                 <ol class="breadcrumb float-sm-end">
                   <li class="breadcrumb-item active" aria-current="page">
@@ -400,7 +400,7 @@ video {
               </div>
               <div class="layui-col-xs4 layui-col-sm5 layui-col-md4">
                 <div class="grid-demo">
-                <div class="tweet-card-title"><h4 class="mb-0">最近关注</h4></div>
+                <div class="tweet-card-title"><h5 class="mb-0 " style="color:#16b777 !important;">TA的最新关注</h5></div>
 
                 <div class="flow-demo" id="ID-flow-followings">
 
@@ -806,7 +806,7 @@ $(document).on('click', '.text_content img', function () {
             });
 
           } else {
-            layer.msg('下拉数据加载失败');
+            //layer.msg('下拉数据加载失败');
           }
         },
         error: function() {

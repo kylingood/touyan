@@ -12,8 +12,8 @@
               <div class="col-sm-6"><h4 class="mb-0">批量增加推特</h4></div>
               <div class="col-sm-6">
                 <ol class="breadcrumb float-sm-end">
-                  <li class="breadcrumb-item"> <button type="button" class="layui-btn btn-success layui-btn-touyan" lay-on="add-category-page-custom" ><b>＋ 按主页批量增加</b></button></li>
-                    <li class="breadcrumb-item"> <button type="button" class="layui-btn btn-success layui-btn-touyan" lay-on="add-twitter-page-custom" ><b>＋ 一键抓取关注者</b></button></li>
+                  <li class="breadcrumb-item"> <button type="button" class="layui-btn btn-success layui-btn-touyan" lay-on="add-category-page-custom" ><b>＋ 批量抓取账号</b></button></li>
+                    <li class="breadcrumb-item"> <button type="button" class="layui-btn btn-success layui-btn-touyan" lay-on="add-twitter-page-custom" ><b>＋ 一键抓取关注账号</b></button></li>
 
                 </ol>
               </div>
@@ -71,7 +71,7 @@
 
                         <div style="text-align: center;margin:20px" >
                            <div class="btn-container">
-                              <button type="button" id="add-touyan-btn"  class="layui-btn btn-success layui-btn-touyan" lay-on="add-category-page-custom" ><b>＋ 批量增加</b></button>
+                              <button type="button" id="add-touyan-btn"  class="layui-btn btn-success layui-btn-touyan" lay-on="add-category-page-custom" ><b>＋ 批量抓取账号</b></button>
                               &nbsp;&nbsp;&nbsp;&nbsp;<button type="submit" id="submit-touyan-btn " class="layui-btn layui-bg-blue" ><b>确定提交</b></button>
                             </div>
 
@@ -212,7 +212,16 @@ layui.use(function(){
 
 
     function addRow(data = {}) {
+      // ✅ 判断是否已有相同 username，避免重复添加
+      const exists = $(`input[name^="addresses"][name$="[url]"]`).toArray().some(input => {
+          return $(input).val() === data.url;
+      });
 
+      if (exists) {
+          console.log(`已存在 url: ${data.url}，跳过添加`);
+          layer.msg(`已存在 url: ${data.url}，跳过添加`);
+          return;
+      }
       if (rowCount < maxRows) {
         const index = rowCount;
         const {
@@ -251,7 +260,7 @@ layui.use(function(){
             <td>
 
 
-               <div class="layui-form-item">
+            <div class="layui-form-item">
                 <div class="layui-input-wrap">
                   <div class="layui-input-prefix">
                     <i class="layui-icon layui-icon-list"></i>
@@ -265,11 +274,11 @@ layui.use(function(){
             </td>
             <td>
 
-            <input type="text" name="addresses[${index}][followers]" class="layui-input" placeholder="关注人数" value="${followers}">
+            <input type="text" name="addresses[${index}][followers]" class="layui-input" placeholder="关注人数" style="width:100px;" value="${followers}">
 
             </td>
             <td>
-             <input type="text" name="addresses[${index}][fans]" class="layui-input" placeholder="粉丝量" value="${fans}">
+             <input type="text" name="addresses[${index}][fans]" class="layui-input" placeholder="粉丝量" style="width:100px;" value="${fans}">
 
             </td>
             <td>
@@ -310,7 +319,7 @@ layui.use(function(){
 
                 form.render('select');  // ⭐ 重要：重新渲染 layui select
               } else {
-                layer.msg('下拉数据加载失败');
+                //layer.msg('下拉数据加载失败');
               }
             },
             error: function() {
@@ -366,8 +375,6 @@ layui.use(function(){
 
     // 提交表单
     $('#address-form').on('submit', function (e) {
-
-
 
         e.preventDefault(); // 阻止默认提交行为
 
@@ -560,7 +567,7 @@ layui.use(function(){
         area: ['450px','250px'],
         resize: false,
         shadeClose: true,
-        title: '按账号增加推特',
+        title: '按推特账号抓取关注账号',
         content: `
           <div class="layui-form" lay-filter="filter-test-layer" style="margin: 16px;">
 
@@ -581,7 +588,7 @@ layui.use(function(){
                   <div class="layui-input-prefix">
                     <i class="layui-icon layui-icon-password"></i>
                   </div>
-                   <input type="text" name="remark" value="" lay-verify="required" placeholder="注意：填推特主页链接，一次最多抓取前50个粉丝数" lay-reqtext="请填推特主页链接" autocomplete="off" class="layui-input" lay-affix="clear">
+                   <input type="text" name="remark" value="" lay-verify="required" placeholder="注意：填主页链接，当前一次最多抓取前50个粉丝数" lay-reqtext="请填推特主页链接" autocomplete="off" class="layui-input" lay-affix="clear">
 
                  </div>
               </div>
@@ -598,7 +605,7 @@ layui.use(function(){
           form.render();
            // Step 2: 异步加载下拉数据
           $.ajax({
-            url:'{{ url_for('category.list') }}',// ✅ 你后端接口地址
+            url:'{{ url_for('category.list') }}',
             headers: {
                 'Authorization': 'Bearer ' + token,
             },
@@ -614,7 +621,7 @@ layui.use(function(){
                 });
                 form.render('select');  // ⭐ 重要：重新渲染 layui select
               } else {
-                layer.msg('下拉数据加载失败');
+                //layer.msg('下拉数据加载失败');
               }
             },
             error: function() {
@@ -637,6 +644,12 @@ layui.use(function(){
             if (remarks.length <= 0) {
                 layer.msg('都不是合法的推特主页地址，请重新填写！');
                 return false;  // 阻止表单提交
+            }
+
+             //提示没有登陆
+            if (token == null || token.trim() === '') {
+              layer.msg("抓取失败，账号处于未登录状态！");
+              return;
             }
 
             $("#add-twitter-button").html("请稍等，正在提交数据...").attr("disabled","disabled");
@@ -720,7 +733,6 @@ layui.use(function(){
                         'Authorization': 'Bearer ' + token,
                     },
                     data: {
-                        "remark": remark,
                         "is_twitter": 1,
                         "cid": category_id,
                         "user_id": user_id
@@ -777,7 +789,7 @@ layui.use(function(){
         area: ['450px','450px'],
         resize: false,
         shadeClose: true,
-        title: '批量增加推特监控',
+        title: '批量抓取推特账号',
         content: `
           <div class="layui-form" lay-filter="filter-test-layer" style="margin: 16px;">
 
@@ -812,6 +824,8 @@ layui.use(function(){
         success: function(){
           // 对弹层中的表单进行初始化渲染
           form.render();
+
+
            // Step 2: 异步加载下拉数据
           $.ajax({
             url:'{{ url_for('category.list') }}',// ✅ 你后端接口地址
@@ -830,7 +844,7 @@ layui.use(function(){
                 });
                 form.render('select');  // ⭐ 重要：重新渲染 layui select
               } else {
-                layer.msg('下拉数据加载失败');
+                //layer.msg('下拉数据加载失败');
               }
             },
             error: function() {
@@ -855,6 +869,12 @@ layui.use(function(){
                 return false;  // 阻止表单提交
             }
 
+            //提示没有登陆
+            if (token == null || token.trim() === '') {
+              layer.msg("抓取失败，账号处于未登录状态！");
+              return;
+            }
+
             $("#add-button").html("请稍等，正在提交数据...").attr("disabled","disabled");
 
             if (remarks.length >= 10) {
@@ -872,49 +892,92 @@ layui.use(function(){
                   `
                 });
             }
+
             // 强制 DOM 更新完成后再发请求
             setTimeout(() => {
-                //return false;  // 阻止表单提交
-                // 此处可执行 Ajax 等操作
-                $.ajax({
-                    url:'{{ url_for('web3_auth.get_all_twitter') }}',
-                    headers: {
-                        'Authorization': 'Bearer ' + token,
-                    },
-                    data:{
-                        "remark":remark,
-                        "cid":data.field.category_id,
-                    },
-                    dataType:"json",
-                    type:"post",
-                    async:false,
-                    success:function(result){
-                        if(result.status == 1){
-                            const serverData = result.data
-                            // 批量添加数据
-                            serverData.forEach(item => {
-                              addRow({
-                                url: item.url,
-                                avatar: item.avatar,
-                                tid: item.rest_id,
-                                cid: data.field.category_id,
-                                username: item.username,
-                                show_name: item.show_name,
-                                followers: item.followers,
-                                fans: item.fans,
-                                remark: item.remark,
-                                description: item.description
-                              });
-                            });
-                            layer.closeAll();       // 关闭所有类型弹窗
-                            return true
 
-                        }else{
-                            $("#add-button").html("确定提交").removeAttr("disabled");
-                            return layer.msg(result.message);
+                // 调用处理函数
+				fetchTwitterUsers(remarks, data.field.category_id, token);
+
+                function fetchTwitterUsers( remarks, category_id, token) {
+
+                    const maxConcurrency = 1; // 同时最多请求数
+                    let currentIndex = 0;
+                    let completedCount = 0;  // 已完成请求计数
+                    const totalCount = remarks.length;
+
+                    layer.closeAll(); // 所有请求完成，关闭加载层
+                    // 显示加载层
+                    const loadingIndex = layer.open({
+                        type: 1,
+                        title: false,
+                        shadeClose: false,
+                        shade: 0.3,
+                        area: ['280px', '100px'],
+                        content: `
+                          <div style="text-align: center; padding: 20px;">
+                            <img src="/static/dist/img/loading_3.gif" ><br>
+                            <span style="display:block; margin-top:10px;">系统正在抓取数据中...请稍后...</span>
+                          </div>
+                        `
+                    });
+
+                    function processNext() {
+                        if (currentIndex >= totalCount) {
+                            return;
                         }
+
+                        const remark = remarks[currentIndex++];
+                        $.ajax({
+                            url: '{{ url_for("web3_auth.get_single_twitter") }}',
+                            type: "post",
+                            dataType: "json",
+                            headers: {
+                                'Authorization': 'Bearer ' + token,
+                            },
+                            data: {
+                                "remark": remark,
+                                "cid": category_id
+                            },
+                            success: function(result) {
+                                if (result.status === 1) {
+                                    const serverData = result.data;
+                                    serverData.forEach(item => {
+                                        addRow({
+                                            url: item.url,
+                                            avatar: item.avatar,
+                                            tid: item.rest_id,
+                                            cid: category_id,
+                                            username: item.username,
+                                            show_name: item.show_name,
+                                            followers: item.followers,
+                                            fans: item.fans,
+                                            remark: item.remark,
+                                            description: item.description
+                                        });
+                                    });
+                                } else {
+                                   console.warn("抓取失败", remark, result.message);
+                                }
+                            },
+                            complete: function() {
+                                completedCount++;
+
+                                if (completedCount >= totalCount) {
+                                    layer.closeAll(); // 所有请求完成，关闭加载层
+                                    $("#add-button").html("确定提交").removeAttr("disabled");
+                                } else {
+                                    processNext(); // 发下一个请求
+                                }
+                            }
+                        });
                     }
-                })
+
+                    // 启动请求
+                    for (let i = 0; i < maxConcurrency; i++) {
+                        processNext();
+                    }
+                }
             }, 100);
             return false; // 阻止默认 form 跳转
           });

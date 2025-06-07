@@ -33,21 +33,21 @@
               </li>
 
 
-              <li class="nav-item login-nav-item" style="display:none;">
+              <li class="nav-item " >
                 <a href="{{ url_for('twitter.index') }}" class="nav-link {% if request.path.startswith('/twitter/index') %}active{% endif %} {% if request.path.startswith('/twitter/batch') %}active{% endif %}  {% if request.path.startswith('/category/twitter') %}active{% endif %} ">
                   <i class="nav-icon layui-icon layui-icon-template-1"></i>
                   <p>推特账号</p>
                 </a>
               </li>
 
-              <li class="nav-item login-nav-item" style="display:none;">
+              <li class="nav-item">
                 <a href="{{ url_for('twitter.message') }}" class="nav-link {% if request.path.startswith('/twitter/message') %}active{% endif %}">
                   <i class="nav-icon layui-icon layui-icon-dialogue" ></i>
                   <p>推特信息流</p>
                 </a>
               </li>
 
-              <li class="nav-item login-nav-item" style="display:none;">
+              <li class="nav-item ">
                 <a href="{{ url_for('discord.index') }}" class="nav-link {% if request.path.startswith('/discord/index') %}active{% endif %}  {% if request.path.startswith('/category/discord') %}active{% endif %}  {% if request.path.startswith('/discord/guild') %}active{% endif %}   ">
                   <i class="nav-icon layui-icon layui-icon-app "></i>
                   <p>Discord账号</p>
@@ -55,7 +55,7 @@
               </li>
 
 
-               <li class="nav-item login-nav-item" style="display:none;">
+               <li class="nav-item " >
                 <a href="{{ url_for('discord.message') }}" class="nav-link  {% if request.path.startswith('/discord/message') %}active{% endif %} ">
                   <i class="nav-icon layui-icon layui-icon-reply-fill" ></i>
                   <p>Discord信息流</p>

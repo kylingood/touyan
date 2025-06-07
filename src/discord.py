@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 from quart import Quart, render_template, request, jsonify, g, Blueprint
 from util.db import *
-from src.auth import require_user,require_user_async
+from src.auth import check_user_login_do,require_user_async
 from src.web3_auth import insert_message_db
-from src.config import SYSTEM_MAX_DISCORD,SYSTEM_MAX_DISCORD_CHANNEL
+from src.config import SYSTEM_MAX_DISCORD,SYSTEM_MAX_DISCORD_CHANNEL,DEFAULT_UID
 import asyncio
 
 
@@ -82,8 +82,18 @@ async def page():
                         "cate_name": item["category_title"] or "未知分类",
                         "username": item["username"],
                         "global_name": item["global_name"],
-                        "token": item["token"],
-                        "email": item["email"],
+                        "token": (
+                            item["token"][:5] + "****" + item["token"][-4:]
+                            if getattr(g, 'login_uid', 0) != DEFAULT_UID and "token" in item and len(
+                                item["token"]) > 6
+                            else item["token"]
+                        ),
+                        "email": (
+                            item["email"][:3] + "****" + item["email"].split('@')[1]
+                            if getattr(g, 'login_uid', 0) != DEFAULT_UID and "email" in item and len(
+                                item["email"]) > 6
+                            else item["email"]
+                        ),
                         "remark": item["remark"]
                     } for i, item in enumerate(data_list)
                 ]
@@ -104,6 +114,7 @@ async def page():
 
 @discord.route('/discord/edit', methods=['GET', 'POST'])
 @require_user_async  # 使用装饰器来验证登录状态
+@check_user_login_do
 async def edit():
     uid = g.uid
 
@@ -174,6 +185,7 @@ async def edit():
 
 @discord.route('/discord/add', methods=['GET', 'POST'])
 @require_user_async  # 使用装饰器来验证登录状态
+@check_user_login_do
 async def add():
     uid = g.uid
 
@@ -271,6 +283,7 @@ async def add():
 
 @discord.route('/discord/delete', methods=['POST'])
 @require_user_async  # 使用装饰器来验证登录状态
+@check_user_login_do
 async def delete():  # 因为 require_login 会解码 token
     if request.method == 'POST':
         form = await request.form  # 注意必须 await
@@ -327,6 +340,7 @@ async def list():
 @discord.route('/discord/guild_data', methods=['GET', 'POST'])
 @require_user_async
 async def guild_data():
+
     uid = g.uid
     data = dbMysql.table('guzi_discord_channel').where(f"uid='{uid}'  AND  status=1").order("id DESC").field('guild_id,guild_name,guild_icon').select()
     #print(dbMysql.getLastSql())  # 打印由Model类拼接填充生成的SQL语句
@@ -343,6 +357,7 @@ async def guild_data():
 
 @discord.route('/discord/add_channel', methods=['GET', 'POST'])
 @require_user_async  # 使用装饰器来验证登录状态
+@check_user_login_do
 async def add_channel():
     uid = g.uid
     if request.method == 'POST':
@@ -430,6 +445,7 @@ async def add_channel():
 
 @discord.route('/discord/edit_channel', methods=['GET', 'POST'])
 @require_user_async
+@check_user_login_do
 async def edit_channel():
     uid = g.uid
 
@@ -592,6 +608,7 @@ async def page_channel():
 
 @discord.route('/discord/delete_channel', methods=['POST'])
 @require_user_async  # 使用装饰器来验证登录状态
+@check_user_login_do
 async def delete_channel():  # 因为 require_login 会解码 token
     if request.method == 'POST':
         form = await request.form  # 注意必须 await

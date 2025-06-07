@@ -8,16 +8,15 @@ import jwt
 import datetime
 from util.db import *
 import asyncio
-from src.config import ADMIN_LIST_ID
+from src.config import ADMIN_LIST_ID,LOGIN_EXPIRE_SECONDS,SECRET_KEY,DEFAULT_UID
 
 # 如果你已经在其他地方创建了 Flask 应用实例，就不要再重复创建
 # app = Flask(__name__)  # 已存在，不要重复创建
 
-SECRET_KEY = '681f4d8e-d290-800f-a7e5-06bd9291c0d8'
 
 # 存储 nonce 和签名消息
 NONCE_STORE = {}
-EXPIRE_SECONDS = 300  # 5分钟有效
+EXPIRE_SECONDS = LOGIN_EXPIRE_SECONDS  # 5分钟有效
 
 
 # 提取 token 并验证
@@ -30,13 +29,9 @@ def get_logged_in_address():
         token = auth_header.split()[1]  # 去掉 Bearer 前缀
         decoded = jwt.decode(token, SECRET_KEY, algorithms=['HS256'])
         # 设置为全局可访问
-        g.address = decoded.get('address')
-        g.username = decoded.get('username')
-        g.uid = decoded.get('uid')
-        g.max_twitter = decoded.get('max_twitter')
-        g.max_discord = decoded.get('max_discord')
-        g.max_discord_channel = decoded.get('max_discord_channel')
-
+        for key in ["address", "username", "uid", "max_twitter", "max_discord", "max_discord_channel"]:
+            setattr(g, key, decoded.get(key))
+        g.login_uid = decoded.get('uid')
         return decoded['address']  # 返回地址
     except (jwt.ExpiredSignatureError, jwt.InvalidTokenError, IndexError):
         return None
@@ -46,23 +41,23 @@ def get_logged_in_address():
 def extract_user_from_token():
     auth_header = request.headers.get('Authorization')
 
+    # 未提供 Authorization 头
     if not auth_header:
-        return False  # 未提供 Authorization 头
+        g.uid = DEFAULT_UID ###只要出错就提供默认账号，让游客能查看登陆
+        return True
 
     try:
         token = auth_header.split()[1]  # 去掉 Bearer 前缀
         decoded = jwt.decode(token, SECRET_KEY, algorithms=['HS256'])
 
         # 设置为全局可访问
-        g.address = decoded.get('address')
-        g.username = decoded.get('username')
-        g.uid = decoded.get('uid')
-        g.max_twitter = decoded.get('max_twitter')
-        g.max_discord = decoded.get('max_discord')
-        g.max_discord_channel = decoded.get('max_discord_channel')
+        for key in ["address", "username", "uid", "max_twitter", "max_discord", "max_discord_channel"]:
+            setattr(g, key, decoded.get(key))
+        g.login_uid = decoded.get('uid')
         return True
     except (jwt.ExpiredSignatureError, jwt.InvalidTokenError, IndexError):
-        return False
+        g.uid = DEFAULT_UID ###只要出错就提供默认账号，让游客能查看登陆
+        return True
 
 
 # 通用装饰器
@@ -94,13 +89,35 @@ def require_user(f):
 #         return await f(*args, **kwargs)  # 一定要 await f(...)
 #     return wrapper
 
+### 检测用户是否可以操作
+def check_user_login_do(f):
+    @wraps(f)
+    async def wrapper(*args, **kwargs):
+        ### 处理默认数据
+        if getattr(g, 'login_uid', 0) != DEFAULT_UID:
+            return jsonify({
+                'status': 0,
+                'not_login': 1,
+                'message': '操作失败，账号未登录状态！'
+            }), 200
 
+        result = f(*args, **kwargs)
+        if asyncio.iscoroutine(result):
+            return await result
+        return result
 
+    return wrapper
+
+### 检测用户Token是否有效
 def require_user_async(f):
     @wraps(f)
     async def wrapper(*args, **kwargs):
+
         if not extract_user_from_token():
-            return jsonify({'error': 'async 未登录或Token无效'}), 401
+            return jsonify({
+                'status': 0,
+                'message': '账号未登录或Token无效'
+            }), 200
 
         result = f(*args, **kwargs)
         if asyncio.iscoroutine(result):
@@ -119,7 +136,7 @@ def require_admin(uid_whitelist=None):
         @wraps(func)
         async def wrapper(*args, **kwargs):
             if getattr(g, 'uid', None) not in uid_whitelist:
-                return jsonify({'status': 0, 'message': '对不起，此账号没有权限！@_@'})
+                return jsonify({'status': 0, 'message': '对不起，此账号没有管理权限！@_@'})
                 #return redirect('/error')
             return await func(*args, **kwargs)
         return wrapper

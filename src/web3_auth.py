@@ -10,17 +10,17 @@ from datetime import datetime, timedelta
 from src.rapidapi import getDataByUsername
 from src.asyn_rapidapi import async_getDataByUsername,async_getUserFollowingIds,async_getDataByUserID
 from src.config import DB_MAX_DISCORD,DB_MAX_TWITTER,DB_MAX_DISCORD_CHANNEL
-from src.config import ADMIN_LIST_ID
+from src.config import ADMIN_LIST_ID,LOGIN_EXPIRE_SECONDS,MAX_CONCURRENT
 import aiohttp
 from aiohttp import ClientSession, TCPConnector
 import asyncio
+from src.auth import check_user_login_do,require_user_async
 
 SECRET_KEY = '681f4d8e-d290-800f-a7e5-06bd9291c0d8'
 
 # 存储 nonce 和签名消息
 NONCE_STORE = {}
-EXPIRE_SECONDS = 300  # 5分钟有效
-MAX_CONCURRENT = 5  # 最多 5 个并发任务
+
 semaphore = asyncio.Semaphore(MAX_CONCURRENT)
 # 创建一个 Blueprint 用于 Web3 登录功能
 web3_auth = Blueprint('web3_auth', __name__)
@@ -103,6 +103,7 @@ async def get_users_data_by_id(user_data):
 
 # 根据用户名uid批量获取推特信息
 @web3_auth.route('/api/auth/get_single_twitter', methods=['GET', 'POST'])
+@check_user_login_do
 async def get_single_twitter():
     if request.method == 'POST':
         form = await request.form  # 注意必须 await
@@ -110,13 +111,29 @@ async def get_single_twitter():
         is_twitter = form.get('is_twitter')
         user_id = form.get('user_id')
 
-        if not user_id:
-            return jsonify({"error": "Missing user_id"}), 400
-        user_id_list = []
+        user_data = []
+
         if user_id:
+
             user_id_list = [user_id]  # 将单个值放入列表
-        user_data = await get_users_data_by_id(user_id_list)  # 执行异步任务并获取结果
-        print(user_data)
+            user_data = await get_users_data_by_id(user_id_list)  # 执行异步任务并获取结果
+
+        if remarks:
+            # 正则：验证合法的 URL，并提取用户名部分
+            valid_url_regex = r"https:\/\/(x\.com|twitter\.com)\/([a-zA-Z0-9_]+)"
+
+            # 过滤 remark 中的每一行，并提取用户名,需要查询的用户名列表
+            usernames = [
+                match.group(2)  # 提取用户名（match.group(2)是URL中的用户名部分）
+                for line in remarks.split('\n')
+                if re.match(valid_url_regex, line)  # 如果匹配到合法 URL
+                for match in [re.match(valid_url_regex, line)] if match  # 匹配后提取
+            ]
+            # 直接使用 await 来执行异步任务，而不使用 run_until_complete
+            user_data = await get_users_data(usernames)  # 执行异步任务并获取结果
+
+            print(remarks)
+
         if user_data:
             # 有值，处理逻辑
             return jsonify({'status': 1, 'data': user_data})
@@ -127,6 +144,7 @@ async def get_single_twitter():
 
 # 根据用户名批量获取推特信息
 @web3_auth.route('/api/auth/get_all_twitter', methods=['GET', 'POST'])
+@check_user_login_do
 async def get_all_twitter():
     if request.method == 'POST':
         form = await request.form  # 注意必须 await
@@ -428,7 +446,7 @@ async def verify():
     if not entry or entry['message'] != message:
         return jsonify({"error": "消息不匹配"}), 400
 
-    if int(time.time()) - entry['timestamp'] > EXPIRE_SECONDS:
+    if int(time.time()) - entry['timestamp'] > LOGIN_EXPIRE_SECONDS:
         return jsonify({"error": "签名已过期"}), 400
 
     try:
@@ -485,7 +503,7 @@ async def verify():
 
 
                 else:
-                    return jsonify({"error": "无效邀请码，新用户不能注册"}), 400
+                    return jsonify({"error": "无效邀请码，用户不能注册"}), 400
                 #print(dbMysql.getLastSql())  # 打印由Model类拼接填充生成的SQL语句
 
             # 登录成功，生成 JWT Token
@@ -528,7 +546,6 @@ def protected():
 @require_user_async
 def get_user_info():
     uid = g.uid
-
     if uid not in ADMIN_LIST_ID:
         return jsonify({"status":0,"message": f"对不起，你非管理员！"})
 

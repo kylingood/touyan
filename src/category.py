@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from quart import Quart, render_template, request, jsonify,g, Blueprint
 from util.db import *
-from src.auth import require_user,require_user_async
+from src.auth import require_user,require_user_async,check_user_login_do
 
 # 创建一个 Blueprint 用于 Web3 登录功能
 category = Blueprint('category', __name__)
@@ -17,7 +17,7 @@ async def discord():
     return await render_template("category/discord.html")
 
 @category.route('/category/list', methods=['GET', 'POST'])
-@require_user
+@require_user_async
 def list():
     uid = g.uid
     is_type = request.args.get('is_type', default=1, type=int)
@@ -190,6 +190,7 @@ def page():
 
 @category.route('/category/del_cate', methods=['POST'])
 @require_user_async  # 使用装饰器来验证登录状态
+@check_user_login_do
 async def del_cate():  # 因为 require_login 会解码 token
     if request.method == 'POST':
         form = await request.form  # 注意必须 await
@@ -215,6 +216,7 @@ async def del_cate():  # 因为 require_login 会解码 token
 
 @category.route('/category/add', methods=['POST'])
 @require_user_async
+@check_user_login_do
 async def add():
     uid = g.uid
     address = g.address
@@ -267,6 +269,7 @@ async def add():
 
 @category.route('/category/edit', methods=['POST'])
 @require_user_async
+@check_user_login_do
 async def edit():
     uid = g.uid
     address = g.address

@@ -67,9 +67,9 @@ $(function () {
     const token = localStorage.getItem('token');
 
     if (token) {
-      $('.login-nav-item').show();
+      //$('.login-nav-item').show();
     } else {
-      $('.login-nav-item').hide();
+      //$('.login-nav-item').hide();
     }
 });
 
@@ -143,37 +143,58 @@ async function loginWithWallet() {
     // 3. 判断是否已注册，如果没有注册则提示填写邀请码
     let inviteCode = null;
     if (!exists) {
-      await new Promise((resolve, reject) => {
-      layer.prompt({
-        title: '请输入邀请码再进行注册',
-        formType: 0,
-        btn: ['确定', '取消']
-      }, function (value, index) {
-        inviteCode = value;
-        if (!inviteCode) {
-          layer.msg("必须输入邀请码才能注册");
-          return;
-        }
-
-        // 异步检查邀请码
-        fetch(`/api/auth/check_invite?code=${encodeURIComponent(inviteCode)}`)
-          .then(res => res.json())
-          .then(data => {
-            if (data.valid) {
-              layer.close(index);
-              resolve(); // 验证通过，继续流程
-            } else {
-              layer.msg(data.message);
-              return;
+      inviteCode = await new Promise((resolve, reject) => {
+        layer.open({
+          type: 1,
+          title: '请输入邀请码再进行注册',
+          area: ['320px'],
+          btn: ['确定', '取消'],
+          content: `
+            <div style="padding: 20px;">
+                <div class="layui-input-wrap">
+                  <div class="layui-input-prefix">
+                    <i class="layui-icon layui-icon-password"></i>
+                  </div>
+                   <input type="text" id="inviteCodeInput" placeholder="请输入邀请码" class="layui-input" style="margin-bottom: 10px;">
+                 </div>
+                <div class="layui-inline layui-word-aux layui-font-gray" style="font-size:12px;margin-bottom:0px;">
+                  什么？需要邀请码？
+                  <a href="https://x.com/guzibiji" target="_blank" class="layui-font-blue">
+                    去推特发私信给博主取。
+                  </a>
+                </div>
+            </div>
+          `,
+          yes: function(index, layero) {
+            const code = document.getElementById("inviteCodeInput").value.trim();
+            if (!code) {
+              layer.msg("必须输入邀请码才能注册");
+              return false;  // 阻止关闭弹窗
             }
-          })
-          .catch(err => {
-            layer.msg("验证失败，请稍后再试");
-            return;
-          });
-      });
-    });
 
+            // 异步检查邀请码
+            fetch(`/api/auth/check_invite?code=${encodeURIComponent(code)}`)
+              .then(res => res.json())
+              .then(data => {
+                if (data.valid) {
+                  layer.close(index); // 验证成功关闭弹窗
+                  resolve(code);      // 把邀请码传给外层await
+                } else {
+                  layer.msg(data.message || "邀请码无效");
+                  // 不关闭弹窗
+                }
+              })
+              .catch(() => {
+                layer.msg("验证失败，请稍后再试");
+                // 不关闭弹窗
+              });
+
+            return false; // 一定要返回false阻止弹窗默认关闭，等异步结果处理
+          }
+        });
+      });
+
+      console.log("最终的邀请码是：", inviteCode);
     }
 
     // 4. 验证签名并登录（带邀请码）
@@ -187,13 +208,14 @@ async function loginWithWallet() {
 
     if (verifyRes.ok && verifyData.token) {
       localStorage.setItem('token', verifyData.token);
-      layer.msg('登录成功！');
+      layer.msg('恭喜您，登录成功！');
       setTimeout(() => {
         location.reload();
       }, 500);
     } else {
-      layer.msg('登录失败: ' + (verifyData.error || '未知错误'));
+      layer.msg('对不起，登录失败: ' + (verifyData.error || '未知错误'));
     }
+
 
   } catch (err) {
     console.error(err);
