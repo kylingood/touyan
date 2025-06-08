@@ -9,7 +9,7 @@ HEADERS = {
     "x-rapidapi-key": X_RAPIDAPI_KEY,
     "x-rapidapi-host": X_RAPIDAPI_HOST
 }
-print(HEADERS)
+
 
 
 # ✅ 时间格式化

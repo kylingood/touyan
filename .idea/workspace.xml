@@ -4,8 +4,10 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="52e72af2-67a7-4242-a6ba-fbef2c11875c" name="更改" comment="增加服务器自动重启脚本">
-      <change beforePath="$PROJECT_DIR$/src/twitter.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/twitter.py" afterDir="false" />
+    <list default="true" id="52e72af2-67a7-4242-a6ba-fbef2c11875c" name="更改" comment="统一增加批量删除按钮的操作">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/asyn_rapidapi.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/asyn_rapidapi.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/templates/discord/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/discord/index.html" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -13,6 +15,7 @@
     <option name="LAST_RESOLUTION" value="IGNORE" />
   </component>
   <component name="Git.Settings">
+    <option name="PUSH_AUTO_UPDATE" value="true" />
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
   <component name="GitHubPullRequestSearchHistory">{
@@ -494,7 +497,23 @@
       <option name="project" value="LOCAL" />
       <updated>1749281013646</updated>
     </task>
-    <option name="localTasksCounter" value="35" />
+    <task id="LOCAL-00035" summary="统一增加批量删除按钮的扣作">
+      <option name="closed" value="true" />
+      <created>1749362902274</created>
+      <option name="number" value="00035" />
+      <option name="presentableId" value="LOCAL-00035" />
+      <option name="project" value="LOCAL" />
+      <updated>1749362902274</updated>
+    </task>
+    <task id="LOCAL-00036" summary="统一增加批量删除按钮的操作">
+      <option name="closed" value="true" />
+      <created>1749362922918</created>
+      <option name="number" value="00036" />
+      <option name="presentableId" value="LOCAL-00036" />
+      <option name="project" value="LOCAL" />
+      <updated>1749362922918</updated>
+    </task>
+    <option name="localTasksCounter" value="37" />
     <servers />
   </component>
   <component name="VcsManagerConfiguration">
@@ -515,6 +534,8 @@
     <MESSAGE value="第13次提交，优化以及批量增加推特功能" />
     <MESSAGE value="第14次提交，修改默认账号数据以及批量增加推特功能" />
     <MESSAGE value="增加服务器自动重启脚本" />
-    <option name="LAST_COMMIT_MESSAGE" value="增加服务器自动重启脚本" />
+    <MESSAGE value="统一增加批量删除按钮的扣作" />
+    <MESSAGE value="统一增加批量删除按钮的操作" />
+    <option name="LAST_COMMIT_MESSAGE" value="统一增加批量删除按钮的操作" />
   </component>
 </project>

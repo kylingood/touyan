@@ -433,7 +433,7 @@ layui.use(['laypage', 'jquery'], function() {
 
        const token = localStorage.getItem('token');
        $.ajax({
-            url:'{{ url_for('category.list_data_data') }}',// ✅ 你后端接口地址
+            url:'{{ url_for('category.list_data') }}',// ✅ 你后端接口地址
             headers: {
                 'Authorization': 'Bearer ' + token,
             },
@@ -727,7 +727,7 @@ layui.use(function(){
 
           // Step 2: 异步加载下拉数据
           $.ajax({
-            url:'{{ url_for('category.list_data_data') }}',
+            url:'{{ url_for('category.list_data') }}',
             headers: {
                 'Authorization': 'Bearer ' + token,
             },
@@ -868,7 +868,7 @@ layui.use(function(){
           form.render();
            // Step 2: 异步加载下拉数据
           $.ajax({
-            url:'{{ url_for('category.list_data_data') }}',// ✅ 你后端接口地址
+            url:'{{ url_for('category.list_data') }}',// ✅ 你后端接口地址
             headers: {
                 'Authorization': 'Bearer ' + token,
             },
