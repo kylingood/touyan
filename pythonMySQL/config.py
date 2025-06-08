@@ -1,28 +1,25 @@
 # -*- coding: utf-8 -*-
 
 # 数据库配置信息
+
 CONFIG = {
-    # 数据库默认配置信息，必选，且索引必须为0
-    0 : {
-
-        #"host": '192.168.60.2',  # 可选，默认127.0.0.1
-        "host": '127.0.0.1',  # 可选，默认127.0.0.1
-        "user": 'root',  # 可选，默认root
-        'password': 'Guzi@123',  # 必选
-        'database': 'twitter',  # 必选
-        #"host": '127.0.0.1',
-        #"user": 'guzi',  # 可选，默认root
-        #'password': 'J8s2e88y2xLeFRC2',  # 必选
-        #'database': 'guzi',  # 必选
-        'port': '3306',  # 可选，默认3306
-        'dbms': 'mysql',  # 可选，默认mysql
-        'charset': 'utf8',  # 可选
-        'DB_DEBUG': True,  # 可选，是否开启DEBUG模式，请在系统上线后关闭DEBUG模式
-        'autocommit': True  # 开启自动提交事务
+    0: {
+        #"host": '192.168.60.2',
+        #"user": 'root',
+        #"password": 'Guzi@123',
+        #"database": 'twitter',
+        "host": '127.0.0.1',
+        "user": 'guzi',  # 可选，默认root
+        "password": 'J8s2e88y2xLeFRC2',  # 必选
+        "database": 'guzi',  # 必选
+        'port': 3306,
+        'dbms': 'mysql',
+        'charset': 'utf8mb4',
+        'DB_DEBUG': True,
+        'autocommit': True,
+        'connect_timeout': 1800
     },
-
-    # 可选，数据库配置，'1'可以是任意字符串
     '1': {
-        'database': 'db_name2',  # 必选
+        'database': 'db_name2',
     },
 }
