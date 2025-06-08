@@ -57,7 +57,7 @@
                     <table class="table table-striped" style="text-align: center;">
                       <thead>
                         <tr>
-                          <th style="width: 80px">序号</th>
+                          <th >序号</th>
                           <th>UID</th>
                           <th>钱包</th>
                           <th>状态</th>
@@ -74,7 +74,14 @@
 
                       </tbody>
                     </table>
-                    <div style="text-align: center;" id="demo-laypage-all"></div>
+                     <div class="toolbar-checkbox-wrapper">
+                      <div class="layui-form toolbar-checkbox-left" id="check_all_data">
+                        <button type="button" class="layui-btn layui-btn-sm layui-btn-touyan" id="toggleSelectBtn" data-status="unselected">全选</button>
+                        <button type="button" class="layui-btn layui-btn-sm layui-bg-orange  " id="batchDeleteBtn">批量禁止</button>
+                      </div>
+
+                      <div id="demo-laypage-all" class="toolbar-checkbox-right"></div>
+                    </div>
                   </div>
                   <!-- /.card-body -->
                 </div>
@@ -93,6 +100,45 @@ layui.use(['laypage', 'jquery'], function() {
   var $ = layui.jquery;
   const token = localStorage.getItem('token');
 
+    // 批量删除按钮监听（动态项）
+    $('body').on('click', '#batchDeleteBtn', function () {
+      if (selectedIds.size === 0) {
+        return layer.msg("请至少选择一项进行禁止");
+      }
+
+      const ids = Array.from(selectedIds);
+      console.log('checkbox ids:', ids);
+      layer.confirm(`确认禁止 ${ids.length} 项吗？`, function (index) {
+        $.ajax({
+          url: '{{ url_for('member.delete') }}',
+          type: 'POST',
+          headers: {
+            'Authorization': 'Bearer ' + token,
+          },
+          contentType: 'application/json',
+          data: JSON.stringify({ ids }),  // ✅ 正确传 JSON
+          success:function(result){
+            if(result.status == 1){
+              layer.msg(result.message);
+
+              // 删除成功后，清除已选中的 ID
+              ids.forEach(id => selectedIds.delete(String(id)));
+
+              // 重新拉取数据
+              fetchData(1, 10);  // 默认加载第1页，10条数据
+            } else {
+              layer.msg(result.message || "禁止失败");
+            }
+          },
+          error: function () {
+            layer.msg("请求失败");
+          }
+        });
+
+        layer.close(index);
+      });
+    });
+
   // 增加搜索委托给 body 或更合适的父容器
   $('body').on('click keydown', '#search_keyword_button, #search_keyword', function (e) {
       if (e.type === 'click' || (e.type === 'keydown' && e.key === 'Enter')) {
@@ -104,7 +150,8 @@ layui.use(['laypage', 'jquery'], function() {
 
   let currentKeyword = ''; // 全局变量，记住 keyword
 
-  function fetchData(page, limit, keyword) {
+  //将函数挂载到 window，变成全局函数
+  window.fetchData = function (page, limit, keyword) {
     currentKeyword = keyword || '';  // 每次 fetch 更新当前 keyword
     $.ajax({
       url: '{{ url_for('member.page') }}',  // 替换为你的后端接口
@@ -168,8 +215,13 @@ layui.use(['laypage', 'jquery'], function() {
     data.forEach(function(item) {
       // 随机选择一个 class
       const randomClass = colorClasses[Math.floor(Math.random() * colorClasses.length)];
-      html += `<tr class="align-middle" id="del_twitter_${item.id}">
-                          <td>${item.num}.</td>
+      const isYesChecked = selectedIds.has(String(item.id)) ? 'checked' : '';
+      html += `<tr class="align-middle" id="del_twitter_${item.uid}">
+                          <td  style="text-align:left;">
+                              <div class="layui-form">
+                                   <input type="checkbox" name="checkItem" value="${item.uid}"  lay-filter="checkItem"   data-id="${item.uid}" lay-skin="primary" ${isYesChecked}   > ${item.num}.
+                              </div>
+                          </td>
                           <td>${item.uid}</td>
                           <td>${item.wallet}</td>
                           <td>${renderUsedStatus(item.status)}</td>
@@ -179,16 +231,33 @@ layui.use(['laypage', 'jquery'], function() {
                           <td>${item.max_discord_channel}</td>
                           <td>${formatTimestamp(item.created)}</td>
                           <td>${item.remark}</td>
-                          <td>
+                          <td style="text-align:right;">
                           <div class="layui-btn-container">
                           <span   lay-on="edit-confirm"  data-id="${item.uid}" data-username="${item.username}" data-remark="${item.remark}"   data-max-twitter="${item.max_twitter}"  data-max-discord="${item.max_discord}"  data-max-discord-channel="${item.max_discord_channel}"  ><button type="button" class="layui-btn layui-bg-blue  layui-btn-sm">设置</button></span>
-                          <span   lay-on="del-confirm"  data-id="${item.uid}"  data-status="${item.status}"  ><button type="button" class="layui-btn layui-bg-orange  layui-btn-sm">禁止账号</button></span>
-
+                            <span lay-on="del-confirm" data-id="${item.uid}" data-status="${item.status}">
+                                <button type="button" class="layui-btn layui-btn-sm ${item.status === 1 ? 'layui-bg-orange' : 'layui-bg-touyan'}">
+                                  ${item.status === 1 ? '禁止' : '恢复'}
+                                </button>
+                              </span>
                           </div>
                           </td>
                         </tr>`;
     });
     $('#data-table').html(html);
+    // 先渲染 layui checkbox 外观
+      layui.form.render('checkbox');
+
+      // 再设置选中状态
+      $('#data-table input[name="checkItem"]').each(function () {
+        const id = String($(this).data('id'));
+        if (selectedIds.has(id)) {
+          $(this).prop('checked', true);
+        } else {
+          $(this).prop('checked', false);
+        }
+      });
+
+      updateToggleSelectBtnStatus()
   }
 
   fetchData(1, 10);  // 默认加载第1页，10条数据
@@ -212,10 +281,10 @@ layui.use(function(){
 
       layer.open({
         type: 1,
-        area: '350px',
+        area: '300px',
         resize: false,
         shadeClose: true,
-        title: '禁止账号',
+        title: '操作账号',
         content: `
           <div class="layui-form" lay-filter="filter-test-layer" style="margin: 16px;">
             <div class="demo-login-container">
@@ -226,15 +295,15 @@ layui.use(function(){
 
                   </div>
                     <div class="layui-form">
-                      <input type="radio" name="status" value="1" title="正常账号" ${status == 1 ? 'checked' : ''}>
-                      <input type="radio" name="status" value="-1" title="禁用账号" ${status == -1 ? 'checked' : ''}>
+                      <input type="radio" name="status" value="1" title="恢复账号" ${status == -1 ? 'checked' : ''}>
+                      <input type="radio" name="status" value="-1" title="禁用账号" ${status == 1 ? 'checked' : ''}>
                     </div>
                      <input type="hidden" name="id" value="${id}" lay-verify="required" placeholder="账号uid"  autocomplete="off" >
                  </div>
               </div>
 
               <div class="layui-form-item">
-                <button class="layui-btn layui-btn-fluid" id="add-button" lay-submit lay-filter="demo-login">确定修改</button>
+                <button class="layui-btn layui-btn-fluid" id="add-button" lay-submit lay-filter="demo-login">确定操作</button>
               </div>
 
             </div>
@@ -263,14 +332,17 @@ layui.use(function(){
                 async:false,
                 success:function(result){
                     if(result.status == 1){
-
-                        layer.confirm(result.message, {
-                          btn: ['确定', '关闭'] //按钮
-                        }, function(){
-                          window.location.href='{{ url_for('member.index') }}';
-                        }, function(){
-                          window.location.href='{{ url_for('member.index') }}';
-                        });
+                        layer.closeAll();
+<!--                        layer.confirm(result.message, {-->
+<!--                          btn: ['确定', '关闭'] //按钮-->
+<!--                        }, function(){-->
+<!--                          window.location.href='{{ url_for('member.index') }}';-->
+<!--                        }, function(){-->
+<!--                          window.location.href='{{ url_for('member.index') }}';-->
+<!--                        });-->
+<!--                        -->
+                        // 重新拉取数据
+                        fetchData(1, 10);  // 默认加载第1页，10条数据
 
                         return true
 

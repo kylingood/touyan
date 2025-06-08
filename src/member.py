@@ -23,10 +23,10 @@ async def codes():
     uid = g.get("uid")  # 从 g 中获取 uid
     return await render_template("member/codes.html")
 
-@member.route('/member/list', methods=['GET', 'POST'])
+@member.route('/member/list_data', methods=['GET', 'POST'])
 @require_user_async
 @require_admin()
-async def list():
+async def list_data():
     uid = g.uid
     is_type = request.args.get('is_type', default=1, type=int)
     data = dbMysql.table('guzi_member').where(f"uid='{uid}'  AND is_type='{is_type}' AND status=1").field('id,title').select()
@@ -162,19 +162,38 @@ async def page():
 @require_user_async  # 使用装饰器来验证登录状态
 @require_admin()
 async def del_codes():
+    uid = g.uid
     if request.method == 'POST':
         form = await request.form  # 注意必须 await
         id = form.get('id')
-        uid = g.uid
-        where = f"id='{id}' AND is_used='0'"
-        result = dbMysql.table('guzi_invite_codes').where(where).delete()  # 返回删除的行数
+        data = await request.get_json()  # ✅ 这里必须加 await
 
-        if result:
+        if id:
+            where = f"id='{id}' AND is_used='0'"
+            result = dbMysql.table('guzi_invite_codes').where(where).delete()  # 返回删除的行数
+            if result:
+                return jsonify({
+                    'status': 1,
+                    'message': '恭喜您，数据删除成功！'
+                })
 
-            return jsonify({
-                'status': 1,
-                'message': '恭喜您，数据删除成功！'
-            })
+        if data:
+            ids = data.get('ids', [])
+            if not isinstance(ids, list):
+                return jsonify({'status': 0, 'message': '参数错误，ids 应该是一个列表'})
+
+            print('将要删除的 UID 列表：', ids)
+            # 构造 SQL 条件
+            id_conditions = " OR ".join([f"id='{tid}' " for tid in ids])
+            where = f"({id_conditions}) AND is_used='0'"
+            ###删除
+            result = dbMysql.table('guzi_invite_codes').where(where).delete()  # 返回删除的行数
+            print(dbMysql.getLastSql())  # 打印由Model类拼接填充生成的SQL语句
+            if result:
+                return jsonify({
+                    'status': 1,
+                    'message': '恭喜您，数据删除成功！'
+                })
 
         else:
             return jsonify({
@@ -235,7 +254,6 @@ async def add_code():
 async def edit():
     uid = g.uid
 
-
     if request.method == 'POST':
         form = await request.form  # 注意必须 await
         remark = form.get('remark')
@@ -273,3 +291,61 @@ async def edit():
             'status': 0,
             'message': '对不起，操作失败！'
         })
+
+
+
+@member.route('/member/delete', methods=['POST'])
+@require_user_async
+@require_admin()
+async def delete():  # 因为 require_login 会解码 token
+    if request.method == 'POST':
+        uid = g.uid
+        form = await request.form  # 注意必须 await
+        id = form.get('id')
+        status = form.get('status')
+        data = await request.get_json()  # ✅ 这里必须加 await
+
+        if id:
+            dbdata = {}
+            today_time = int(time.time())
+            dbdata['status'] = status
+            dbdata['updated'] = today_time
+            result = dbMysql.table('guzi_member').where(f"uid='{id}'").save(dbdata)
+
+            if result:
+                return jsonify({
+                    'status': 1,
+                    'message': '恭喜您，会员禁止成功！'
+                })
+
+        if data:
+            ids = data.get('ids', [])
+            if not isinstance(ids, list):
+                return jsonify({'status': 0, 'message': '参数错误，ids 应该是一个列表'})
+
+            print('将要删除的 UID 列表：', ids)
+            today_time = int(time.time())
+            success_count = 0
+            for uid in ids:
+                dbdata = {
+                    'status': -1,
+                    'updated': today_time
+                }
+                result = dbMysql.table('guzi_member').where(f"uid='{uid}'").save(dbdata)
+                print(f"Update uid={uid}, result={result}")
+                print(dbMysql.getLastSql())
+                if result:
+                    success_count += 1
+
+            if success_count:
+                return jsonify({
+                    'status': 1,
+                    'message': f'恭喜您，{success_count} 个会员禁止成功！'
+                })
+
+
+        else:
+            return jsonify({
+                'status': 0,
+                'message': f'对不起，会员禁止失败！'
+            })

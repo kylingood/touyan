@@ -197,22 +197,55 @@ async def edit():
 @require_user_async  # 使用装饰器来验证登录状态
 @require_admin()
 async def delete():
+    uid = g.uid
     if request.method == 'POST':
         form = await request.form  # 注意必须 await
         id = form.get('id')
-        uid = g.uid
-        where = f"id='{id}'"
-        result = dbMysql.table('guzi_website').where(where).delete()  # 返回删除的行数
+        data = await request.get_json()  # ✅ 这里必须加 await
+        today_time = int(time.time())
+        if id:
+            where = f"id='{id}'"
+            dbdata = {
+                'status': -1,
+                'updated': today_time
+            }
+            result = dbMysql.table('guzi_website').where(where).save(dbdata)
+            #result = dbMysql.table('guzi_website').where(where).delete()  # 返回删除的行数
+            if result:
+                return jsonify({
+                    'status': 1,
+                    'message': '恭喜您，数据操作成功！'
+                })
 
-        if result:
+        if data:
+            ids = data.get('ids', [])
+            if not isinstance(ids, list):
+                return jsonify({'status': 0, 'message': '参数错误，ids 应该是一个列表'})
 
-            return jsonify({
-                'status': 1,
-                'message': '恭喜您，数据删除成功！'
-            })
+            print('将要删除的 UID 列表：', ids)
+
+            success_count = 0
+            for id in ids:
+                dbdata = {
+                    'status': -1,
+                    'updated': today_time
+                }
+                result = dbMysql.table('guzi_website').where(f"id='{id}'").save(dbdata)
+                print(f"Update uid={id}, result={result}")
+                print(dbMysql.getLastSql())
+                if result:
+                    success_count += 1
+
+            if success_count:
+                return jsonify({
+                    'status': 1,
+                    'message': f'恭喜您，{success_count} 个操作成功！'
+                })
+
+
 
         else:
             return jsonify({
                 'status': 0,
-                'message': f'对不起，数据删除失败！{id}'
+                'message': f'对不起，数据操作失败！{id}'
             })

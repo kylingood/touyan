@@ -206,7 +206,7 @@ layui.use(['laypage', 'jquery'], function() {
                           <td>${item.total}</td>
                           <td>${item.remark}</td>
                           <td>${formatTimestamp(item.created)}</td>
-                          <td>
+                          <td style="text-align:right;">
                           <div class="layui-btn-container">
                           <span   lay-on="edit-confirm"  data-id="${item.id}" data-title="${item.title}" data-remark="${item.remark}" ><button type="button" class="layui-btn layui-bg-blue  layui-btn-sm">修改</button></span>
                           <span   lay-on="del-confirm"  data-id="${item.id}" ><button type="button" class="layui-btn layui-bg-red  layui-btn-sm">删除</button></span>
