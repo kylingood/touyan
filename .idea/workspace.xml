@@ -6,7 +6,8 @@
   <component name="ChangeListManager">
     <list default="true" id="52e72af2-67a7-4242-a6ba-fbef2c11875c" name="更改" comment="调整配置文件">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pythonMySQL/config.py" beforeDir="false" afterPath="$PROJECT_DIR$/pythonMySQL/config.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/twitter.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/twitter.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/templates/twitter/message.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/twitter/message.html" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -65,7 +66,7 @@
     &quot;last_opened_file_path&quot;: &quot;E:/touyan/.venv&quot;
   }
 }</component>
-  <component name="RunManager" selected="Python.twitter_user">
+  <component name="RunManager" selected="Python.main">
     <configuration name="discord" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="twitter" />
       <option name="ENV_FILES" value="" />
@@ -544,7 +545,15 @@
       <option name="project" value="LOCAL" />
       <updated>1749382856960</updated>
     </task>
-    <option name="localTasksCounter" value="41" />
+    <task id="LOCAL-00041" summary="调整配置文件">
+      <option name="closed" value="true" />
+      <created>1749383090866</created>
+      <option name="number" value="00041" />
+      <option name="presentableId" value="LOCAL-00041" />
+      <option name="project" value="LOCAL" />
+      <updated>1749383090866</updated>
+    </task>
+    <option name="localTasksCounter" value="42" />
     <servers />
   </component>
   <component name="VcsManagerConfiguration">

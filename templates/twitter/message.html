@@ -56,12 +56,7 @@
 
                 <div class="flow-demo" id="ID-flow-followings">
 
-
-
-
                 </div>
-
-
 
                 </div>
               </div>
@@ -76,6 +71,582 @@
           <!--end::Container-->
         </div>
         <!--end::App Content-->
+
+
+
+<script>
+
+function formatContent(content) {
+  return content
+    .replace(/<([^>\s]+)>/g, '$1') // 去掉尖括号
+    .replace(/(https?:\/\/[^\s<]+)/g, '<a href="$1" target="_blank" style="color: #16b777; text-decoration: underline;">$1</a>') // 设置颜色和下划线
+    .replace(/\n/g, "<br>");
+}
+
+function stripMediaTags(html) {
+  return html
+    .replace(/<img[^>]*>/gi, '')
+    .replace(/<video[^>]*>.*?<\/video>/gis, '')
+    .replace(/<audio[^>]*>.*?<\/audio>/gis, '')
+    .replace(/<script[^>]*>.*?<\/script>/gis, '')
+    .replace(/<style[^>]*>.*?<\/style>/gis, '')
+    .replace(/<iframe[^>]*>.*?<\/iframe>/gis, '')
+    .replace(/<(input|button|select|form)[^>]*>.*?<\/\1>/gis, '')
+    .replace(/<(head|meta|link)[^>]*>/gi, '')
+    .replace(/style="display:\s*none[^"]*"/gi, '')
+    .replace(/<[^>]+>/g, '') // 可选：去除所有 HTML 标签
+    .replace(/\s+/g, ' ')     // 多个空格变一个
+    .trim();
+}
+
+// 翻译函数（Google Translate 非官方接口）
+async function translateToZh(text) {
+  const cleanText = stripMediaTags(text);
+  const res = await fetch(`https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=zh-CN&dt=t&q=${encodeURIComponent(cleanText)}`);
+  const data = await res.json();
+  return data[0].map(item => item[0]).join('');
+}
+
+function formatTimestamp(unixTime) {
+  const date = new Date(unixTime * 1000); // 如果是毫秒则不乘
+  const Y = date.getFullYear();
+  const M = String(date.getMonth() + 1).padStart(2, '0');
+  const D = String(date.getDate()).padStart(2, '0');
+  const h = String(date.getHours()).padStart(2, '0');
+  const m = String(date.getMinutes()).padStart(2, '0');
+  return `${Y}/${M}/${D} ${h}:${m}`;
+}
+
+function linkifyShortUrls(text) {
+  // 正则匹配 https://t.co/ 后面跟一串字母数字的短链接
+  const urlRegex = /(https:\/\/t\.co\/[a-zA-Z0-9]+)/g;
+
+  return text.replace(urlRegex, (match) => {
+    return `<a href="${match}" target="_blank" style="color:#16b777;" rel="noopener noreferrer">${match}</a>`;
+  });
+}
+
+layui.use(['flow', 'jquery'], function(){
+  var flow = layui.flow;
+  var $ = layui.jquery;
+  var $ = layui.$;
+  var util = layui.util;
+  var form = layui.form;
+
+  const token = localStorage.getItem('token');
+  let  tid = BigInt("{{tid}}");
+  let  user_id = 0;
+  localStorage.setItem('message_did', user_id);
+  localStorage.setItem('message_tid', tid);
+
+  // 事件
+  util.on('lay-on', {
+    'add-twitter-confirm':  function(){
+      const $buttonObj = $(this); // 保存 jQuery 对象
+      const cid = $(this).data('cid');
+      const tid = $(this).data('tid');
+      const remark = $(this).data('remark');
+      const user_id = $(this).data('user-id');
+
+      layer.open({
+        type: 1,
+        area: '350px',
+        resize: false,
+        shadeClose: true,
+        title: '关注新推特账号',
+        content: `
+          <div class="layui-form" lay-filter="filter-test-layer" style="margin: 16px;">
+            <div class="demo-login-container">
+
+              <div class="layui-form-item">
+                <div class="layui-input-wrap">
+                  <div class="layui-input-prefix">
+                    <i class="layui-icon layui-icon-list"></i>
+                  </div>
+                    <select name="category_id" id="category_select" lay-verify="required" lay-search>
+                      <option value="">选择或搜索分组</option>
+                    </select>
+                 </div>
+              </div>
+
+              <div class="layui-form-item">
+                <div class="layui-input-wrap">
+                  <div class="layui-input-prefix">
+                    <i class="layui-icon layui-icon-password"></i>
+                  </div>
+                    <input type="hidden" name="tid" id="add_tid"   value="${tid}" autocomplete="off" class="layui-input">
+                    <textarea placeholder="请输入此推特备注" name="remark" id="add_remark"  class="layui-textarea"   lay-reqtext="请填写推特备注"  >${remark}</textarea>
+                 </div>
+              </div>
+
+              <div class="layui-form-item">
+                <button class="layui-btn layui-btn-fluid" id="add-button" lay-submit lay-filter="demo-login">确定增加</button>
+              </div>
+
+            </div>
+          </div>
+        `,
+        success: function(){
+          // 对弹层中的表单进行初始化渲染
+          form.render();
+
+          // Step 2: 异步加载下拉数据
+          $.ajax({
+            url:'{{ url_for('category.list_data') }}',
+            headers: {
+                'Authorization': 'Bearer ' + token,
+            },
+            type: 'GET',
+            data: { is_type: 1 },
+            success: function(res) {
+              if (res.status === 1 && Array.isArray(res.data)) {
+                const select = $('#category_select');
+                select.empty();  // 清空旧内容
+                select.append('<option value="">直接选择或搜索分组</option>');
+                res.data.forEach(item => {
+                    const selected = (item.id === cid) ? 'selected' : '';
+                    select.append(`<option value="${item.id}" ${selected}>${item.title}</option>`);
+                });
+                form.render('select');  // ⭐ 重要：重新渲染 layui select
+              } else {
+                //layer.msg('下拉数据加载失败');
+              }
+            },
+            error: function() {
+              //layer.msg('请求出错');
+            }
+          });
+          // 表单提交事件
+          form.on('submit(demo-login)', function(data){
+
+            $("#add-button").html("请稍等，正在提交数据...").attr("disabled","disabled");
+            // 此处可执行 Ajax 等操作
+            $.ajax({
+                url:'{{ url_for('twitter.add_twitter') }}',
+                headers: {
+                    'Authorization': 'Bearer ' + token,
+                },
+                data:{
+                    "tid":data.field.tid,
+                    "cid":data.field.category_id,
+                    "remark":data.field.remark
+
+                },
+                dataType:"json",
+                type:"post",
+                async:false,
+                success:function(result){
+                    if(result.status == 1){
+                        layer.closeAll();
+                        layer.msg(result.message);
+                        $buttonObj.html('已在监控');
+                        $buttonObj.removeAttr('lay-on');
+                        return true
+
+                    }else{
+                    	$("#add-button").html("确定提交").removeAttr("disabled");
+                    	return layer.msg(result.message);
+                    }
+                }
+            })
+            return false; // 阻止默认 form 跳转
+          });
+        }
+      });
+    }
+  });
+
+  function showBig(src) {
+      layer.open({
+        type: 1,
+        title: false,
+        area: ['auto', 'auto'],
+        shadeClose: true,
+        content: '<img src="' + src + '" style="max-width:100%; max-height:100%;" />'
+      });
+  }
+
+$(document).on('click', '.text_content img', function () {
+  showBig(this.src);
+});
+
+
+  //将函数挂载到 window，变成全局函数
+  window.fetchFollowings = function (page, limit, user_id,tid){
+
+      flow.load({
+        elem: '#ID-flow-followings',
+        scrollElem: '#ID-flow-followings',
+        done: function(page, next){
+          if (tid<0) {
+            let  tid = BigInt("{{tid}}");
+          }else{
+             tid = localStorage.getItem('message_tid');
+          }
+
+          //console.log('tid+----'+ tid);
+          $.ajax({
+            url: '{{ url_for('twitter.page_followings') }}',
+            type: 'GET',
+            data: { page: page, user_id: user_id,  tid: tid,  limit: 10 },
+            dataType: 'json',
+            headers: {
+            'Authorization': 'Bearer ' + token,
+            },
+            success: function(res){
+              var lis = [];
+              // 假设后端返回 res.data 是数组，res.total_pages 是总页数
+              $.each(res.data, function(index, item){
+                  const contentEn = item.t2_description || '';
+                  const contentHtml = formatContent(item.t2_description || '');
+                  const contentId = `twitter-content-cn-${item.id || Math.random().toString(36).substr(2, 8)}`;
+                   // 判断是否是最近一天的消息
+                  const now = Date.now();
+                  const msgTime = new Date(item.timestamp).getTime();  // 注意这里时间格式要能被解析
+                  const isRecent = (now - msgTime) <= 48 * 60 * 60 * 1000; // 24小时内
+
+                lis.push(`
+
+                 <div class="tweet-card">
+                      <!-- 上层账户信息 -->
+                       <div class="sub-account">
+                        <a class="view-link" href="https://x.com/${item.t1_username}" target="_blank" >
+                        <img class="avatar" src="${item.t1_avatar}" alt="Avatar">
+                        </a>
+                        <div class="sub-info">
+
+                          <span class="sub-name"><a href="https://x.com/${item.t1_username}" target="_blank" >${item.t1_show_name}</a></span>
+                          <span class="sub-handle"><a  href="https://x.com/${item.t1_username}" target="_blank" class="handle" >@${item.t1_username}</a></span>
+
+                        </div>
+
+                        <span class="follow-btn">最近关注了</span>
+                      </div>
+
+                      <hr class="divider">
+
+                      <!-- 主账户信息 -->
+                      <div class="main-account">
+                        <a class="view-link" href="https://x.com/${item.t2_username}" target="_blank" >
+                        <img class="sub_avatar" src="${item.t2_avatar}" alt="Avatar">
+                        </a>
+                        <div class="main-info">
+                          <div class="main-header">
+                          <span class="name">${item.t2_show_name}</span>
+                          <span class="timestamp" > &nbsp;
+                         ${item.is_focus === 1 ? `
+                              <button type="button" data-tid="${item.t2_tid}" data-cid="${item.t1_cid}" data-remark="${item.t2_show_name}" class="layui-btn layui-btn-primary layui-btn-radius layui-btn-sm">已在监控</button>
+                            ` : `
+                              <button type="button" lay-on="add-twitter-confirm"  data-user-id="${item.twitter_id}"  data-tid="${item.t2_tid}" data-cid="${item.t1_cid}" data-remark="${item.t2_show_name}" class="layui-btn layui-btn-primary layui-btn-radius layui-btn-sm">
+                              <span style="color:#16b777 !important;">添加监控</span></button>
+                            `}
+
+                          </span>
+                        </div>
+                        <span class="handle">@${item.t2_username}</span>
+
+                          <div class="description">
+                            ${item.t2_description}
+                             ${contentEn  ? `
+                            <p class="message-zh" id="${contentId}">
+                            <img src="{{ url_for('static', filename='dist/img/loading_2.gif') }}" alt="loading" class="opacity-75 shadow">
+                            </p>
+                            ` : ''}
+                          </div>
+
+                        </div>
+                      </div>
+                </div>
+
+                `);
+
+                  // 异步翻译并填入对应位置
+                  translateToZh(contentEn).then(result => {
+                    document.getElementById(contentId).innerText = result;
+                  }).catch(() => {
+                    //document.getElementById(contentId).innerText = '翻译失败';
+                  });
+              });
+              // 判断是否还有下一页
+              next(lis.join(''), page < res.count);
+            },
+            error: function(){
+              // 请求失败时提示并结束加载
+              next('', false);
+            }
+          });
+        }
+      });
+  }
+
+
+  function fetchMessage(page, limit, user_id,tid){
+
+      flow.load({
+        elem: '#ID-flow-demo',
+        scrollElem: '#ID-flow-demo',
+        done: function(page, next){
+          if (tid<0) {
+            let  tid = BigInt("{{tid}}");
+          }else{
+             tid = localStorage.getItem('message_tid');
+          }
+
+          //console.log('tid+----'+ tid);
+          $.ajax({
+            url: '{{ url_for('twitter.page_messages') }}',
+            type: 'GET',
+            data: { page: page, user_id: user_id,  tid: tid,  limit: 10 },
+            dataType: 'json',
+            headers: {
+            'Authorization': 'Bearer ' + token,
+            },
+            success: function(res){
+              var lis = [];
+              // 假设后端返回 res.data 是数组，res.total_pages 是总页数
+              $.each(res.data, function(index, item){
+                  const contentEn = item.content || '';
+                  const contentHtml = formatContent(item.content || '');
+                  const contentId = `content-cn-${item.id || Math.random().toString(36).substr(2, 8)}`;
+                  let contentSonId = '';  // 默认设为空
+                  if (item.original_tweet_user_id) {
+                        const contentSonEn = item.data_original_tweets.content || '';
+                        contentSonId = `son-content-cn-${item.id || Math.random().toString(36).substr(2, 8)}`;
+                         // 异步翻译并填入对应位置
+                         setTimeout(() => {
+                          if (contentSonEn && contentSonId && document.getElementById(contentSonId)) {
+                            //console.log('contentSonEn:'+ contentSonEn);
+                            //console.log('contentSonId:'+ contentSonId);
+                            translateToZh(contentSonEn).then(result => {
+
+                                //console.log('result ----'+ result);
+                                document.getElementById(contentSonId).innerText = result;
+                            }).catch(() => {
+                              console.warn('翻译失败:', contentSonEn);
+                            });
+                          } else {
+                            console.warn('contentSonId 未定义或 DOM 不存在：', contentSonId);
+                          }
+                        },2000);
+
+                  }
+                   // 判断是否是最近一天的消息
+                  const now = Date.now();
+                  const msgTime = new Date(item.timestamp).getTime();  // 注意这里时间格式要能被解析
+                  const isRecent = (now - msgTime) <= 48 * 60 * 60 * 1000; // 24小时内
+
+                lis.push(`
+
+                  <div class="tweet-container">
+
+                    <!-- 主推文 -->
+                    <section class="tweet">
+                      <!-- 用户信息栏 -->
+                      <a class="view-link" href="https://x.com/${item.username}" target="_blank" >
+                      <img class="avatar" src="${item.avatar}" alt="${item.username} Avatar">
+                      </a>
+                      <div class="content">
+                        <div class="header">
+                          <div class="user-info">
+                            <a class="view-link" href="https://x.com/${item.username}" target="_blank" >
+                            <span class="name">${item.show_name}</span>
+                            <span class="handle">@${item.username}</span>
+                            </a>
+                            <span class="timestamp">· ${item.created_at}</span>
+                          </div>
+                          <a class="view-link" href="https://x.com/${item.username}/status/${item.tweet_id}" target="_blank" >
+                          <button type="button" class="layui-btn layui-btn-primary layui-btn-radius layui-btn-sm ">查看原文</button></a>
+                        </div>
+
+                        <!-- 正文 -->
+                        <p class="text_content">${linkifyShortUrls(item.content)}</p>
+                        <p class="message-zh" id="${contentId}">
+                        <img src="{{ url_for('static', filename='dist/img/loading_2.gif') }}" alt="loading" class="opacity-75 shadow">
+                        </p>
+
+                       <!-- 判断 original_tweet_id 是否有值再渲染引用推文卡片 -->
+                       ${item.original_tweet_user_id  ? `
+                        <!-- 引用推文卡片 -->
+                        <div class="quoted-tweet">
+                          <div class="quoted-header">
+                            <img class="avatar" src="${item.data_original_user.avatar}" alt="Avatar">
+                            <div>
+                              <span class="name">${item.data_original_user.show_name}</span>
+                              <span class="handle">@${item.data_original_user.username}</span>
+                              <span class="timestamp">· ${formatTimestamp(item.data_original_tweets.created_at)}</span>
+                            </div>
+                           ${item.user_id != item.data_original_user.tid ? (
+                              item.is_focus === 1
+                                ? `<button type="button" data-user-id="${item.user_id}" data-tid="${item.data_original_user.tid}" data-cid="${item.cid}" data-remark="${item.data_original_user.show_name}" class="layui-btn layui-btn-primary layui-btn-radius layui-btn-sm">已加监控</button>`
+                                : `<button type="button" lay-on="add-twitter-confirm" data-user-id="${item.user_id}" data-tid="${item.data_original_user.tid}" data-cid="${item.cid}" data-remark="${item.data_original_user.show_name}" class="layui-btn layui-btn-primary layui-btn-radius layui-btn-sm"><span style="color:#16b777 !important;">添加监控</span></button>`
+                            ) : ''}
+
+
+                            <a class="view-link" href="https://x.com/${item.data_original_user.username}/status/${item.data_original_tweets.tweet_id}" target="_blank">
+                            <button type="button" class="layui-btn layui-btn-primary layui-btn-radius layui-btn-sm  ">查看原文</button>
+                            </a>
+                          </div>
+                          <p class="text_content">
+                           ${linkifyShortUrls(item.data_original_tweets.content)}
+                          </p>
+                          <p class="message-zh" id="${contentSonId}">
+                          <img src="{{ url_for('static', filename='dist/img/loading_2.gif') }}" alt="loading" class="opacity-75 shadow">
+                          </p>
+                        </div>
+                        ` : ''}
+
+                        <!-- 交互栏 -->
+                        <!--
+                        <div class="tweet-actions">
+                          <span>💬 ${item.replies}</span>
+                          <span>🔁 ${item.retweets}</span>
+                          <span>❤️ ${item.likes}</span>
+                        </div>
+                        -->
+                      </div>
+                    </section>
+                  </div>
+                `);
+
+                  setTimeout(() => {
+                      // 异步翻译并填入对应位置
+                      translateToZh(contentEn).then(result => {
+                        document.getElementById(contentId).innerText = result;
+                      }).catch(() => {
+                        //document.getElementById(contentId).innerText = '翻译失败';
+                      });
+                  }, 500);
+
+              });
+              // 判断是否还有下一页
+              next(lis.join(''), page < res.count);
+            },
+            error: function(){
+              // 请求失败时提示并结束加载
+              next('', false);
+            }
+          });
+        }
+      });
+  }
+
+
+  // 监听分类按钮点击
+  $('#category_html').on('click', '.layui-btn', function() {
+        user_id = $(this).data('id');
+        // 样式切换：移除其他按钮的 cur，添加当前按钮的 cur
+        $('#category_html .layui-btn').removeClass('layui-btn-touyan');
+        $('#category_html .layui-btn').addClass('layui-btn-primary');
+        $(this).addClass('layui-btn-touyan');
+        $('#ID-flow-demo').html('');  // 清空当前内容
+        const message_guild = localStorage.getItem('message_guild');
+        localStorage.setItem('message_did', user_id);
+        localStorage.setItem('message_tid', user_id);
+        //加载数据
+        fetchMessage(1,10,user_id,message_guild)// 点击分类时重置为第一页
+         $('#ID-flow-followings').html('');  // 清空当前内容
+        //加载最新关注数据
+        setTimeout(() => {
+             fetchFollowings(1,10,user_id,0)
+        }, 400);
+
+  });
+
+
+  // ✅ 取到分类列表
+  function getUser(){
+       const  user_id = 0;
+       const token = localStorage.getItem('token');
+       if (tid<0) {
+        let  tid = BigInt("{{tid}}");
+       }else{
+         tid = localStorage.getItem('message_tid');
+       }
+       $.ajax({
+        url:'{{ url_for('twitter.listuser') }}',
+        headers: {
+            'Authorization': 'Bearer ' + token,
+        },
+        type: 'GET',
+        data: { is_type: 2 },
+        success: function(res) {
+          if (res.status === 1 && Array.isArray(res.data)) {
+            const select = $('#category_html');
+            select.empty();  // 清空旧内容
+            if (tid>0) {
+                select.append('<button type="button" data-id="0"  class="layui-btn layui-btn-primary layui-btn-sm " >全部推特账号</button>');
+            }else{
+                select.append('<button type="button" data-id="0"  class="layui-btn  layui-btn-sm layui-btn-touyan"  >全部推特账号</button>');
+            }
+
+            res.data.forEach(item => {
+                const selected = (parseInt(item.tid) === parseInt(tid)) ? 'layui-btn-touyan' : 'layui-btn-primary';
+                //console.log(item.tid+'----'+ user_id);
+                select.append(`<button type="button" data-id="${item.tid}" class="layui-btn  layui-btn-sm  ${selected}"  > ${item.show_name}</button>`);
+            });
+
+          } else {
+            //layer.msg('下拉数据加载失败');
+          }
+        },
+        error: function() {
+          //layer.msg('请求出错');
+        }
+      });
+  }
+
+  function updateMessage() {
+        const did = 0;
+        const token = localStorage.getItem('token');
+
+        // 获取上次更新时间
+        const lastUpdateTime = localStorage.getItem('updatetime');
+        const now = Date.now();
+
+        // 如果在1小时内，跳过请求
+        if (lastUpdateTime && (now - parseInt(lastUpdateTime) < 60 * 60 * 1000)) {
+            console.log('🔁 距离上次更新时间未超过2小时，跳过请求');
+            return;
+        }
+
+        // 发起请求
+        $.ajax({
+            url: '/api/auth/update_message',
+            headers: {
+                'Authorization': 'Bearer ' + token,
+            },
+            type: 'GET',
+            data: {},
+            success: function (res) {
+                if (res.status === 1) {
+                    // 成功后更新 updatetime
+                    localStorage.setItem('updatetime', Date.now().toString());
+                    console.log('🔁 更新时间'+Date.now().toString());
+                }
+            },
+            error: function () {
+                console.log('请求出错');
+            }
+        });
+    }
+
+
+  //加载数据
+  fetchMessage(1,10,0,0)
+  //加载最新关注数据
+  setTimeout(() => {
+     fetchFollowings(1,10,0,0)
+  }, 250);
+  //主动更新信息
+  //setTimeout(updateMessage, 800);
+
+   //取到分类更新信息
+  setTimeout(getUser, 300);
+
+
+
+});
+</script>
 
 
 <style>
@@ -369,8 +940,16 @@ video {
 .main-header {
   display: flex;
   align-items: center;
+  justify-content: space-between; /* 关键：左右两端对齐 */
   line-height: 1.2;
   margin-bottom: 2px;
+}
+
+.main-header .timestamp {
+  font-size: 12px;
+  color: #999;
+  margin-left: 0; /* 移除多余的 margin */
+  text-align: right;
 }
 
 .main-header .name {
@@ -379,11 +958,7 @@ video {
   color: #16b777;
 }
 
-.main-header .timestamp {
-  font-size: 12px;
-  color: #999;
-  margin-left: 6px;
-}
+
 
 .handle {
   font-size: 13px;
@@ -427,453 +1002,4 @@ video {
     text-decoration: underline;
 }
 </style>
-
-<script>
-
-
-
-function formatContent(content) {
-  return content
-    .replace(/<([^>\s]+)>/g, '$1') // 去掉尖括号
-    .replace(/(https?:\/\/[^\s<]+)/g, '<a href="$1" target="_blank" style="color: #16b777; text-decoration: underline;">$1</a>') // 设置颜色和下划线
-    .replace(/\n/g, "<br>");
-}
-
-function stripMediaTags(html) {
-  return html
-    .replace(/<img[^>]*>/gi, '')
-    .replace(/<video[^>]*>.*?<\/video>/gis, '')
-    .replace(/<audio[^>]*>.*?<\/audio>/gis, '')
-    .replace(/<script[^>]*>.*?<\/script>/gis, '')
-    .replace(/<style[^>]*>.*?<\/style>/gis, '')
-    .replace(/<iframe[^>]*>.*?<\/iframe>/gis, '')
-    .replace(/<(input|button|select|form)[^>]*>.*?<\/\1>/gis, '')
-    .replace(/<(head|meta|link)[^>]*>/gi, '')
-    .replace(/style="display:\s*none[^"]*"/gi, '')
-    .replace(/<[^>]+>/g, '') // 可选：去除所有 HTML 标签
-    .replace(/\s+/g, ' ')     // 多个空格变一个
-    .trim();
-}
-
-// 翻译函数（Google Translate 非官方接口）
-async function translateToZh(text) {
-  const cleanText = stripMediaTags(text);
-  const res = await fetch(`https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=zh-CN&dt=t&q=${encodeURIComponent(cleanText)}`);
-  const data = await res.json();
-  return data[0].map(item => item[0]).join('');
-}
-
-function formatTimestamp(unixTime) {
-  const date = new Date(unixTime * 1000); // 如果是毫秒则不乘
-  const Y = date.getFullYear();
-  const M = String(date.getMonth() + 1).padStart(2, '0');
-  const D = String(date.getDate()).padStart(2, '0');
-  const h = String(date.getHours()).padStart(2, '0');
-  const m = String(date.getMinutes()).padStart(2, '0');
-  return `${Y}/${M}/${D} ${h}:${m}`;
-}
-
-function linkifyShortUrls(text) {
-  // 正则匹配 https://t.co/ 后面跟一串字母数字的短链接
-  const urlRegex = /(https:\/\/t\.co\/[a-zA-Z0-9]+)/g;
-
-  return text.replace(urlRegex, (match) => {
-    return `<a href="${match}" target="_blank" style="color:#16b777;" rel="noopener noreferrer">${match}</a>`;
-  });
-}
-
-layui.use(['flow', 'jquery'], function(){
-  var flow = layui.flow;
-  var $ = layui.jquery;
-  const token = localStorage.getItem('token');
-  let  tid = BigInt("{{tid}}");
-  let  user_id = 0;
-  localStorage.setItem('message_did', user_id);
-  localStorage.setItem('message_tid', tid);
-
-
-  function showBig(src) {
-      layer.open({
-        type: 1,
-        title: false,
-        area: ['auto', 'auto'],
-        shadeClose: true,
-        content: '<img src="' + src + '" style="max-width:100%; max-height:100%;" />'
-      });
-  }
-
-$(document).on('click', '.text_content img', function () {
-  showBig(this.src);
-});
-
-
-
-
-
-
-  function fetchFollowings(page, limit, user_id,tid){
-
-      flow.load({
-        elem: '#ID-flow-followings',
-        scrollElem: '#ID-flow-followings',
-        done: function(page, next){
-          if (tid<0) {
-            let  tid = BigInt("{{tid}}");
-          }else{
-             tid = localStorage.getItem('message_tid');
-          }
-
-          console.log('tid+----'+ tid);
-          $.ajax({
-            url: '{{ url_for('twitter.page_followings') }}',
-            type: 'GET',
-            data: { page: page, user_id: user_id,  tid: tid,  limit: 10 },
-            dataType: 'json',
-            headers: {
-            'Authorization': 'Bearer ' + token,
-            },
-            success: function(res){
-              var lis = [];
-              // 假设后端返回 res.data 是数组，res.total_pages 是总页数
-              $.each(res.data, function(index, item){
-                  const contentEn = item.t2_description || '';
-                  const contentHtml = formatContent(item.t2_description || '');
-                  const contentId = `twitter-content-cn-${item.id || Math.random().toString(36).substr(2, 8)}`;
-                   // 判断是否是最近一天的消息
-                  const now = Date.now();
-                  const msgTime = new Date(item.timestamp).getTime();  // 注意这里时间格式要能被解析
-                  const isRecent = (now - msgTime) <= 48 * 60 * 60 * 1000; // 24小时内
-
-                lis.push(`
-
-                 <div class="tweet-card">
-                      <!-- 上层账户信息 -->
-                       <div class="sub-account">
-                        <a class="view-link" href="https://x.com/${item.t1_username}" target="_blank" >
-                        <img class="avatar" src="${item.t1_avatar}" alt="Avatar">
-                        </a>
-                        <div class="sub-info">
-
-                          <span class="sub-name"><a href="https://x.com/${item.t1_username}" target="_blank" >${item.t1_show_name}</a></span>
-                          <span class="sub-handle"><a  href="https://x.com/${item.t1_username}" target="_blank" class="handle" >@${item.t1_username}</a></span>
-
-                        </div>
-
-                        <span class="follow-btn">关注了</span>
-                      </div>
-
-                      <hr class="divider">
-
-                      <!-- 主账户信息 -->
-                      <div class="main-account">
-                      <a class="view-link" href="https://x.com/${item.t2_username}" target="_blank" >
-                        <img class="sub_avatar" src="${item.t2_avatar}" alt="Avatar">
-                        <div class="main-info">
-                          <div class="main-header">
-                          <span class="name">${item.t2_show_name}</span>
-                          <span class="timestamp"> &nbsp;</span>
-                        </div>
-                        </a>
-                        <span class="handle">@${item.t2_username}</span>
-
-                          <div class="description">
-                            ${item.t2_description}
-                             ${contentEn  ? `
-                            <p class="message-zh" id="${contentId}">
-                            <img src="{{ url_for('static', filename='dist/img/loading_2.gif') }}" alt="loading" class="opacity-75 shadow">
-                            </p>
-                            ` : ''}
-                          </div>
-
-                        </div>
-                      </div>
-                </div>
-
-                `);
-
-                  // 异步翻译并填入对应位置
-                  translateToZh(contentEn).then(result => {
-                    document.getElementById(contentId).innerText = result;
-                  }).catch(() => {
-                    //document.getElementById(contentId).innerText = '翻译失败';
-                  });
-              });
-              // 判断是否还有下一页
-              next(lis.join(''), page < res.count);
-            },
-            error: function(){
-              // 请求失败时提示并结束加载
-              next('', false);
-            }
-          });
-        }
-      });
-  }
-
-
-  function fetchMessage(page, limit, user_id,tid){
-
-      flow.load({
-        elem: '#ID-flow-demo',
-        scrollElem: '#ID-flow-demo',
-        done: function(page, next){
-          if (tid<0) {
-            let  tid = BigInt("{{tid}}");
-          }else{
-             tid = localStorage.getItem('message_tid');
-          }
-
-          console.log('tid+----'+ tid);
-          $.ajax({
-            url: '{{ url_for('twitter.page_messages') }}',
-            type: 'GET',
-            data: { page: page, user_id: user_id,  tid: tid,  limit: 10 },
-            dataType: 'json',
-            headers: {
-            'Authorization': 'Bearer ' + token,
-            },
-            success: function(res){
-              var lis = [];
-              // 假设后端返回 res.data 是数组，res.total_pages 是总页数
-              $.each(res.data, function(index, item){
-                  const contentEn = item.content || '';
-                  const contentHtml = formatContent(item.content || '');
-                  const contentId = `content-cn-${item.id || Math.random().toString(36).substr(2, 8)}`;
-                  let contentSonId = '';  // 默认设为空
-                  if (item.original_tweet_user_id) {
-                        const contentSonEn = item.data_original_tweets.content || '';
-                        contentSonId = `son-content-cn-${item.id || Math.random().toString(36).substr(2, 8)}`;
-                         // 异步翻译并填入对应位置
-                         setTimeout(() => {
-                          if (contentSonEn && contentSonId && document.getElementById(contentSonId)) {
-                            console.log('contentSonEn:'+ contentSonEn);
-                            console.log('contentSonId:'+ contentSonId);
-                            translateToZh(contentSonEn).then(result => {
-
-                                console.log('result ----'+ result);
-                                document.getElementById(contentSonId).innerText = result;
-                            }).catch(() => {
-                              console.warn('翻译失败:', contentSonEn);
-                            });
-                          } else {
-                            console.warn('contentSonId 未定义或 DOM 不存在：', contentSonId);
-                          }
-                        },2000);
-
-                  }
-                   // 判断是否是最近一天的消息
-                  const now = Date.now();
-                  const msgTime = new Date(item.timestamp).getTime();  // 注意这里时间格式要能被解析
-                  const isRecent = (now - msgTime) <= 48 * 60 * 60 * 1000; // 24小时内
-
-                lis.push(`
-
-                  <div class="tweet-container">
-
-                    <!-- 主推文 -->
-                    <section class="tweet">
-                      <!-- 用户信息栏 -->
-                      <a class="view-link" href="https://x.com/${item.username}" target="_blank" >
-                      <img class="avatar" src="${item.avatar}" alt="${item.username} Avatar">
-                      </a>
-                      <div class="content">
-                        <div class="header">
-                          <div class="user-info">
-                            <a class="view-link" href="https://x.com/${item.username}" target="_blank" >
-                            <span class="name">${item.show_name}</span>
-                            <span class="handle">@${item.username}</span>
-                            </a>
-                            <span class="timestamp">· ${item.created_at}</span>
-                          </div>
-                          <a class="view-link" href="https://x.com/${item.username}/status/${item.tweet_id}" target="_blank" >
-                          <button type="button" class="layui-btn layui-btn-normal layui-btn-sm layui-btn-radius layui-btn-touyan">查看原文</button></a>
-                        </div>
-
-                        <!-- 正文 -->
-                        <p class="text_content">${linkifyShortUrls(item.content)}</p>
-                        <p class="message-zh" id="${contentId}">
-                        <img src="{{ url_for('static', filename='dist/img/loading_2.gif') }}" alt="loading" class="opacity-75 shadow">
-                        </p>
-
-                       <!-- 判断 original_tweet_id 是否有值再渲染引用推文卡片 -->
-                       ${item.original_tweet_user_id  ? `
-                        <!-- 引用推文卡片 -->
-                        <div class="quoted-tweet">
-                          <div class="quoted-header">
-                            <img class="avatar" src="${item.data_original_user.avatar}" alt="Avatar">
-                            <div>
-                              <span class="name">${item.data_original_user.show_name}</span>
-                              <span class="handle">@${item.data_original_user.username}</span>
-                              <span class="timestamp">· ${formatTimestamp(item.data_original_tweets.created_at)}</span>
-                            </div>
-                            <a class="view-link" href="https://x.com/${item.data_original_user.username}/status/${item.data_original_tweets.tweet_id}" target="_blank">
-                            <button type="button" class="layui-btn layui-btn-normal layui-btn-sm layui-btn-radius layui-btn-touyan">查看原文</button>
-                            </a>
-                          </div>
-                          <p class="text_content">
-                           ${linkifyShortUrls(item.data_original_tweets.content)}
-                          </p>
-                          <p class="message-zh" id="${contentSonId}">
-                          <img src="{{ url_for('static', filename='dist/img/loading_2.gif') }}" alt="loading" class="opacity-75 shadow">
-                          </p>
-                        </div>
-                        ` : ''}
-
-                        <!-- 交互栏 -->
-                        <!--
-                        <div class="tweet-actions">
-                          <span>💬 ${item.replies}</span>
-                          <span>🔁 ${item.retweets}</span>
-                          <span>❤️ ${item.likes}</span>
-                        </div>
-                        -->
-                      </div>
-                    </section>
-
-                  </div>
-
-
-                `);
-
-
-                  setTimeout(() => {
-                      // 异步翻译并填入对应位置
-                      translateToZh(contentEn).then(result => {
-                        document.getElementById(contentId).innerText = result;
-                      }).catch(() => {
-                        //document.getElementById(contentId).innerText = '翻译失败';
-                      });
-                  }, 500);
-
-              });
-              // 判断是否还有下一页
-              next(lis.join(''), page < res.count);
-            },
-            error: function(){
-              // 请求失败时提示并结束加载
-              next('', false);
-            }
-          });
-        }
-      });
-  }
-
-
-  // 监听分类按钮点击
-  $('#category_html').on('click', '.layui-btn', function() {
-        user_id = $(this).data('id');
-        // 样式切换：移除其他按钮的 cur，添加当前按钮的 cur
-        $('#category_html .layui-btn').removeClass('layui-btn-touyan');
-        $('#category_html .layui-btn').addClass('layui-btn-primary');
-        $(this).addClass('layui-btn-touyan');
-        $('#ID-flow-demo').html('');  // 清空当前内容
-        const message_guild = localStorage.getItem('message_guild');
-        localStorage.setItem('message_did', user_id);
-        localStorage.setItem('message_tid', user_id);
-        //加载数据
-        fetchMessage(1,10,user_id,message_guild)// 点击分类时重置为第一页
-         $('#ID-flow-followings').html('');  // 清空当前内容
-        //加载最新关注数据
-        setTimeout(() => {
-             fetchFollowings(1,10,user_id,0)
-        }, 400);
-
-  });
-
-
-  // ✅ 取到分类列表
-  function getUser(){
-       const  user_id = 0;
-       const token = localStorage.getItem('token');
-       if (tid<0) {
-        let  tid = BigInt("{{tid}}");
-       }else{
-         tid = localStorage.getItem('message_tid');
-       }
-       $.ajax({
-        url:'{{ url_for('twitter.listuser') }}',
-        headers: {
-            'Authorization': 'Bearer ' + token,
-        },
-        type: 'GET',
-        data: { is_type: 2 },
-        success: function(res) {
-          if (res.status === 1 && Array.isArray(res.data)) {
-            const select = $('#category_html');
-            select.empty();  // 清空旧内容
-            if (tid>0) {
-                select.append('<button type="button" data-id="0"  class="layui-btn layui-btn-primary layui-btn-sm " >全部推特账号</button>');
-            }else{
-                select.append('<button type="button" data-id="0"  class="layui-btn  layui-btn-sm layui-btn-touyan"  >全部推特账号</button>');
-            }
-
-
-            res.data.forEach(item => {
-                const selected = (parseInt(item.tid) === parseInt(tid)) ? 'layui-btn-touyan' : 'layui-btn-primary';
-                console.log(item.tid+'----'+ user_id);
-                select.append(`<button type="button" data-id="${item.tid}" class="layui-btn  layui-btn-sm  ${selected}"  > ${item.show_name}</button>`);
-            });
-
-          } else {
-            //layer.msg('下拉数据加载失败');
-          }
-        },
-        error: function() {
-          //layer.msg('请求出错');
-        }
-      });
-  }
-
-  function updateMessage() {
-        const did = 0;
-        const token = localStorage.getItem('token');
-
-        // 获取上次更新时间
-        const lastUpdateTime = localStorage.getItem('updatetime');
-        const now = Date.now();
-
-        // 如果在1小时内，跳过请求
-        if (lastUpdateTime && (now - parseInt(lastUpdateTime) < 60 * 60 * 1000)) {
-            console.log('🔁 距离上次更新时间未超过2小时，跳过请求');
-            return;
-        }
-
-        // 发起请求
-        $.ajax({
-            url: '/api/auth/update_message',
-            headers: {
-                'Authorization': 'Bearer ' + token,
-            },
-            type: 'GET',
-            data: {},
-            success: function (res) {
-                if (res.status === 1) {
-                    // 成功后更新 updatetime
-                    localStorage.setItem('updatetime', Date.now().toString());
-                    console.log('🔁 更新时间'+Date.now().toString());
-                }
-            },
-            error: function () {
-                console.log('请求出错');
-            }
-        });
-    }
-
-
-  //加载数据
-  fetchMessage(1,10,0,0)
-  //加载最新关注数据
-  setTimeout(() => {
-     fetchFollowings(1,10,0,0)
-  }, 250);
-  //主动更新信息
-  setTimeout(updateMessage, 800);
-
-   //取到分类更新信息
-  setTimeout(getUser, 300);
-
-
-
-});
-</script>
 {% endblock %}

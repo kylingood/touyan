@@ -158,7 +158,14 @@ async def page_followings():
         '''
         data_list = dbMysql.query(sql)
         print(dbMysql.getLastSql())  # 打印由Model类拼接填充生成的SQL语句
-
+        print(twitter_data)
+        focus_ids = set(twitter_data.keys())
+        print(data_list)
+        # 遍历 b，检查 following_id 是否在 a 中
+        for item in data_list:
+            following_id = item.get('following_id')
+            item['is_focus'] = 1 if following_id in focus_ids else 0
+        print(data_list)
 
         total_page =  dbMysql.table('guzi_twitter_followings_map').where(where).count()
         print(dbMysql.getLastSql())  # 打印由Model类拼接填充生成的SQL语句
@@ -247,7 +254,6 @@ async def page_messages():
         print(data_list)
         original_tweet_ids = set()
         original_user_ids = set()
-
         # 第一步：遍历收集所有需要查的 ID
         for item in data_list:
             if item.get("original_tweet_id"):
@@ -272,6 +278,18 @@ async def page_messages():
         else:
             data_original_user = {}
 
+        # 提取 a 中所有的 twitter_id，存入集合以便快速查找
+        focus_ids = set(twitter_data.keys())
+        #把分类ID以及是否关注过这账号逻辑加进来
+        for item in data_list:
+            twitter_id = item.get('twitter_id')
+            item["is_focus"] = 1 if item["original_tweet_user_id"] in focus_ids else 0
+            if twitter_id in twitter_data:
+                item['cid'] = twitter_data[twitter_id]['cid']
+            else:
+                item['cid'] = 0
+
+
         if total_page > 0:
             layui_result = {
                 "code": 0,
@@ -282,6 +300,8 @@ async def page_messages():
                         "id": item["id"],
                         "tweet_id": item["tweet_id"],
                         "user_id": item["twitter_id"],
+                        "cid": item["cid"],
+                        "is_focus": item["is_focus"],#是否关注这个子账号
                         "is_type": item["is_type"],
                         "likes":item["likes"],
                         "retweets": item["retweets"],
@@ -815,7 +835,96 @@ async def add():
     return render_template('add.html')
 
 
+@twitter.route('/twitter/add_twitter', methods=['POST'])
+@require_user_async  # 使用装饰器来验证登录状态
+@check_user_login_do
+async def add_twitter():
+    uid = g.uid
 
+    if request.method == 'POST':
+        form = await request.form  # 注意必须 await
+        twitter_id = form.get('tid')
+        cid = form.get('cid')
+        remark = form.get('remark')
+
+        ###统计此账号下有多少个推特，超过配置的限制，不让再增加
+        total_twitter = dbMysql.table('guzi_member_twitter_map').where(f"uid='{uid}' AND status='1'").count()
+        data_one = dbMysql.table('guzi_member').where(f"uid='{uid}'").field("max_twitter,max_discord,max_discord_channel").find()
+        #print(dbMysql.getLastSql())  # 打印由Model类拼接填充生成的SQL语句
+        db_max_twitter = data_one['max_twitter']
+        # 取两个限制中较大的一个
+        max_limit = max(SYSTEM_MAX_TWITTER,db_max_twitter)
+        if total_twitter >= max_limit:
+            return jsonify({
+                'status': 0,
+                'message': f'对不起，已超过系统限制的 <span style="color:#16b777;">{max_limit}</span> 个账号，请联系管理员！'
+            })
+
+
+        if twitter_id:
+
+            ###插入分类关联表
+            ## 先查看此钱包有没有数据，没有就插入，有就更新数据状态
+            data_one = dbMysql.table('guzi_twitter_category_map').where(
+                f"twitter_id='{twitter_id}' AND uid='{uid}' AND category_id='{cid}'").find()
+            dbdata = {}
+            today_time = int(time.time())
+            if data_one:
+                id = data_one['id']
+                dbdata['twitter_id'] = twitter_id
+                dbdata['category_id'] = cid
+                dbdata['updated'] = today_time
+                dbdata['uid'] = uid
+                result_id = dbMysql.table('guzi_twitter_category_map').where(f"id = '{id}'").save(dbdata)
+                print(dbMysql.getLastSql())  # 打印由Model类拼接填充生成的SQL语句
+            else:
+                # 获取当前日期
+                dbdata['twitter_id'] = twitter_id
+                dbdata['category_id'] = cid
+                dbdata['uid'] = uid
+                dbdata['created'] = today_time
+                dbdata['status'] = 1
+                result_id = dbMysql.table('guzi_twitter_category_map').add(dbdata)
+                print(dbMysql.getLastSql())  # 打印由Model类拼接填充生成的SQL语句
+
+            ###插入会员与推特账号关联表
+            ## 先查看此钱包有没有数据，没有就插入，有就更新数据状态
+            data_one = dbMysql.table('guzi_member_twitter_map').where(
+                f"twitter_id='{twitter_id}' AND uid='{uid}' ").find()
+            dbdata = {}
+            today_time = int(time.time())
+            if data_one:
+                id = data_one['id']
+                dbdata['twitter_id'] = twitter_id
+                dbdata['updated'] = today_time
+                dbdata['uid'] = uid
+                dbdata['remark'] = remark
+                dbdata['category_id'] = cid
+                result_id = dbMysql.table('guzi_member_twitter_map ').where(f"id = '{id}'").save(dbdata)
+                print(dbMysql.getLastSql())  # 打印由Model类拼接填充生成的SQL语句
+            else:
+                # 获取当前日期
+                dbdata['twitter_id'] = twitter_id
+                dbdata['uid'] = uid
+                dbdata['remark'] = remark
+                dbdata['category_id'] = cid
+                dbdata['created'] = today_time
+                dbdata['status'] = 1
+                result_id = dbMysql.table('guzi_member_twitter_map ').add(dbdata)
+                print(dbMysql.getLastSql())  # 打印由Model类拼接填充生成的SQL语句
+
+
+            return jsonify({
+                'status': 1,
+                'message': '恭喜您，添加监控成功！'
+            })
+
+
+        else:
+            return jsonify({
+                'status': 0,
+                'message': '对不起，添加监控失败！'
+            })
 
 @twitter.route('/twitter/delete', methods=['POST'])
 @require_user_async  # 使用装饰器来验证登录状态
