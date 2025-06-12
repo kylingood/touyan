@@ -84,13 +84,13 @@ async def page():
                         "global_name": item["global_name"],
                         "token": (
                             item["token"][:5] + "****" + item["token"][-4:]
-                            if getattr(g, 'login_uid', 0) != DEFAULT_UID and "token" in item and len(
+                            if getattr(g, 'login_uid', 0) != DEFAULT_UID and getattr(g, 'login_uid', 0) <= 0 and  "token" in item and len(
                                 item["token"]) > 6
                             else item["token"]
                         ),
                         "email": (
                             item["email"][:3] + "****" + item["email"].split('@')[1]
-                            if getattr(g, 'login_uid', 0) != DEFAULT_UID and "email" in item and len(
+                            if getattr(g, 'login_uid', 0) != DEFAULT_UID and getattr(g, 'login_uid', 0) <= 0 and "email" in item and len(
                                 item["email"]) > 6
                             else item["email"]
                         ),
@@ -98,6 +98,9 @@ async def page():
                     } for i, item in enumerate(data_list)
                 ]
             }
+            print(getattr(g, 'login_uid', 0))
+            print(DEFAULT_UID)
+            print(layui_result)
         else:
             layui_result = {
                 "code": 0,
@@ -172,14 +175,14 @@ async def edit():
 
             return jsonify({
                 'status': 1,
-                'message': '恭喜您，数据修改成功！'
+                'message': '恭喜您，Discord账号修改成功！'
             })
 
 
         else:
             return jsonify({
                 'status': 0,
-                'message': '对不起，无权限修改此数据！'
+                'message': '对不起，无权限修改此Discord账号！'
             })
 
 
@@ -266,14 +269,14 @@ async def add():
 
             return jsonify({
                 'status': 1,
-                'message': '恭喜您，数据增加成功！'
+                'message': '恭喜您，Discord账号增加成功！'
             })
 
 
         else:
             return jsonify({
                 'status': 0,
-                'message': '对不起，数据增加失败！'
+                'message': '对不起，Discord账号增加失败！'
             })
 
     return render_template('add.html')
@@ -462,13 +465,13 @@ async def add_channel():
             # mid = await insert_message_db(dbdata)
             return jsonify({
                 'status': 1,
-                'message': '恭喜您，数据增加成功！'
+                'message': '恭喜您，监控频道增加成功！'
             })
 
         else:
             return jsonify({
                 'status': 0,
-                'message': f'对不起，数据增加失败！{discord_id}'
+                'message': f'对不起，监控频道增加失败！{discord_id}'
             })
 
 

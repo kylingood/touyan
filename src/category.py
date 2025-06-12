@@ -279,12 +279,12 @@ async def add():
         if result_db:
             return jsonify({
                 'status': 1,
-                'message': '恭喜您，数据增加成功！'
+                'message': '恭喜您，分组增加成功！'
             })
         else:
             return jsonify({
                 'status': 0,
-                'message': '对不起，数据增加失败！'
+                'message': '对不起，分组增加失败！'
             })
 
 
@@ -320,10 +320,10 @@ async def edit():
             if result_db:
                 return jsonify({
                     'status': 1,
-                    'message': '恭喜您，数据修改成功！'
+                    'message': '恭喜您，分组修改成功！'
                 })
 
         return jsonify({
             'status': 0,
-            'message': '对不起，数据修改失败！'
+            'message': '对不起，分组修改失败！'
         })

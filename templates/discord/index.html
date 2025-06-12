@@ -342,7 +342,8 @@ layui.use(['laypage', 'jquery'], function() {
 
   let currentKeyword = ''; // 全局变量，记住 keyword
 
-  function fetchData(page, limit, cid, keyword) {
+  //将函数挂载到 window，变成全局函数
+  window.fetchData = function (page, limit, cid, keyword) {
     currentKeyword = keyword || '';  // 每次 fetch 更新当前 keyword
     $.ajax({
       url: '{{ url_for('discord.page') }}',  // 替换为你的后端接口
@@ -501,7 +502,10 @@ layui.use(function(){
                 success:function(result){
                     if(result.status == 1){
                         $('#del_discord_'+id).remove();
+                        layer.closeAll();
                         layer.msg(result.message);
+                        // 重新拉取数据
+                        fetchData(1, 10);  // 默认加载第1页，10条数据
                         return true
                     }else{
                     	layer.msg(result.message);
@@ -629,15 +633,14 @@ layui.use(function(){
                 async:false,
                 success:function(result){
                     if(result.status == 1){
-
+                        layer.closeAll();
                         layer.confirm(result.message, {
-                          btn: ['确定', '关闭'] //按钮
+                          btn: ['查看列表', '关闭'] //按钮
                         }, function(){
-                          window.location.href='{{ url_for('discord.guild') }}';
+                          window.location.href='/discord/guild/did/'+data.field.did;
                         }, function(){
-                          window.location.href='{{ url_for('discord.guild') }}';
-                        });
 
+                        });
                         return true
 
                     }else{
@@ -776,13 +779,17 @@ layui.use(function(){
                 success:function(result){
                     if(result.status == 1){
 
-                        layer.confirm(result.message, {
-                          btn: ['确定', '关闭'] //按钮
-                        }, function(){
-                          window.location.href='{{ url_for('discord.index') }}';
-                        }, function(){
-                          window.location.href='{{ url_for('discord.index') }}';
-                        });
+<!--                        layer.confirm(result.message, {-->
+<!--                          btn: ['确定', '关闭'] //按钮-->
+<!--                        }, function(){-->
+<!--                          window.location.href='{{ url_for('discord.index') }}';-->
+<!--                        }, function(){-->
+<!--                          window.location.href='{{ url_for('discord.index') }}';-->
+<!--                        });-->
+                        layer.closeAll();
+                        layer.msg(result.message);
+                        // 重新拉取数据
+                        fetchData(1, 10);  // 默认加载第1页，10条数据
 
                         return true
 
@@ -915,14 +922,18 @@ layui.use(function(){
                 success:function(result){
                     if(result.status == 1){
 
-                        layer.confirm(result.message, {
-                          btn: ['确定', '关闭'] //按钮
-                        }, function(){
-                          window.location.href='{{ url_for('discord.index') }}';
-                        }, function(){
-                          window.location.href='{{ url_for('discord.index') }}';
-                        });
+<!--                        layer.confirm(result.message, {-->
+<!--                          btn: ['确定', '关闭'] //按钮-->
+<!--                        }, function(){-->
+<!--                          window.location.href='{{ url_for('discord.index') }}';-->
+<!--                        }, function(){-->
+<!--                          window.location.href='{{ url_for('discord.index') }}';-->
+<!--                        });-->
 
+                        layer.closeAll();
+                        layer.msg(result.message);
+                        // 重新拉取数据
+                        fetchData(1, 10,0);  // 默认加载第1页，10条数据
                         return true
 
                     }else{
@@ -994,13 +1005,15 @@ layui.use(function(){
                 success:function(result){
                     if(result.status == 1){
 
-                        layer.confirm(result.message, {
-                          btn: ['确定', '关闭'] //按钮
-                        }, function(){
-                          window.location.href='{{ url_for('discord.index') }}';
-                        }, function(){
-                          window.location.href='{{ url_for('discord.index') }}';
-                        });
+<!--                        layer.confirm(result.message, {-->
+<!--                          btn: ['确定', '关闭'] //按钮-->
+<!--                        }, function(){-->
+<!--                          window.location.href='{{ url_for('discord.index') }}';-->
+<!--                        }, function(){-->
+<!--                          window.location.href='{{ url_for('discord.index') }}';-->
+<!--                        });-->
+                        layer.closeAll();
+                        layer.msg(result.message);
 
                         return true
 

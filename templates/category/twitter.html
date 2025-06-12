@@ -10,7 +10,14 @@
               <div class="col-sm-6"><h4 class="mb-0">管理推特分组</h4></div>
               <div class="col-sm-6">
                 <ol class="breadcrumb float-sm-end">
-                  <li class="breadcrumb-item"> <button type="button" class="layui-btn btn-success layui-btn-touyan" lay-on="add-category-page-custom" ><b>添加分组</b></button></li>
+                  <li class="breadcrumb-item"> <button type="button" class="layui-btn btn-success layui-btn-touyan" lay-on="add-category-page-custom" ><b>添加推特分组</b></button></li>
+
+                  <li class="breadcrumb-item active" aria-current="page">
+                    <a href="{{ url_for('twitter.index') }}" >
+                        <button type="button"  class="layui-btn  layui-btn-touyan"><b>管理推特账号</b></button>
+                    </a>
+                  </li>
+
                 </ol>
               </div>
             </div>
@@ -138,7 +145,8 @@ layui.use(['laypage', 'jquery'], function() {
       }
   });
   let currentKeyword = ''; // 全局变量，记住 keyword
-  function fetchData(page, limit, keyword) {
+  //将函数挂载到 window，变成全局函数
+  window.fetchData = function (page, limit, keyword) {
     currentKeyword = keyword || '';  // 每次 fetch 更新当前 keyword
     $.ajax({
       url: '{{ url_for('category.page') }}',  // 替换为你的后端接口
@@ -265,7 +273,10 @@ layui.use(function(){
                 success:function(result){
                     if(result.status == 1){
                         $('#del_twitter_'+id).remove();
+                        layer.closeAll();
                         layer.msg(result.message);
+                        // 重新拉取数据
+                        fetchData(1, 10);  // 默认加载第1页，10条数据
                         return true
                     }else{
                     	layer.msg(result.message);
@@ -348,14 +359,17 @@ layui.use(function(){
                 success:function(result){
                     if(result.status == 1){
 
-                        layer.confirm(result.message, {
-                          btn: ['确定', '关闭'] //按钮
-                        }, function(){
-                          window.location.href='{{ url_for('category.twitter') }}';
-                        }, function(){
-                          window.location.href='{{ url_for('category.twitter') }}';
-                        });
-
+<!--                        layer.confirm(result.message, {-->
+<!--                          btn: ['确定', '关闭'] //按钮-->
+<!--                        }, function(){-->
+<!--                          window.location.href='{{ url_for('category.twitter') }}';-->
+<!--                        }, function(){-->
+<!--                          window.location.href='{{ url_for('category.twitter') }}';-->
+<!--                        });-->
+                        layer.closeAll();
+                        layer.msg(result.message);
+                        // 重新拉取数据
+                        fetchData(1, 10);  // 默认加载第1页，10条数据
                         return true
 
                     }else{
@@ -375,7 +389,7 @@ layui.use(function(){
         area: '350px',
         resize: false,
         shadeClose: true,
-        title: '新增分组',
+        title: '新增推特分组',
         content: `
           <div class="layui-form" lay-filter="filter-test-layer" style="margin: 16px;">
             <div class="demo-login-container">
@@ -384,7 +398,7 @@ layui.use(function(){
                   <div class="layui-input-prefix">
                     <i class="layui-icon layui-icon-username"></i>
                   </div>
-                  <input type="text" name="username" value="" lay-verify="required" placeholder="分组名称" lay-reqtext="请填写分组名称" autocomplete="off" class="layui-input" lay-affix="clear">
+                  <input type="text" name="username" value="" lay-verify="required" placeholder="推特分组名称" lay-reqtext="请填写推特分组名称" autocomplete="off" class="layui-input" lay-affix="clear">
                 </div>
               </div>
               <div class="layui-form-item">
@@ -392,7 +406,7 @@ layui.use(function(){
                   <div class="layui-input-prefix">
                     <i class="layui-icon layui-icon-password"></i>
                   </div>
-                    <textarea placeholder="请输入此分组备注" name="remark" class="layui-textarea"  lay-reqtext="请填写分组备注"  ></textarea>
+                    <textarea placeholder="请输入推特分组备注" name="remark" class="layui-textarea"  lay-reqtext="请填写推特分组备注"  ></textarea>
                  </div>
               </div>
 
@@ -427,14 +441,18 @@ layui.use(function(){
                 success:function(result){
                     if(result.status == 1){
 
-                        layer.confirm(result.message, {
-                          btn: ['确定', '关闭'] //按钮
-                        }, function(){
-                          window.location.href='{{ url_for('category.twitter') }}';
-                        }, function(){
-                          window.location.href='{{ url_for('category.twitter') }}';
-                        });
+<!--                        layer.confirm(result.message, {-->
+<!--                          btn: ['确定', '关闭'] //按钮-->
+<!--                        }, function(){-->
+<!--                          window.location.href='{{ url_for('category.twitter') }}';-->
+<!--                        }, function(){-->
+<!--                          window.location.href='{{ url_for('category.twitter') }}';-->
+<!--                        });-->
 
+                        layer.closeAll();
+                        layer.msg(result.message);
+                        // 重新拉取数据
+                        fetchData(1, 10);  // 默认加载第1页，10条数据
                         return true
 
                     }else{
