@@ -199,6 +199,12 @@ async def page_messages():
         user_id = request.args.get('user_id', default=0, type=int)
         tid = request.args.get('tid', default=0, type=int)
 
+        # 把用户登陆时间更新一次
+        dbdata = {}
+        today_time = int(time.time())
+        dbdata['active_time'] = today_time
+        dbMysql.table('guzi_member').where(f"uid = '{uid}'").save(dbdata)
+        # print(dbMysql.getLastSql())  # 打印由Model类拼接填充生成的SQL语句
 
         # 初始化
         where_clauses = ["status=1"]  # 永远有的条件
@@ -335,6 +341,13 @@ async def page_messages():
 async def page():
     uid = g.uid
     if request.method == 'GET':
+
+        # 把用户登陆时间更新一次
+        dbdata = {}
+        today_time = int(time.time())
+        dbdata['active_time'] = today_time
+        dbMysql.table('guzi_member').where(f"uid = '{uid}'").save(dbdata)
+        # print(dbMysql.getLastSql())  # 打印由Model类拼接填充生成的SQL语句
 
         # 获取参数并设置默认值（如未传则为1或10）
         page = request.args.get('page', default=1, type=int)

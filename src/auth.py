@@ -54,6 +54,7 @@ def extract_user_from_token():
         for key in ["address", "username", "uid", "max_twitter", "max_discord", "max_discord_channel"]:
             setattr(g, key, decoded.get(key))
         g.login_uid = decoded.get('uid')
+
         #print(f'到了111@@@@@{g.login_uid}')
         return True
     except (jwt.ExpiredSignatureError, jwt.InvalidTokenError, IndexError):

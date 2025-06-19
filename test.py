@@ -2,9 +2,65 @@ import requests
 import time
 from datetime import datetime
 import json
-from rapidapi import *
 from util.db import *
 
+
+import requests
+
+def generate_new_password(length=12):
+    import random, string
+    return ''.join(random.choices(string.ascii_letters + string.digits, k=length))
+
+with open('accounts.txt', 'r') as f:
+    for line in f:
+        login, old_pass = line.strip().split(':')
+        new_pass = generate_new_password()
+
+        data = {
+            "login": login,
+            "old_password": old_pass,
+            "new_password": new_pass
+        }
+        headers = {
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36",
+            "Content-Type": "application/json"
+        }
+
+        resp = requests.post("https://api.firstmail.ltd/v1/account/change-password", json=data, headers=headers)
+        if resp.status_code == 200:
+            print(f"[成功] {login} 密码已更改为：{new_pass}")
+        else:
+            print(f"[失败] {login} → {resp.text}")
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+exit()
 sql='''SELECT
   fmap.*,
   t1.id AS t1_id,

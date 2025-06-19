@@ -4,15 +4,14 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="52e72af2-67a7-4242-a6ba-fbef2c11875c" name="更改" comment="优化推特信息流，添加监控 的功能">
+    <list default="true" id="52e72af2-67a7-4242-a6ba-fbef2c11875c" name="更改" comment="添加与修改，列表等前端功能优化">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/category.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/category.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/discord.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/discord.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/templates/category/discord.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/category/discord.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/templates/category/twitter.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/category/twitter.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/templates/discord/guild.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/discord/guild.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/templates/discord/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/discord/index.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/templates/twitter/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/twitter/index.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/crontab/twitter_tweet.py" beforeDir="false" afterPath="$PROJECT_DIR$/crontab/twitter_tweet.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/crontab/twitter_user.py" beforeDir="false" afterPath="$PROJECT_DIR$/crontab/twitter_user.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/auth.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/auth.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/twitter.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/twitter.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/templates/twitter/message.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/twitter/message.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/test.py" beforeDir="false" afterPath="$PROJECT_DIR$/test.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -72,28 +71,6 @@
   }
 }</component>
   <component name="RunManager" selected="Python.main">
-    <configuration name="discord" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
-      <module name="twitter" />
-      <option name="ENV_FILES" value="" />
-      <option name="INTERPRETER_OPTIONS" value="" />
-      <option name="PARENT_ENVS" value="true" />
-      <envs>
-        <env name="PYTHONUNBUFFERED" value="1" />
-      </envs>
-      <option name="SDK_HOME" value="" />
-      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/crontab" />
-      <option name="IS_MODULE_SDK" value="true" />
-      <option name="ADD_CONTENT_ROOTS" value="true" />
-      <option name="ADD_SOURCE_ROOTS" value="true" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/crontab/discord.py" />
-      <option name="PARAMETERS" value="" />
-      <option name="SHOW_COMMAND_LINE" value="false" />
-      <option name="EMULATE_TERMINAL" value="false" />
-      <option name="MODULE_MODE" value="false" />
-      <option name="REDIRECT_INPUT" value="false" />
-      <option name="INPUT_FILE" value="" />
-      <method v="2" />
-    </configuration>
     <configuration name="main" type="PythonConfigurationType" factoryName="Python" nameIsGenerated="true">
       <module name="twitter" />
       <option name="ENV_FILES" value="" />
@@ -130,6 +107,28 @@
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
       <option name="SCRIPT_NAME" value="$PROJECT_DIR$/pythonMySQL/pythonMySQL.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
+    <configuration name="test" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+      <module name="twitter" />
+      <option name="ENV_FILES" value="" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/test.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
@@ -206,11 +205,11 @@
     </configuration>
     <recent_temporary>
       <list>
+        <item itemvalue="Python.test" />
         <item itemvalue="Python.twitter_user" />
         <item itemvalue="Python.pythonMySQL" />
         <item itemvalue="Python.twitter_tweet" />
         <item itemvalue="Python.twitter" />
-        <item itemvalue="Python.discord" />
       </list>
     </recent_temporary>
   </component>
@@ -566,7 +565,15 @@
       <option name="project" value="LOCAL" />
       <updated>1749521986269</updated>
     </task>
-    <option name="localTasksCounter" value="43" />
+    <task id="LOCAL-00043" summary="添加与修改，列表等前端功能优化">
+      <option name="closed" value="true" />
+      <created>1749725660740</created>
+      <option name="number" value="00043" />
+      <option name="presentableId" value="LOCAL-00043" />
+      <option name="project" value="LOCAL" />
+      <updated>1749725660740</updated>
+    </task>
+    <option name="localTasksCounter" value="44" />
     <servers />
   </component>
   <component name="VcsManagerConfiguration">
@@ -593,6 +600,7 @@
     <MESSAGE value="管理后台增加批量删除功能" />
     <MESSAGE value="调整配置文件" />
     <MESSAGE value="优化推特信息流，添加监控 的功能" />
-    <option name="LAST_COMMIT_MESSAGE" value="优化推特信息流，添加监控 的功能" />
+    <MESSAGE value="添加与修改，列表等前端功能优化" />
+    <option name="LAST_COMMIT_MESSAGE" value="添加与修改，列表等前端功能优化" />
   </component>
 </project>
