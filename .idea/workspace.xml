@@ -4,14 +4,11 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="52e72af2-67a7-4242-a6ba-fbef2c11875c" name="更改" comment="添加与修改，列表等前端功能优化">
+    <list default="true" id="52e72af2-67a7-4242-a6ba-fbef2c11875c" name="更改" comment="优化推特采集逻辑，减少费用">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/crontab/twitter_tweet.py" beforeDir="false" afterPath="$PROJECT_DIR$/crontab/twitter_tweet.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/crontab/twitter_user.py" beforeDir="false" afterPath="$PROJECT_DIR$/crontab/twitter_user.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/auth.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/auth.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/twitter.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/twitter.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/templates/twitter/message.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/twitter/message.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/test.py" beforeDir="false" afterPath="$PROJECT_DIR$/test.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/config.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/config.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -70,7 +67,7 @@
     &quot;last_opened_file_path&quot;: &quot;E:/touyan/.venv&quot;
   }
 }</component>
-  <component name="RunManager" selected="Python.main">
+  <component name="RunManager" selected="Python.twitter_tweet">
     <configuration name="main" type="PythonConfigurationType" factoryName="Python" nameIsGenerated="true">
       <module name="twitter" />
       <option name="ENV_FILES" value="" />
@@ -205,10 +202,10 @@
     </configuration>
     <recent_temporary>
       <list>
-        <item itemvalue="Python.test" />
-        <item itemvalue="Python.twitter_user" />
-        <item itemvalue="Python.pythonMySQL" />
         <item itemvalue="Python.twitter_tweet" />
+        <item itemvalue="Python.twitter_user" />
+        <item itemvalue="Python.test" />
+        <item itemvalue="Python.pythonMySQL" />
         <item itemvalue="Python.twitter" />
       </list>
     </recent_temporary>
@@ -573,7 +570,15 @@
       <option name="project" value="LOCAL" />
       <updated>1749725660740</updated>
     </task>
-    <option name="localTasksCounter" value="44" />
+    <task id="LOCAL-00044" summary="优化推特采集逻辑，减少费用">
+      <option name="closed" value="true" />
+      <created>1750318237646</created>
+      <option name="number" value="00044" />
+      <option name="presentableId" value="LOCAL-00044" />
+      <option name="project" value="LOCAL" />
+      <updated>1750318237646</updated>
+    </task>
+    <option name="localTasksCounter" value="45" />
     <servers />
   </component>
   <component name="VcsManagerConfiguration">
@@ -601,6 +606,7 @@
     <MESSAGE value="调整配置文件" />
     <MESSAGE value="优化推特信息流，添加监控 的功能" />
     <MESSAGE value="添加与修改，列表等前端功能优化" />
-    <option name="LAST_COMMIT_MESSAGE" value="添加与修改，列表等前端功能优化" />
+    <MESSAGE value="优化推特采集逻辑，减少费用" />
+    <option name="LAST_COMMIT_MESSAGE" value="优化推特采集逻辑，减少费用" />
   </component>
 </project>

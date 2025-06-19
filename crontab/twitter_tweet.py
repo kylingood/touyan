@@ -31,32 +31,33 @@ def get_data():
     # """
     update_time = 10800  ##距上次API抓取超过3小时
     sql = f"""
-    SELECT
-        map.twitter_id
-    FROM guzi_member_twitter_map map
-    JOIN (
-        SELECT twitter_id, MAX(id) AS max_id
-        FROM guzi_member_twitter_map
-        WHERE status = 1
-        GROUP BY twitter_id
-    ) latest_map ON map.id = latest_map.max_id
-    JOIN guzi_twitter t ON map.twitter_id = t.tid
-    JOIN guzi_member m ON map.uid = m.uid
-    WHERE 
-        t.updated_twitter < UNIX_TIMESTAMP() - {update_time}
-        AND m.active_time IS NOT NULL
-        AND m.active_time > UNIX_TIMESTAMP() - 7200         -- ✅ 只取最近2小时登录的用户
-        AND m.last_fetched_time < UNIX_TIMESTAMP() - {update_time}    -- 距上次API抓取超过2小时
-    ORDER BY map.id DESC
+        SELECT  
+            map.twitter_id,
+            map.uid
+        FROM guzi_member_twitter_map map
+        JOIN (
+            SELECT twitter_id, MAX(id) AS max_id
+            FROM guzi_member_twitter_map
+            WHERE status = 1
+            GROUP BY twitter_id
+        ) latest_map ON map.id = latest_map.max_id
+        JOIN guzi_twitter t ON map.twitter_id = t.tid
+        JOIN guzi_member m ON map.uid = m.uid
+        WHERE 
+            IFNULL(t.updated_twitter, 0) < UNIX_TIMESTAMP() - {update_time}              -- 推文数据未更新
+            AND IFNULL(m.active_time, 0) > UNIX_TIMESTAMP() - 7200                       -- 最近2小时登录过
+            AND IFNULL(m.last_fetch_tweet_time, 0) < UNIX_TIMESTAMP() - {update_time}    -- 上次抓取时间超出
+        ORDER BY map.id DESC;
+
     """
 
     data_list =  dbMysql.query(sql)
-    #print(dbMysql.getLastSql())  # 打印由Model类拼接填充生成的SQL语句
+    print(dbMysql.getLastSql())  # 打印由Model类拼接填充生成的SQL语句
     #print(data_list)
     return data_list
 
 
-MAX_CONCURRENT = 9  # 最多5个并发任务
+MAX_CONCURRENT = 1  # 最多5个并发任务
 
 semaphore = asyncio.Semaphore(MAX_CONCURRENT)
 
@@ -81,6 +82,16 @@ def main():
     print(user_data)
     user_ids = [item['twitter_id'] for item in user_data]
 
+    ###去重uid
+    uids = list(set(item['uid'] for item in user_data))
+    # 把用户抓取时间更新
+    for uid in uids:
+        dbdata = {}
+        today_time = int(time.time())
+        dbdata['last_fetch_tweet_time'] = today_time
+        dbMysql.table('guzi_member').where(f"uid = '{uid}'").save(dbdata)
+        print("执行SQL:", dbMysql.getLastSql())
+
     ### 多线程
     start = time.time()
     records = asyncio.run(run_batch(user_ids))
@@ -90,6 +101,7 @@ def main():
     for user_tweets in records:
         if user_tweets and isinstance(user_tweets, list):
             twitter_id = user_tweets[0].get('twitter_id', '未知用户')
+            uid  = user_tweets[0].get('uid', 0)
             print(f"\n🧾 user_id={twitter_id} 返回推文条数: {len(user_tweets)}")
             ### 插入数据库
             insertTeeetToDB(user_tweets)
@@ -104,6 +116,9 @@ def main():
                 result = dbMysql.table('guzi_twitter').where(f"tid = '{twitter_id}'").save(channeldata)
                 print("执行SQL:", dbMysql.getLastSql())
                 print("更新结果:", result)  # 一般是影响行数
+
+
+
                 # dbMysql.commit()  # 如果需要手动提交
 
             except Exception as e:

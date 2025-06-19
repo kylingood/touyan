@@ -30,10 +30,11 @@ def get_data():
     #     ORDER BY map.id DESC
     # """
 
-    update_time = 10800  ##距上次API抓取超过3小时
+    update_time = 10800 ##距上次API抓取超过3小时
     sql = f"""
         SELECT
-            map.twitter_id
+            map.twitter_id,
+            map.uid
         FROM guzi_member_twitter_map map
         JOIN (
             SELECT twitter_id, MAX(id) AS max_id
@@ -44,16 +45,17 @@ def get_data():
         JOIN guzi_twitter t ON map.twitter_id = t.tid
         JOIN guzi_member m ON map.uid = m.uid
         WHERE 
-            t.updated_twitter < UNIX_TIMESTAMP() - {update_time}
-            AND m.active_time IS NOT NULL
-            AND m.active_time > UNIX_TIMESTAMP() - 7200         -- ✅ 只取最近2小时登录的用户
-            AND m.last_fetched_time < UNIX_TIMESTAMP() - {update_time}    -- 距上次API抓取超过2小时
-        ORDER BY map.id DESC
+            t.status = 1                                                 -- 推特账号有效
+            AND IFNULL(t.updated_fans, 0) < UNIX_TIMESTAMP() - {update_time}      -- 粉丝数据超过1小时未更新
+            AND IFNULL(m.active_time, 0) > UNIX_TIMESTAMP() - 7200       -- 用户最近2小时登录过
+            AND IFNULL(m.last_fetch_fans_time, 0) < UNIX_TIMESTAMP() - {update_time} -- 用户上次抓粉丝超1小时
+        ORDER BY map.id DESC;
+
         """
 
     data_list =  dbMysql.query(sql)
     #print(dbMysql.getLastSql())  # 打印由Model类拼接填充生成的SQL语句
-    #print(data_list)
+    print(sql)
     return data_list
 
 
@@ -89,6 +91,18 @@ async def main():
     # user_ids = ["44196397", "813286", "1339835893"]  # 示例 ID 列表
     user_data = get_data()
     print(user_data)
+
+    ###去重uid
+    uids = list(set(item['uid'] for item in user_data))
+    # 把用户抓取时间更新
+    for uid in uids:
+        dbdata = {}
+        today_time = int(time.time())
+        dbdata['last_fetch_fans_time'] = today_time
+        dbMysql.table('guzi_member').where(f"uid = '{uid}'").save(dbdata)
+        print("执行SQL:", dbMysql.getLastSql())
+
+
     user_ids = [item['twitter_id'] for item in user_data]
     records = await run_batch(user_ids)
 

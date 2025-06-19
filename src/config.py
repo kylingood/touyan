@@ -8,10 +8,13 @@ SECRET_KEY = '681f4d8e-d290-800f-a7e5-06bd9291c0d8' ##登陆Token密钥
 
 MAX_CONCURRENT = 5  # 最多 5 个并发任务
 ###推特接口
+# X_RAPIDAPI_KEY = "fbfa0915femsh2df871a72ad4e56p1ec685jsnece3178af3f7"
+# X_RAPIDAPI_HOST = "twitter241.p.rapidapi.com"
+
 # X_RAPIDAPI_KEY = "a500f12012msh6da813a3681a40cp1578f4jsn3bc8772c883e"
 # X_RAPIDAPI_HOST = "twitter241.p.rapidapi.com"
 
-X_RAPIDAPI_KEY = "fbfa0915femsh2df871a72ad4e56p1ec685jsnece3178af3f7"
+X_RAPIDAPI_KEY = "a500f12012msh6da813a3681a40cp1578f4jsn3bc8772c883e"
 X_RAPIDAPI_HOST = "twitter241.p.rapidapi.com"
 
 ### 管理员ID
