@@ -219,7 +219,10 @@ def insert_message_db(item, message_info):
         for message in message_info:
             mid = message['id']
             content = message['content']
-
+            # 去除首尾空白后判断是否为空
+            if not content or not content.strip():
+                print(f"⚠️ Message {mid} has blank or empty content, skipping...")
+                continue
             # print(f"edited_timestamp: {message['edited_timestamp']}, timestamp: {message['timestamp']}")
             dt = datetime.fromisoformat(message['timestamp'])
             timestamp = int(dt.timestamp())

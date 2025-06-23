@@ -4,6 +4,7 @@ from src.web3_auth import web3_auth  # 导入我们刚才创建的 web3_auth Blu
 from src.category import category
 from src.twitter import twitter
 from src.discord import discord
+from src.captcha import captcha
 from src.member import member
 from src.website import website
 # Flask:
@@ -13,6 +14,7 @@ app = Quart(__name__)
 
 # 注册 web3_auth Blueprint
 app.register_blueprint(web3_auth)
+
 # 注册 category Blueprint
 app.register_blueprint(category)
 
@@ -21,6 +23,9 @@ app.register_blueprint(twitter)
 
 # 注册 discord Blueprint
 app.register_blueprint(discord)
+
+# 注册 captcha Blueprint 用来本地打码
+app.register_blueprint(captcha)
 
 # 注册 member Blueprint
 app.register_blueprint(member)

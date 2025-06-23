@@ -5,10 +5,11 @@ from src.auth import check_user_login_do,require_user_async
 from src.web3_auth import insert_message_db
 from src.config import SYSTEM_MAX_DISCORD,SYSTEM_MAX_DISCORD_CHANNEL,DEFAULT_UID
 import asyncio
-
+import requests
 
 # 创建一个 Blueprint 用于 Web3 登录功能
 discord = Blueprint('discord', __name__)
+
 
 
 @discord.route('/discord/index', methods=['GET'])
