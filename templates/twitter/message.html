@@ -107,15 +107,27 @@ async function translateToZh(text) {
   return data[0].map(item => item[0]).join('');
 }
 
-function formatTimestamp(unixTime) {
+function formatTimestamp(unixTime,type=0) {
   const date = new Date(unixTime * 1000); // 如果是毫秒则不乘
   const Y = date.getFullYear();
   const M = String(date.getMonth() + 1).padStart(2, '0');
   const D = String(date.getDate()).padStart(2, '0');
   const h = String(date.getHours()).padStart(2, '0');
   const m = String(date.getMinutes()).padStart(2, '0');
-  return `${Y}/${M}/${D} ${h}:${m}`;
+
+  switch (type) {
+    case 1:
+      return `${Y}-${M}-${D}`;
+    case 2:
+      return `${h}:${m}`;
+    case 3:
+      return `${M}/${D} ${h}:${m}`;
+    default:
+      return `${Y}/${M}/${D} ${h}:${m}`; // 默认格式
+  }
 }
+
+
 
 function linkifyShortUrls(text) {
   // 正则匹配 https://t.co/ 后面跟一串字母数字的短链接
@@ -320,7 +332,7 @@ $(document).on('click', '.text_content img', function () {
 
                         </div>
 
-                        <span class="follow-btn">最近关注了</span>
+                        <span class="follow-btn"><span class="timestamp">· ${formatTimestamp(item.created_at,1)}</span> 关注了</span>
                       </div>
 
                       <hr class="divider">
