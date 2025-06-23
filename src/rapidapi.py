@@ -154,31 +154,75 @@ def getFollowingsByUserID(user_id,sum_user=None,sleep_time=1, max_repeat_cursor=
     all_users.reverse()
     return all_users
 
+###结构化推特账号数据
+def extract_twitter_info(data, username):
+    # 先取到深层的result节点
+    user = data.get('result', {}).get('data', {}).get('user', {}).get('result', {})
+    legacy = user.get('legacy', {})
+    avatar = user.get('avatar', {})
+    core = user.get('core', {})
+
+    followers = legacy.get('followers_count', 0)
+    fans = legacy.get('friends_count', 0)
+    description = legacy.get('description', '')
+    avatar_url = legacy.get('profile_image_url_https') or avatar.get('image_url', '')
+    rest_id = user.get('rest_id') or user.get('id', '')
+    screen_name = legacy.get('screen_name') or core.get('screen_name', '')
+    show_name = legacy.get('name') or core.get('name', '')
+    created_at = legacy.get('created_at') or core.get('created_at', '')
+    url = f"https://x.com/{username}"
+    return {
+        "followers": followers,
+        "fans": fans,
+        "description": description,
+        "avatar": avatar_url,
+        "username": username,
+        "rest_id": rest_id,
+        "screen_name": screen_name,
+        "url": url,
+        "show_name": show_name,
+        "remark": show_name,
+        "created_at": created_at
+    }
 
 
 
 ## 通过推特用户名取到账号详细数据
 def getDataByUsername(username):
     url = "https://twitter241.p.rapidapi.com/user"
-    querystring = {"username":username}
+    querystring = {"username": username}
 
     retries = 3
     sleep_time = 1
 
+    data = None
     for attempt in range(retries):
         try:
             response = requests.get(url, headers=HEADERS, params=querystring)
+            response.raise_for_status()  # 如果响应状态码不是200，会抛异常
             data = response.json()  # 解析 JSON
-            break  # 成功就退出循环
+            user_data = extract_twitter_info(data, username)
+            print(user_data)
+            # 检查是否有预期结构
+            if (
+                    data and
+                    'result' in data and
+                    'data' in data['result'] and
+                    'user' in data['result']['data'] and
+                    'result' in data['result']['data']['user']
+            ):
+                return user_data
+            else:
+                print(f"⚠️ 第 {attempt + 1} 次请求数据结构异常: {data}")
+                data = None
         except Exception as e:
             print(f"⚠️ 第 {attempt + 1} 次请求失败：{e}")
             if attempt < retries - 1:
                 time.sleep(sleep_time)
             else:
-                data = None
                 print("❌ 超过最大重试次数，放弃请求")
 
-    return data['result']['data']['user']['result']
+    return None
 
 
 ## 通过推特账号id号取到账号详细数据

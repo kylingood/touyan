@@ -43,30 +43,22 @@ async def get_discord():
         return jsonify({'status': 0, 'message': '无效或被封禁的 token'})
 
 # 根据用户名获取推特信息
-@web3_auth.route('/api/auth/get_twitter')
+# 根据用户名获取推特信息
+@web3_auth.route('/api/auth/get_twitter', methods=['GET'])
 async def get_twitter():
-    if request.method == 'GET':
-        username = request.args.get("username")
-        if not username:
-            return jsonify({"error": "Missing username"}), 400
+    username = request.args.get("username")
+    if not username:
+        return jsonify({"status": 0, "message": "Missing username"}), 400
 
+    try:
         twitter_info = getDataByUsername(username)
 
-        data = {
-            "followers": twitter_info['legacy']['friends_count'],
-            "fans": twitter_info['legacy']['followers_count'],
-            "description": twitter_info['legacy']['description'],
-            "avatar": twitter_info['legacy']['profile_image_url_https'],
-            "username": username,
-            "rest_id": twitter_info['rest_id'],
-            "screen_name": twitter_info['legacy']['screen_name'],
-            "show_name": twitter_info['legacy']['name']
-        }
-        if data:
-            # 有值，处理逻辑
-            return jsonify({'status': 1, 'data': data})
+        if twitter_info:
 
-        return jsonify({'status': 0, 'message': '无效或被封禁的 token'})
+            return jsonify({'status': 1, 'data': twitter_info})
+
+    except Exception as e:
+        return jsonify({"status": 0, "message": f"处理错误: {str(e)}"}), 500
 
 
 # 使用异步并发处理多个请求

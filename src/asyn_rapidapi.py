@@ -51,6 +51,40 @@ def extract_media_html(legacy):
 
 
 
+
+###结构化推特账号数据
+def extract_twitter_info(data, username):
+    # 先取到深层的result节点
+    user = data.get('result', {}).get('data', {}).get('user', {}).get('result', {})
+    legacy = user.get('legacy', {})
+    avatar = user.get('avatar', {})
+    core = user.get('core', {})
+
+    followers = legacy.get('followers_count', 0)
+    fans = legacy.get('friends_count', 0)
+    description = legacy.get('description', '')
+    avatar_url = legacy.get('profile_image_url_https') or avatar.get('image_url', '')
+    rest_id = user.get('rest_id') or user.get('id', '')
+    screen_name = legacy.get('screen_name') or core.get('screen_name', '')
+    show_name = legacy.get('name') or core.get('name', '')
+    created_at = legacy.get('created_at') or core.get('created_at', '')
+    url = f"https://x.com/{username}"
+    return {
+        "followers": followers,
+        "fans": fans,
+        "description": description,
+        "avatar": avatar_url,
+        "username": username,
+        "rest_id": rest_id,
+        "screen_name": screen_name,
+        "url": url,
+        "show_name": show_name,
+        "remark": show_name,
+        "created_at": created_at
+    }
+
+
+
 # 通过推特用户名获取账号详细数据（异步版本）
 async def async_getDataByUsername(session, username):
     url = "https://twitter241.p.rapidapi.com/user"
@@ -64,32 +98,20 @@ async def async_getDataByUsername(session, username):
             async with session.get(url, headers=HEADERS, params=querystring) as resp:
                 resp.raise_for_status()
                 data = await resp.json()  # 解析 JSON
-                user_data = data['result']['data']['user']['result']
-
-                tid = user_data.get('rest_id', '')
-                username = user_data['legacy'].get('screen_name', '')
-                show_name = user_data['legacy'].get('name', '')
-                description = user_data['legacy'].get('description', '')
-                avatar = user_data['legacy'].get('profile_image_url_https', '')
-                followers = user_data['legacy'].get('friends_count', 0)
-                fans = user_data['legacy'].get('followers_count', 0)
-                url = f"https://x.com/{username}"
-                created_at = user_data['legacy'].get('created_at', '')
-
-                user_data = {
-                    'rest_id': tid,
-                    'username': username,
-                    'show_name': show_name,
-                    'url': url,
-                    'description': description,
-                    'remark': show_name,
-                    'avatar': avatar,
-                    'followers': followers,
-                    'fans': fans,
-                    'created_at': created_at
-                }
-
-                return user_data
+                user_data = extract_twitter_info(data, username)
+                print(user_data)
+                # 检查是否有预期结构
+                if (
+                        data and
+                        'result' in data and
+                        'data' in data['result'] and
+                        'user' in data['result']['data'] and
+                        'result' in data['result']['data']['user']
+                ):
+                    return user_data
+                else:
+                    print(f"⚠️ 第 {attempt + 1} 次请求数据结构异常: {data}")
+                    data = None
 
 
         except Exception as e:

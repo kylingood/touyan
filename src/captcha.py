@@ -54,6 +54,27 @@ async def api():
                     print("⚠️ 验证失败:", result)
                     return jsonify(result), resp.status
 
+        # # 使用 aiohttp 发起异步请求
+        # proxy = payload.get("proxy")  # 从 payload 中读取代理地址，如果没有就为 None
+        # print(f"📤 proxy  with:", proxy)
+        # async with aiohttp.ClientSession() as session:
+        #     async with session.post(
+        #             solver_url,
+        #             json=payload,
+        #             headers=headers,
+        #             proxy=proxy,  # 如果没有设置 proxy，则为 None，相当于不使用代理
+        #             timeout=300
+        #     ) as resp:
+        #         result = await resp.json()
+        #
+        #         if resp.status == 200 and result.get("code") == 200:
+        #             print("✅ 验证成功:", result)
+        #             return jsonify(result)
+        #         else:
+        #             print("⚠️ 验证失败:", result)
+        #             return jsonify(result), resp.status
+
+
     except Exception as e:
         print("❌ 异常发生:", str(e))
         return jsonify({
