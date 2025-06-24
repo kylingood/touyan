@@ -4,13 +4,12 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="52e72af2-67a7-4242-a6ba-fbef2c11875c" name="更改" comment="增加线上打码接口">
+    <list default="true" id="52e72af2-67a7-4242-a6ba-fbef2c11875c" name="更改" comment="增加推特账号关注的时间">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/crontab/db.py" beforeDir="false" afterPath="$PROJECT_DIR$/crontab/db.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/crontab/twitter_user.py" beforeDir="false" afterPath="$PROJECT_DIR$/crontab/twitter_user.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/requirements.txt" beforeDir="false" afterPath="$PROJECT_DIR$/requirements.txt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/asyn_rapidapi.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/asyn_rapidapi.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/captcha.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/captcha.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/rapidapi.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/rapidapi.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/web3_auth.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/web3_auth.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -69,7 +68,7 @@
     &quot;last_opened_file_path&quot;: &quot;E:/touyan/.venv&quot;
   }
 }</component>
-  <component name="RunManager" selected="Python.main">
+  <component name="RunManager" selected="Python.twitter_user">
     <configuration name="main" type="PythonConfigurationType" factoryName="Python" nameIsGenerated="true">
       <module name="twitter" />
       <option name="ENV_FILES" value="" />
@@ -204,8 +203,8 @@
     </configuration>
     <recent_temporary>
       <list>
-        <item itemvalue="Python.twitter_tweet" />
         <item itemvalue="Python.twitter_user" />
+        <item itemvalue="Python.twitter_tweet" />
         <item itemvalue="Python.test" />
         <item itemvalue="Python.pythonMySQL" />
         <item itemvalue="Python.twitter" />
@@ -604,12 +603,26 @@
       <option name="project" value="LOCAL" />
       <updated>1750640937748</updated>
     </task>
-    <option name="localTasksCounter" value="48" />
+    <task id="LOCAL-00048" summary="修复增加推特账号的bug">
+      <option name="closed" value="true" />
+      <created>1750688908236</created>
+      <option name="number" value="00048" />
+      <option name="presentableId" value="LOCAL-00048" />
+      <option name="project" value="LOCAL" />
+      <updated>1750688908236</updated>
+    </task>
+    <task id="LOCAL-00049" summary="增加推特账号关注的时间">
+      <option name="closed" value="true" />
+      <created>1750690652792</created>
+      <option name="number" value="00049" />
+      <option name="presentableId" value="LOCAL-00049" />
+      <option name="project" value="LOCAL" />
+      <updated>1750690652792</updated>
+    </task>
+    <option name="localTasksCounter" value="50" />
     <servers />
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="第二次提交" />
-    <MESSAGE value="第三次提交" />
     <MESSAGE value="第四次提交，增加推特信息流" />
     <MESSAGE value="第五次提交，增加推特信息流" />
     <MESSAGE value="第六次提交，增加推特信息流" />
@@ -633,6 +646,8 @@
     <MESSAGE value="添加与修改，列表等前端功能优化" />
     <MESSAGE value="优化推特采集逻辑，减少费用" />
     <MESSAGE value="增加线上打码接口" />
-    <option name="LAST_COMMIT_MESSAGE" value="增加线上打码接口" />
+    <MESSAGE value="修复增加推特账号的bug" />
+    <MESSAGE value="增加推特账号关注的时间" />
+    <option name="LAST_COMMIT_MESSAGE" value="增加推特账号关注的时间" />
   </component>
 </project>

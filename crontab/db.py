@@ -42,46 +42,81 @@ def insertUserToDB(records):
     return user_id
 
 
+
+###结构化推特账号数据
+def extract_twitter_info(data, username):
+    # 先取到深层的result节点
+    user = data.get('result', {}).get('data', {}).get('user', {}).get('result', {})
+    legacy = user.get('legacy', {})
+    avatar = user.get('avatar', {})
+    core = user.get('core', {})
+
+    followers = legacy.get('followers_count', 0)
+    fans = legacy.get('friends_count', 0)
+    description = legacy.get('description', '')
+    avatar_url = legacy.get('profile_image_url_https') or avatar.get('image_url', '')
+    rest_id = user.get('rest_id') or user.get('id', '')
+    screen_name = legacy.get('screen_name') or core.get('screen_name', '')
+    show_name = legacy.get('name') or core.get('name', '')
+    created_at = legacy.get('created_at') or core.get('created_at', '')
+    url = f"https://x.com/{username}"
+    return {
+        "followers": followers,
+        "fans": fans,
+        "description": description,
+        "avatar": avatar_url,
+        "username": username,
+        "rest_id": rest_id,
+        "screen_name": screen_name,
+        "url": url,
+        "show_name": show_name,
+        "remark": show_name,
+        "created_at": created_at
+    }
+
 ## 把推文数据相关推特数据和推文循环插入数据库
-def insertUserDataToDB(records,twitter_id=None):
+def insertUserDataToDB(records,twitter_id = None):
         following_id = None
+
         for user in records:
+            username = user.get('username', '')
 
-            ## 推特用户如果没有，操作直接入数据库
-            following_id = user.get('rest_id', '')
-            uid = user.get('uid', 1)
-            cid = user.get('cid', 1)
-            ## 先查看此推特有没有入库，没有就插入
-            data_one = dbMysql.table('guzi_twitter').where(f"tid='{following_id}'").find()
-            today_time = int(time.time())
-            dbdata = {
-                'uid': uid,
-                'cid': cid,
-                'tid': following_id,
-                'username': user.get('username', ''),
-                'show_name': user.get('show_name', ''),
-                'url': user.get('url', ''),
-                'remark': user.get('remark', ''),
-                'description': user.get('description', ''),
-                'avatar': user.get('avatar', '0'),
-                'followers': user.get('followers', '0'),
-                'fans': user.get('fans', '0'),
-                'status': 1,
-                'created': int(time.time()),
-            }
-            # print(data_one)
+            if username:
+                ## 推特用户如果没有，操作直接入数据库
+                following_id = user.get('rest_id', '')
+                uid = user.get('uid', 1)
+                cid = user.get('cid', 1)
+                ## 先查看此推特有没有入库，没有就插入
+                data_one = dbMysql.table('guzi_twitter').where(f"tid='{following_id}'").find()
+                today_time = int(time.time())
+                dbdata = {
+                    'uid': uid,
+                    'cid': cid,
+                    'tid': following_id,
+                    'username': user.get('username', ''),
+                    'show_name': user.get('show_name', ''),
+                    'url': user.get('url', ''),
+                    'remark': user.get('remark', ''),
+                    'description': user.get('description', ''),
+                    'avatar': user.get('avatar', '0'),
+                    'followers': user.get('followers', '0'),
+                    'fans': user.get('fans', '0'),
+                    'status': 1,
+                    'created': int(time.time()),
+                }
+                # print(data_one)
 
-            if not data_one:
-                id = dbMysql.table('guzi_twitter').add(dbdata)
+                if not data_one:
+                    id = dbMysql.table('guzi_twitter').add(dbdata)
+                    print(dbMysql.getLastSql())  # 打印由Model类拼接填充生成的SQL语句
+
+
+                ## 先查看此推特和用户数据有没有入库，没有就插入
+                map_one = dbMysql.table('guzi_twitter_followings_map').where(f"twitter_id='{twitter_id}' AND  following_id = '{following_id}'").find()
                 print(dbMysql.getLastSql())  # 打印由Model类拼接填充生成的SQL语句
-
-
-            ## 先查看此推特和用户数据有没有入库，没有就插入
-            map_one = dbMysql.table('guzi_twitter_followings_map').where(f"twitter_id='{twitter_id}' AND  following_id = '{following_id}'").find()
-            print(dbMysql.getLastSql())  # 打印由Model类拼接填充生成的SQL语句
-            ## 如果俩个id都存在，则插入关联表中
-            if not map_one:
-                insertTwitterFollowingsToDB(twitter_id, following_id)
+                ## 如果俩个id都存在，则插入关联表中
+                if not map_one or len(map_one) == 0:
+                    insertTwitterFollowingsToDB(twitter_id, following_id)
 
 
         return following_id

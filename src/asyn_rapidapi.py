@@ -53,7 +53,7 @@ def extract_media_html(legacy):
 
 
 ###结构化推特账号数据
-def extract_twitter_info(data, username):
+def extract_twitter_info(data, username = None):
     # 先取到深层的result节点
     user = data.get('result', {}).get('data', {}).get('user', {}).get('result', {})
     legacy = user.get('legacy', {})
@@ -68,13 +68,13 @@ def extract_twitter_info(data, username):
     screen_name = legacy.get('screen_name') or core.get('screen_name', '')
     show_name = legacy.get('name') or core.get('name', '')
     created_at = legacy.get('created_at') or core.get('created_at', '')
-    url = f"https://x.com/{username}"
+    url = f"https://x.com/{screen_name}"
     return {
         "followers": followers,
         "fans": fans,
         "description": description,
         "avatar": avatar_url,
-        "username": username,
+        "username": screen_name,
         "rest_id": rest_id,
         "screen_name": screen_name,
         "url": url,
@@ -99,7 +99,7 @@ async def async_getDataByUsername(session, username):
                 resp.raise_for_status()
                 data = await resp.json()  # 解析 JSON
                 user_data = extract_twitter_info(data, username)
-                print(user_data)
+
                 # 检查是否有预期结构
                 if (
                         data and
@@ -149,30 +149,28 @@ async def async_getDataByUserID(session, user_id):
 
         user_data = data['result']['data']['users'][0]['result']
 
-        tid = user_data.get('rest_id', '')
-        username = user_data['legacy'].get('screen_name', '')
-        show_name = user_data['legacy'].get('name', '')
-        description = user_data['legacy'].get('description', '')
-        avatar = user_data['legacy'].get('profile_image_url_https', '')
-        followers = user_data['legacy'].get('friends_count', 0)
-        fans = user_data['legacy'].get('followers_count', 0)
-        url = f"https://x.com/{username}"
-        created_at = user_data['legacy'].get('created_at', '')
+        legacy = user_data.get("legacy", {})
+        core = user_data.get('core', {})
+        avatar = user_data.get('avatar', {})
+        screen_name = legacy.get('screen_name') or core.get('screen_name', '')
+        show_name = legacy.get('name') or core.get('name', '')
+        created_at = legacy.get('created_at') or core.get('created_at', '')
+        avatar_url = legacy.get('profile_image_url_https') or avatar.get('image_url', '')
 
-        user_data = {
-            'rest_id': tid,
-            'username': username,
-            'show_name': show_name,
-            'url': url,
-            'description': description,
-            'remark': show_name,
-            'avatar': avatar,
-            'followers': followers,
-            'fans': fans,
-            'created_at': created_at
+        user = {
+            "rest_id": user_data["rest_id"],
+            "username": screen_name,
+            "show_name": show_name,
+            "avatar": avatar_url,
+            "url": f"https://x.com/{screen_name}",
+            "remark": screen_name,
+            "description": legacy.get("description", ""),
+            "followers": str(legacy.get("friends_count", 0)),
+            "fans": str(legacy.get("followers_count", 0)),
+            "created_at": created_at
         }
 
-        return user_data
+        return user
 
     except Exception as e:
         print("❌ 数据解析失败：", e)
@@ -457,16 +455,24 @@ async def async_getFollowingsByUserID(
                         try:
                             user_data = entry["content"]["itemContent"]["user_results"]["result"]
                             legacy = user_data.get("legacy", {})
+                            core = user_data.get('core', {})
+                            avatar = user_data.get('avatar', {})
+                            screen_name = legacy.get('screen_name') or core.get('screen_name', '')
+                            show_name = legacy.get('name') or core.get('name', '')
+                            created_at = legacy.get('created_at') or core.get('created_at', '')
+                            avatar_url = legacy.get('profile_image_url_https') or avatar.get('image_url', '')
+
                             user = {
                                 "rest_id": user_data["rest_id"],
-                                "username": legacy.get("screen_name", ""),
-                                "show_name": legacy.get("name", ""),
-                                "url": f"https://x.com/{legacy.get('screen_name', '')}" if legacy.get("screen_name") else None,
-                                "remark": None,
+                                "username": screen_name,
+                                "show_name":show_name,
+                                "avatar": avatar_url,
+                                "url": f"https://x.com/{screen_name}",
+                                "remark": screen_name,
                                 "description": legacy.get("description", ""),
-                                "avatar": legacy.get("profile_image_url_https", "0"),
                                 "followers": str(legacy.get("friends_count", 0)),
                                 "fans": str(legacy.get("followers_count", 0)),
+                                "created_at": created_at
                             }
 
                             if user["rest_id"] not in seen_ids:
