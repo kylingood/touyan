@@ -4,13 +4,9 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="52e72af2-67a7-4242-a6ba-fbef2c11875c" name="更改" comment="修复每天采集推特最新关注用户接口">
+    <list default="true" id="52e72af2-67a7-4242-a6ba-fbef2c11875c" name="更改" comment="优化discord列表管理功能">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/crontab/discord.py" beforeDir="false" afterPath="$PROJECT_DIR$/crontab/discord.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/captcha.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/captcha.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/discord.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/discord.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/templates/discord/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/discord/index.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/twitter.sql" beforeDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -227,14 +223,6 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1746666652045</updated>
-    </task>
-    <task id="LOCAL-00002" summary="第一次提交">
-      <option name="closed" value="true" />
-      <created>1747551746122</created>
-      <option name="number" value="00002" />
-      <option name="presentableId" value="LOCAL-00002" />
-      <option name="project" value="LOCAL" />
-      <updated>1747551746122</updated>
     </task>
     <task id="LOCAL-00003" summary="第二次提交">
       <option name="closed" value="true" />
@@ -620,11 +608,18 @@
       <option name="project" value="LOCAL" />
       <updated>1750780188763</updated>
     </task>
-    <option name="localTasksCounter" value="51" />
+    <task id="LOCAL-00051" summary="优化discord列表管理功能">
+      <option name="closed" value="true" />
+      <created>1751191567009</created>
+      <option name="number" value="00051" />
+      <option name="presentableId" value="LOCAL-00051" />
+      <option name="project" value="LOCAL" />
+      <updated>1751191567009</updated>
+    </task>
+    <option name="localTasksCounter" value="52" />
     <servers />
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="第五次提交，增加推特信息流" />
     <MESSAGE value="第六次提交，增加推特信息流" />
     <MESSAGE value="第七次提交，增加Discrod，推特取链接相关教程" />
     <MESSAGE value="第七次提交，增加搜索功能" />
@@ -649,6 +644,7 @@
     <MESSAGE value="修复增加推特账号的bug" />
     <MESSAGE value="增加推特账号关注的时间" />
     <MESSAGE value="修复每天采集推特最新关注用户接口" />
-    <option name="LAST_COMMIT_MESSAGE" value="修复每天采集推特最新关注用户接口" />
+    <MESSAGE value="优化discord列表管理功能" />
+    <option name="LAST_COMMIT_MESSAGE" value="优化discord列表管理功能" />
   </component>
 </project>

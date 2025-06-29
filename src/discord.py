@@ -447,7 +447,15 @@ async def message(gid=0):
 @require_user_async
 async def list_data():
     uid = g.uid
-    data = dbMysql.table('guzi_discord').where(f"uid='{uid}'  AND  status=1").field('id,global_name').select()
+    #data = dbMysql.table('guzi_discord').where(f"uid='{uid}'  AND  status=1").field('id,global_name').select()
+
+    sql = f'''SELECT t.id, t.global_name
+            FROM guzi_member_discord_map AS m
+            INNER JOIN guzi_discord AS t ON m.discord_id = t.id
+            WHERE m.status = 1 AND m.uid='{uid}' ORDER BY m.sorts DESC,m.id DESC  Limit 50
+            '''
+    data = dbMysql.query(sql)
+
     #print(dbMysql.getLastSql())  # 打印由Model类拼接填充生成的SQL语句
     return jsonify({'status': 1, 'data': data})
 
