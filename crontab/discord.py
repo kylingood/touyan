@@ -18,7 +18,7 @@ async def get_message_db_limited(item):
     return await get_message_db(item)  # 原来的插入逻辑
 
 
-# 同步获取数据
+# 同步获取数据 dc.status = 1 AND dc.updated_message < UNIX_TIMESTAMP() - 3600
 def get_data():
     sql = '''
         SELECT 
@@ -29,7 +29,7 @@ def get_data():
     LEFT JOIN 
         guzi_discord d ON dc.did = d.id
     WHERE 
-        dc.status = 1 AND dc.updated_message < UNIX_TIMESTAMP() - 3600
+        dc.status = 1 
     ORDER BY 
         dc.id DESC  
     '''

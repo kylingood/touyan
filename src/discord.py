@@ -30,40 +30,53 @@ async def page():
         cid = request.args.get('cid', default=0, type=int)
         keyword = request.args.get('keyword')
 
-        where_sql_clauses = [f" d.uid='{uid}' AND d.status=1"]
-
-        order_sql = "d.id DESC"
+        where_sql_clauses = [f" m.uid='{uid}' AND m.status=1"]
 
         if cid:
-            where_sql_clauses.append(f"d.cid='{cid}'")
+            where_sql_clauses.append(f"m.category_id='{cid}'")
 
         if keyword:
             where_sql_clauses.append(
-                f"(d.username LIKE '%{keyword}%' OR d.global_name LIKE '%{keyword}%' OR "
-                f"d.token LIKE '%{keyword}%' OR d.email LIKE '%{keyword}%' OR "
-                f"d.remark LIKE '%{keyword}%' OR c.title LIKE '%{keyword}%' )"
+                f"(m.discord_id LIKE '%{keyword}%' OR c.title LIKE '%{keyword}%' OR "
+                f"t.username LIKE '%{keyword}%' OR t.show_name LIKE '%{keyword}%' OR "
+                f"t.fans LIKE '%{keyword}%' OR t.url LIKE '%{keyword}%' OR "
+                f"t.remark LIKE '%{keyword}%' OR t.followers LIKE '%{keyword}%' OR "
+                f"t.description LIKE '%{keyword}%')"
             )
 
         where_sql = ' AND '.join(where_sql_clauses)
+
+        # 然后再计算偏移量
+        start_index = (page - 1) * limit + 1
+
+        order_sql = f"m.sorts DESC,m.id DESC"
         # 然后再计算偏移量
         offset = (page - 1) * limit
         # 然后再计算偏移量
         start_index = (page - 1) * limit + 1
-
-        sql = f'''SELECT 
-                    d.*, 
-                    c.title AS category_title
-                FROM 
-                    guzi_discord AS d
-                LEFT JOIN 
-                    guzi_category AS c 
-                ON 
-                    d.cid = c.id
-                WHERE {where_sql} ORDER BY {order_sql}   LIMIT  {limit} OFFSET {offset}'''
+        sql = f'''SELECT
+                     m.id,
+                     m.uid,
+                     m.category_id,
+                     m.discord_id,
+                     m.remark,
+                     m.sorts,
+                     t.id AS discord_table_id,
+                     t.username,
+                     t.email,
+                     t.global_name,
+                     t.token,
+                     t.cid,
+                     c.title AS category_title
+                   FROM guzi_member_discord_map m
+                   LEFT JOIN guzi_discord t ON m.discord_id = t.id
+                   LEFT JOIN guzi_category c ON m.category_id = c.id WHERE {where_sql} ORDER BY {order_sql}   LIMIT  {limit} OFFSET {offset}'''
 
         data_list = dbMysql.query(sql)
-        #print(dbMysql.getLastSql())  # 打印由Model类拼接填充生成的SQL语句
-        total_sql = f"SELECT   COUNT(*) AS total  FROM    guzi_discord AS d  LEFT JOIN   guzi_category AS c  ON   d.cid = c.id  WHERE  {where_sql}"
+        # data_list = dbMysql.table('guzi_invite_codes').where(where).order(order).page(page, limit).select()
+        print(dbMysql.getLastSql())  # 打印由Model类拼接填充生成的SQL语句
+        # total =  dbMysql.table('guzi_invite_codes').where(where).count()
+        total_sql = f"SELECT COUNT(*) AS total FROM guzi_member_discord_map m LEFT JOIN guzi_discord t ON m.discord_id = t.id LEFT JOIN guzi_category c ON m.category_id = c.id WHERE  {where_sql}"
         print(total_sql)  # 打印由Model类拼接填充生成的SQL语句
         total_list = dbMysql.query(total_sql)
         total = total_list[0]['total'] if total_list and 'total' in total_list[0] else 0
@@ -79,6 +92,7 @@ async def page():
                         "num": i + start_index,
                         "id": item["id"],
                         "uid": item["uid"],
+                        "discord_id": item["discord_id"],
                         "cid": item["cid"],
                         "cate_name": item["category_title"] or "未知分类",
                         "username": item["username"],
@@ -130,6 +144,7 @@ async def edit():
         discord_id = form.get('id')
         email = form.get('email')
         token = form.get('token')
+        sorts = form.get('sorts')
         global_name = form.get('global_name')
 
 
@@ -150,6 +165,8 @@ async def edit():
             dbdata['uid'] = uid
             dbdata['cid'] = cid
             dbMysql.table('guzi_discord').where(f"id = '{id}'").save(dbdata)
+
+            ##同步更新
 
 
         if discord_id:
@@ -173,6 +190,50 @@ async def edit():
                 dbdata['status'] = 1
                 result_id = dbMysql.table('guzi_discord_category_map').add(dbdata)
                 # print(dbMysql.getLastSql())  # 打印由Model类拼接填充生成的SQL语句
+
+
+            ###插入会员与推特账号关联表
+            ## 先查看此钱包有没有数据，没有就插入，有就更新数据状态
+            data_one = dbMysql.table('guzi_member_discord_map').where(
+                f"discord_id='{discord_id}' AND uid='{uid}' ").find()
+            dbdata = {}
+            today_time = int(time.time())
+            if data_one:
+                id = data_one['id']
+                dbdata['discord_id'] = discord_id
+                dbdata['updated'] = today_time
+                dbdata['uid'] = uid
+                dbdata['sorts'] = sorts
+                dbdata['remark'] = remark
+                dbdata['category_id'] = cid
+                result_id = dbMysql.table('guzi_member_discord_map').where(f"id = '{id}'").save(dbdata)
+            else:
+                ###统计此账号下有多少个dc，超过配置的限制，不让再增加
+                total_discord = dbMysql.table('guzi_member_discord_map').where(
+                    f"uid='{uid}' AND status='1'").count()
+                data_one = dbMysql.table('guzi_member').where(f"uid='{uid}'").field(
+                    "max_twitter,max_discord,max_discord_channel").find()
+                # print(dbMysql.getLastSql())  # 打印由Model类拼接填充生成的SQL语句
+                db_max_discord = data_one['max_discord']
+                # 取两个限制中较大的一个
+                max_limit = max(SYSTEM_MAX_DISCORD, db_max_discord)
+                if total_discord >= max_limit:
+                    return jsonify({
+                        'status': 0,
+                        'message': f'对不起，已超过系统限制的 <span style="color:#16b777;">{max_limit}</span> 个账号，请联系管理员！'
+                    })
+
+                # 获取当前日期
+                dbdata['discord_id'] = discord_id
+                dbdata['uid'] = uid
+                dbdata['sorts'] = sorts
+                dbdata['remark'] = remark
+                dbdata['category_id'] = cid
+                dbdata['created'] = today_time
+                dbdata['status'] = 1
+                result_id = dbMysql.table('guzi_member_discord_map ').add(dbdata)
+
+            time.sleep(1)
 
             return jsonify({
                 'status': 1,
@@ -202,9 +263,10 @@ async def add():
         email = form.get('email')
         token = form.get('token')
 
-        ###统计此账号下有多少个推特，超过配置的限制，不让再增加
-        total_discord = dbMysql.table('guzi_discord').where(f"uid='{uid}' AND status='1'").count()
-        data_one = dbMysql.table('guzi_member').where(f"uid='{uid}'").field("max_twitter,max_discord,max_discord_channel").find()
+        ###统计此账号下有多少个dc，超过配置的限制，不让再增加
+        total_discord = dbMysql.table('guzi_member_discord_map').where(f"uid='{uid}' AND status='1'").count()
+        data_one = dbMysql.table('guzi_member').where(f"uid='{uid}'").field(
+            "max_twitter,max_discord,max_discord_channel").find()
         # print(dbMysql.getLastSql())  # 打印由Model类拼接填充生成的SQL语句
         db_max_discord = data_one['max_discord']
         # 取两个限制中较大的一个
@@ -215,22 +277,20 @@ async def add():
                 'message': f'对不起，已超过系统限制的 <span style="color:#16b777;">{max_limit}</span> 个账号，请联系管理员！'
             })
 
-
         ## 先查看此钱包有没有数据，没有就插入，有就更新数据状态
-        data_one = dbMysql.table('guzi_discord').where(
-            f"username='{username}' AND uid='{uid}'").find()
+        data_one = dbMysql.table('guzi_discord').where( f"username='{username}'").find()
         dbdata = {}
         today_time = int(time.time())
 
         if data_one:
-            id = data_one['id']
+            discord_id = data_one['id']
             dbdata['updated'] = today_time
             dbdata['remark'] = remark
             dbdata['email'] = email
             dbdata['username'] = username
             dbdata['global_name'] = global_name
             dbdata['token'] = token
-            discord_id = dbMysql.table('guzi_discord').where(f"id = '{id}'").save(dbdata)
+            dbMysql.table('guzi_discord').where(f"id = '{discord_id}'").save(dbdata)
         else:
             # 获取当前日期
             dbdata['username'] = username
@@ -268,6 +328,29 @@ async def add():
                 result_id = dbMysql.table('guzi_discord_category_map').add(dbdata)
                 # print(dbMysql.getLastSql())  # 打印由Model类拼接填充生成的SQL语句
 
+            ###插入会员与dc账号关联表
+            ## 先查看此钱包有没有数据，没有就插入，有就更新数据状态
+            data_one = dbMysql.table('guzi_member_discord_map').where( f"discord_id='{discord_id}' AND uid='{uid}' ").find()
+            dbdata = {}
+            today_time = int(time.time())
+            if data_one:
+                id = data_one['id']
+                dbdata['discord_id'] = discord_id
+                dbdata['updated'] = today_time
+                dbdata['uid'] = uid
+                dbdata['remark'] = remark
+                dbdata['category_id'] = cid
+                result_id = dbMysql.table('guzi_member_discord_map ').where(f"id = '{id}'").save(dbdata)
+            else:
+                # 获取当前日期
+                dbdata['discord_id'] = discord_id
+                dbdata['uid'] = uid
+                dbdata['remark'] = remark
+                dbdata['category_id'] = cid
+                dbdata['created'] = today_time
+                dbdata['status'] = 1
+                result_id = dbMysql.table('guzi_member_discord_map ').add(dbdata)
+
             return jsonify({
                 'status': 1,
                 'message': '恭喜您，Discord账号增加成功！'
@@ -296,48 +379,48 @@ async def delete():  # 因为 require_login 会解码 token
         uid = g.uid
         data = await request.get_json()  # ✅ 这里必须加 await
 
-
         if id:
-            where = f"id='{id}' AND uid='{uid}'"
+            ###删除分类关联数据
+            where = f"discord_id='{id}' AND uid='{uid}'"
+            result = dbMysql.table('guzi_discord_category_map').where(where).delete()  # 返回删除的行数
 
-            result = dbMysql.table('guzi_discord').where(where).delete()  # 返回删除的行数
+            ###删除dc关联数据
+            where = f"discord_id='{id}' AND uid='{uid}'"
+            result = dbMysql.table('guzi_member_discord_map').where(where).delete()  # 返回删除的行数
 
             if result:
-                where = f"discord_id='{id}' AND uid='{uid}'"
-                result = dbMysql.table('guzi_discord_category_map').where(where).delete()  # 返回删除的行数
-
                 return jsonify({
                     'status': 1,
                     'message': '恭喜您，数据删除成功！'
                 })
-        if data:
-            ids = data.get('ids', [])
-            if not isinstance(ids, list):
-                return jsonify({'status': 0, 'message': '参数错误，ids 应该是一个列表'})
-
-            print('将要删除的 Twitter ID 列表：', ids)
-            # 构造 SQL 条件
-            id_conditions = " OR ".join([f"id='{did}'" for did in ids])
-            where = f"({id_conditions}) AND uid='{uid}'"
-            result = dbMysql.table('guzi_discord').where(where).delete()  # 返回删除的行数
-            print(dbMysql.getLastSql())  # 打印由Model类拼接填充生成的SQL语句
-            if result:
-
-                id_conditions = " OR ".join([f"discord_id='{did}'" for did in ids])
-                where = f"({id_conditions}) AND uid='{uid}'"
-                result = dbMysql.table('guzi_discord_category_map').where(where).delete()  # 返回删除的行数
-                print(dbMysql.getLastSql())  # 打印由Model类拼接填充生成的SQL语句
-
-                return jsonify({
-                    'status': 1,
-                    'message': '恭喜您，数据删除成功！'
-                })
-
 
         else:
             return jsonify({
                 'status': 0,
                 'message': f'对不起，数据删除失败！{id}'
+            })
+
+        if data:
+            ids = data.get('ids', [])
+
+            id_conditions = " OR ".join([f"discord_id='{did}'" for did in ids])
+            ###删除分类关联数据
+            where = f"({id_conditions}) AND uid='{uid}'"
+            result = dbMysql.table('guzi_discord_category_map').where(where).delete()  # 返回删除的行数
+            print(dbMysql.getLastSql())  # 打印由Model类拼接填充生成的SQL语句
+
+            ###删除dc关联数据
+            result = dbMysql.table('guzi_member_discord_map').where(where).delete()  # 返回删除的行数
+            print(dbMysql.getLastSql())  # 打印由Model类拼接填充生成的SQL语句
+            return jsonify({
+                'status': 1,
+                'message': '恭喜您，数据删除成功！'
+            })
+
+        else:
+            return jsonify({
+                'status': 0,
+                'message': f'对不起，数据删除失败！'
             })
 
 
@@ -667,11 +750,11 @@ async def delete_channel():  # 因为 require_login 会解码 token
             if not isinstance(ids, list):
                 return jsonify({'status': 0, 'message': '参数错误，ids 应该是一个列表'})
 
-            print('将要删除的 Twitter ID 列表：', ids)
+            print('将要删除的 DC ID 列表：', ids)
             # 构造 SQL 条件
             id_conditions = " OR ".join([f"id='{tid}'" for tid in ids])
             where = f"({id_conditions}) AND uid='{uid}'"
-            print('将要删除的 Twitter ID 列表：', where)
+            print('将要删除的 DC ID 列表：', where)
             result = dbMysql.table('guzi_discord_channel').where(where).delete()  # 返回删除的行数
             print(dbMysql.getLastSql())  # 打印由Model类拼接填充生成的SQL语句
 

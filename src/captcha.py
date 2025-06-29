@@ -23,6 +23,8 @@ async def api():
             "type": client_data["type"],
             "websiteUrl": client_data["websiteUrl"]
         }
+        if client_data["type"]=='recaptchaV2':
+            payload['method'] = "image"
 
         # 可选字段
         for field in ["websiteKey", "pageAction", "method", "authToken", "proxy"]:
@@ -35,7 +37,7 @@ async def api():
             solver_url = "http://localhost:3000/"
         else:
             solver_url = "http://localhost:3000/solve"
-
+        solver_url = "http://localhost:3000/"
         headers = {
             "Content-Type": "application/json"
         }
@@ -46,7 +48,7 @@ async def api():
         async with aiohttp.ClientSession() as session:
             async with session.post(solver_url, json=payload, headers=headers, timeout=300) as resp:
                 result = await resp.json()
-
+                print("⚠️  result:", result)
                 if resp.status == 200 and result.get("code") == 200:
                     print("✅ 验证成功:", result)
                     return jsonify(result)

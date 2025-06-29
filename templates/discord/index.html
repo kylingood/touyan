@@ -392,7 +392,7 @@ layui.use(['laypage', 'jquery'], function() {
 
                            <td  style="text-align:left;">
                               <div class="layui-form">
-                                   <input type="checkbox" name="checkItem" value="${item.id}"  lay-filter="checkItem"   data-id="${item.id}" lay-skin="primary" ${isYesChecked}   > ${item.num}.
+                                   <input type="checkbox" name="checkItem" value="${item.id}"  lay-filter="checkItem"   data-id="${item.discord_id}" lay-skin="primary" ${isYesChecked}   > ${item.num}.
                               </div>
                           </td>
 
@@ -402,12 +402,12 @@ layui.use(['laypage', 'jquery'], function() {
                           <td>${item.remark}</td>
                           <td>${item.email}</td>
                           <td style="text-align:right;">
-                          <span><a href="/discord/guild/did/${item.id}" class="alert-link" ><button type="button" class="layui-btn   layui-btn-sm" style="background-color: #16b777">频道列表</button></a></span>
+                          <span><a href="/discord/guild/did/${item.discord_id}" class="alert-link" ><button type="button" class="layui-btn   layui-btn-sm" style="background-color: #16b777">频道列表</button></a></span>
 
-                          <span   lay-on="add-channel-confirm"  data-id="${item.id}"  data-global-name="${item.global_name}" data-username="${item.username}" data-discord-token="${item.token}"  ><button type="button" class="layui-btn  layui-btn-sm">增加监控</button></span>
+                          <span   lay-on="add-channel-confirm"  data-id="${item.discord_id}"  data-global-name="${item.global_name}" data-username="${item.username}" data-discord-token="${item.token}"  ><button type="button" class="layui-btn  layui-btn-sm">增加监控</button></span>
 
-                          <span   lay-on="edit-confirm"  data-id="${item.id}" data-email="${item.email}" data-discord-token="${item.token}"  data-cid="${item.cid}"  data-title="${item.username}" data-global-name="${item.global_name}"  data-remark="${item.remark}" ><button type="button" class="layui-btn layui-bg-blue  layui-btn-sm">修改</button></span>
-                           <span   lay-on="del-discord-confirm"  data-id="${item.id}" ><button type="button" class="layui-btn layui-bg-red  layui-btn-sm">删除</button></span>
+                          <span   lay-on="edit-confirm"  data-id="${item.discord_id}" data-email="${item.email}" data-discord-token="${item.token}"  data-cid="${item.cid}"  data-title="${item.username}" data-global-name="${item.global_name}"  data-remark="${item.remark}" ><button type="button" class="layui-btn layui-bg-blue  layui-btn-sm">修改</button></span>
+                           <span   lay-on="del-discord-confirm"  data-id="${item.discord_id}" ><button type="button" class="layui-btn layui-bg-red  layui-btn-sm">删除</button></span>
                            </td>
                         </tr>`;
     });
