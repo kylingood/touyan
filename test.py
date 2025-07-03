@@ -17,6 +17,7 @@ with open('accounts.txt', 'r') as f:
         new_pass = generate_new_password()
 
         data = {
+
             "login": login,
             "old_password": old_pass,
             "new_password": new_pass
